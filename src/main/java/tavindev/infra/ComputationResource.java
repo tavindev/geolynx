@@ -1,4 +1,4 @@
-package pt.unl.fct.di.apdc.firstwebapp.resources;
+package tavindev.infra;
 
 import java.io.IOException;
 import java.net.URI;
@@ -65,7 +65,7 @@ public class ComputationResource {
 		try (CloudTasksClient client = CloudTasksClient.create()) {
 			String queuePath = QueueName.of(projectId, location, queueName).toString();
 			Task.Builder taskBuilder = Task.newBuilder().setAppEngineHttpRequest(AppEngineHttpRequest.newBuilder()
-					.setRelativeUri("/rest/utils/compute").setHttpMethod(HttpMethod.POST).build());
+					.setRelativeUri("/api/utils/compute").setHttpMethod(HttpMethod.POST).build());
 
 			taskBuilder.setScheduleTime(Timestamp.newBuilder().setSeconds(Instant.now(Clock.systemUTC()).getEpochSecond()));
 

@@ -1,4 +1,4 @@
-package pt.unl.fct.di.apdc.firstwebapp.resources;
+package tavindev.infra;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,8 +20,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import pt.unl.fct.di.apdc.firstwebapp.util.LoginData;
-import pt.unl.fct.di.apdc.firstwebapp.util.RegisterData;
+import tavindev.util.LoginData;
+import tavindev.util.RegisterData;
 
 @Path("/register")
 public class RegisterResource {

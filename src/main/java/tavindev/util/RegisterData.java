@@ -1,4 +1,4 @@
-package pt.unl.fct.di.apdc.firstwebapp.util;
+package tavindev.util;
 
 public class RegisterData {
 

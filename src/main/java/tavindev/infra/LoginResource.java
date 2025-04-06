@@ -1,4 +1,4 @@
-package pt.unl.fct.di.apdc.firstwebapp.resources;
+package tavindev.infra;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -37,8 +37,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response.Status;
-import pt.unl.fct.di.apdc.firstwebapp.core.AuthToken;
-import pt.unl.fct.di.apdc.firstwebapp.util.LoginData;
+import tavindev.core.AuthToken;
+import tavindev.util.LoginData;
 
 @Path("/login")
 @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
