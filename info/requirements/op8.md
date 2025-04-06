@@ -9,7 +9,7 @@ Esta operação permite ao utilizador modificar a sua password, fornecendo a **p
 ## Endpoint
 
 ```
-POST /api/change-password
+POST /api/user/change-password
 ```
 
 ---

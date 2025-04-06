@@ -9,7 +9,7 @@ Esta operação permite remover uma conta de utilizador da aplicação, desde qu
 ## Endpoint
 
 ```
-POST /api/remove-user-account
+POST /api/user/remove
 ```
 
 ---
@@ -37,7 +37,21 @@ Content-Type: application/json
 
 ```json
 {
-  "identificador": "utilizador123"
+  "email": "utilizador@example.com"
+}
+
+ou
+
+```json
+{
+  "userID": "1234567890"
+}
+
+ou
+
+```json
+{
+  "username": "utilizador123"
 }
 ```
 

@@ -9,7 +9,7 @@ Esta operação permite que o utilizador realize o **logout** de uma sessão. Ap
 ## Endpoint
 
 ```
-POST /api/logout
+POST /api/user/logout
 ```
 
 ---

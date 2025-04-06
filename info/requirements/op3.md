@@ -9,7 +9,7 @@ Esta operação permite alterar o **papel (role)** de um utilizador existente, r
 ## Endpoint
 
 ```
-POST /api/change-role
+POST /api/user/change-role
 ```
 
 ---

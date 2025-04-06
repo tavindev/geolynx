@@ -9,7 +9,7 @@ Esta operação permite modificar os atributos de contas de utilizadores. A modi
 ## Endpoint
 
 ```
-POST /api/change-account-attributes
+POST /api/user/change-attributes
 ```
 
 ---

@@ -9,7 +9,7 @@ Esta operação permite a **autenticação de um utilizador** através de uma ch
 ## Endpoint
 
 ```
-POST /api/login
+POST /api/user/login
 ```
 
 ---

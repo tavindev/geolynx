@@ -9,7 +9,7 @@ Esta operação permite o **registo e criação de até 4 contas de utilizadores
 ## Endpoint
 
 ```
-POST /api/register
+POST /api/user/register
 ```
 
 ---

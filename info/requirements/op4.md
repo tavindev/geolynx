@@ -9,7 +9,7 @@ Esta operação permite alterar o **estado da conta** de um utilizador entre os 
 ## Endpoint
 
 ```
-POST /api/change-account-state
+POST /api/user/change-account-state
 ```
 
 ---

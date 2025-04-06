@@ -9,7 +9,7 @@ Esta operação permite listar os utilizadores (contas) registadas na aplicaçã
 ## Endpoint
 
 ```
-POST /api/list-users
+POST /api/user/all
 ```
 
 ---
