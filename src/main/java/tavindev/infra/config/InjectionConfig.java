@@ -6,7 +6,7 @@ import tavindev.core.services.AuthService;
 import tavindev.core.services.UserService;
 import tavindev.infra.repositories.FirebaseUserRepository;
 
-public class RepositoryConfig extends AbstractBinder {
+public class InjectionConfig extends AbstractBinder {
     @Override
     protected void configure() {
         bind(FirebaseUserRepository.class).to(UserRepository.class);

@@ -8,9 +8,8 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 import org.jvnet.hk2.annotations.Service;
+import tavindev.core.AuthToken;
 import tavindev.core.services.AuthService;
 import tavindev.core.services.UserService;
 import tavindev.infra.dto.*;
@@ -28,37 +27,27 @@ public class AuthController {
     @POST
     @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response registerUser(@Valid @NotNull RegisterUserDTO user) {
+    public RegisterUserDTO registerUser(@Valid @NotNull RegisterUserDTO user) {
         userService.registerUser(user);
 
-        return Response.status(Status.CREATED).build();
+        return user;
     }
 
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response login(@Valid LoginRequestDTO request) {
-        try {
-            LoginResponseDTO response = authService.login(request);
-            return Response.ok(response).build();
-        } catch (Exception e) {
-            return Response.status(Status.UNAUTHORIZED)
-                    .entity("{\"error\": \"Credenciais inválidas\"}")
-                    .build();
-        }
+    public LoginResponseDTO login(@Valid LoginDTO request) {
+        AuthToken token = authService.login(request);
+
+        return LoginResponseDTO.fromAuthToken(token);
     }
 
     @POST
     @Path("/logout")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response logout(@Valid LogoutRequestDTO request) {
-        try {
-            LogoutResponseDTO response = authService.logout(request);
-            return Response.ok(response).build();
-        } catch (Exception e) {
-            return Response.status(Status.UNAUTHORIZED)
-                    .entity("{\"error\": \"Sessão inválida ou já encerrada.\"}")
-                    .build();
-        }
+    public LogoutResponseDTO logout(@Valid LogoutRequestDTO request) {
+        authService.logout(request);
+
+        return new LogoutResponseDTO("Logout realizado com sucesso. A sessão foi encerrada.");
     }
-} 
+}

@@ -1,8 +1,5 @@
 package tavindev.core.entities;
 
-import java.util.regex.Pattern;
-import java.util.Optional;
-
 public record User(
     PersonalInfo personalInfo,
     IdentificationInfo identificationInfo,
@@ -11,21 +8,30 @@ public record User(
     UserRole role,
     AccountStatus accountStatus
 ) {
-    public static User create(
-        String email,
-        String username,
-        String fullName,
-        String phone,
-        String password,
-        UserProfile profile
-    ) {
+    public static User empty() {
         return new User(
-            new PersonalInfo(email, username, fullName, phone, password, Optional.empty()),
+            PersonalInfo.empty(),
             IdentificationInfo.empty(),
             ProfessionalInfo.empty(),
-            profile,
+            UserProfile.PRIVADO,
             UserRole.ENDUSER,
             AccountStatus.DESATIVADA
         );
     }
-} 
+
+    public boolean isPasswordInvalid(String password) {
+        return !this.personalInfo.password().equals(password);
+    }
+
+    public String getUsername() {
+        return this.personalInfo().username();
+    }
+
+    public String getEmail() {
+        return this.personalInfo().email();
+    }
+
+    public UserRole getRole() {
+        return this.role;
+    }
+}

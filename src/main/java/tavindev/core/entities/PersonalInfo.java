@@ -9,4 +9,15 @@ public record PersonalInfo(
     String phone,
     String password,
     Optional<String> photo
-) { }
+) {
+    public static PersonalInfo empty() {
+        return new PersonalInfo(
+            "",
+            "",
+            "",
+            "",
+            "",
+            Optional.empty()
+        );
+    }
+}

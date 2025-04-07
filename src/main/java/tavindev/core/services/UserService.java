@@ -3,10 +3,10 @@ package tavindev.core.services;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
 import tavindev.core.UserRepository;
 import tavindev.core.entities.*;
+import tavindev.core.exceptions.PasswordDoesntMatchException;
+import tavindev.core.exceptions.UserAlreadyExistsException;
 import tavindev.infra.dto.RegisterUserDTO;
 
 import java.util.Optional;
@@ -18,8 +18,11 @@ public class UserService {
     public void registerUser(@NotNull @Valid RegisterUserDTO registerUserDTO) {
         User existing = this.userRepository.findByEmail(registerUserDTO.email());
 
-        if (existing != null) {
-            throw new WebApplicationException(Response.Status.CONFLICT);
+        if (existing != null)
+            throw new UserAlreadyExistsException();
+
+        if (registerUserDTO.isPasswordNotMatch()) {
+            throw new PasswordDoesntMatchException();
         }
 
         PersonalInfo personalInfo = new PersonalInfo(

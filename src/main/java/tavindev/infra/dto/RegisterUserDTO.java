@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-
 public record RegisterUserDTO(
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
@@ -41,4 +40,8 @@ public record RegisterUserDTO(
     String address,
     String employerTaxNumber,
     String photo
-) {}
+) {
+    public boolean isPasswordNotMatch() {
+        return !password.equals(confirmPassword);
+    }
+}
