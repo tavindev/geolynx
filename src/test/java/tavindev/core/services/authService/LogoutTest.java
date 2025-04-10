@@ -1,18 +1,17 @@
 package tavindev.core.services.authService;
 
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import tavindev.core.AuthToken;
-import tavindev.core.UserRepository;
+import tavindev.core.entities.AuthToken;
+import tavindev.core.repositories.AuthTokenRepository;
+import tavindev.core.repositories.UserRepository;
 import tavindev.core.entities.UserRole;
 import tavindev.core.exceptions.AuthTokenNotFoundException;
 import tavindev.core.services.AuthService;
-import tavindev.infra.dto.LogoutRequestDTO;
+import tavindev.infra.dto.logout.LogoutRequestDTO;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,12 +21,15 @@ class LogoutTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AuthTokenRepository authTokenRepository;
+
     @InjectMocks
     private AuthService authService;
 
     @Test
     void whenTokenIsNotFound_ShouldThrowException() {
-        when(userRepository.findAuthTokenByTokenId(anyString())).thenReturn(null);
+        when(authTokenRepository.findById(anyString())).thenReturn(null);
 
         assertThrows(AuthTokenNotFoundException.class, () -> {
             authService.logout(new LogoutRequestDTO("invalidToken"));
@@ -37,11 +39,11 @@ class LogoutTest {
 		@Test
 		void whenTokenIsFound_ShouldLogout() {
             AuthToken token = new AuthToken("testUser", UserRole.ENDUSER);
-            when(userRepository.findAuthTokenByTokenId(anyString())).thenReturn(token);
+            when(authTokenRepository.findById(anyString())).thenReturn(token);
 
 			authService.logout(new LogoutRequestDTO(token.getTokenId()));
 
-			verify(userRepository).logout(token);
+			verify(authTokenRepository).logout(token);
 		}
 
 		@Test
@@ -51,7 +53,7 @@ class LogoutTest {
                     System.currentTimeMillis(),
                     System.currentTimeMillis() - 1000
             ));
-			when(userRepository.findAuthTokenByTokenId(anyString())).thenReturn(token);
+			when(authTokenRepository.findById(anyString())).thenReturn(token);
 
 			assertThrows(AuthTokenNotFoundException.class, () -> {
 				authService.logout(new LogoutRequestDTO(token.getTokenId()));

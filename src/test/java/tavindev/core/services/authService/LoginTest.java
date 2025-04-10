@@ -5,14 +5,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import tavindev.core.AuthToken;
-import tavindev.core.UserRepository;
+import tavindev.core.entities.AuthToken;
+import tavindev.core.repositories.AuthTokenRepository;
+import tavindev.core.repositories.UserRepository;
 import tavindev.core.entities.User;
 import tavindev.core.exceptions.InvalidCredentialsException;
 import tavindev.core.exceptions.UserNotFoundException;
 import tavindev.core.services.AuthService;
-import tavindev.infra.dto.LoginDTO;
-import tavindev.infra.dto.LoginResponseDTO;
+import tavindev.infra.dto.login.LoginDTO;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -23,6 +23,9 @@ public class LoginTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private AuthTokenRepository authTokenRepository;
 
     @InjectMocks
     private AuthService authService;

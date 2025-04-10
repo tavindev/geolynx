@@ -9,10 +9,13 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.jvnet.hk2.annotations.Service;
-import tavindev.core.AuthToken;
+import tavindev.core.entities.AuthToken;
 import tavindev.core.services.AuthService;
-import tavindev.core.services.UserService;
 import tavindev.infra.dto.*;
+import tavindev.infra.dto.login.LoginDTO;
+import tavindev.infra.dto.login.LoginResponseDTO;
+import tavindev.infra.dto.logout.LogoutRequestDTO;
+import tavindev.infra.dto.logout.LogoutResponseDTO;
 
 @Service
 @Path("/user")
@@ -21,14 +24,11 @@ public class AuthController {
     @Inject
     private AuthService authService;
 
-    @Inject
-    private UserService userService;
-
     @POST
     @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)
     public RegisterUserDTO registerUser(@Valid @NotNull RegisterUserDTO user) {
-        userService.registerUser(user);
+        authService.registerUser(user);
 
         return user;
     }

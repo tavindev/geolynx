@@ -5,7 +5,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import tavindev.core.errors.Error;
-import tavindev.core.errors.ErrorCodeMapper;
+import tavindev.infra.http.ErrorCodeMapper;
 import tavindev.core.exceptions.DomainException;
 
 @Provider

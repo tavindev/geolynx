@@ -1,60 +1,174 @@
 package tavindev.core.services;
 
 import jakarta.inject.Inject;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import tavindev.core.UserRepository;
-import tavindev.core.entities.*;
-import tavindev.core.exceptions.PasswordDoesntMatchException;
-import tavindev.core.exceptions.UserAlreadyExistsException;
-import tavindev.infra.dto.RegisterUserDTO;
+import org.jvnet.hk2.annotations.Service;
+import tavindev.core.entities.AuthToken;
+import tavindev.core.repositories.AuthTokenRepository;
+import tavindev.core.repositories.UserRepository;
+import tavindev.core.authorization.roleChange.RoleChangeAuthorizationChain;
+import tavindev.core.authorization.accountState.AccountStateChangeAuthorizationChain;
+import tavindev.core.authorization.accountRemoval.AccountRemovalAuthorizationChain;
+import tavindev.core.authorization.attributeChange.AttributeChangeAuthorizationChain;
+import tavindev.core.entities.User;
+import tavindev.core.entities.UserRole;
+import tavindev.core.entities.AccountStatus;
+import tavindev.core.exceptions.AuthTokenNotFoundException;
+import tavindev.core.exceptions.UserNotFoundException;
+import tavindev.core.exceptions.InvalidCredentialsException;
+import tavindev.core.services.strategy.UserFilterStrategy;
+import tavindev.core.services.strategy.UserFilterStrategyFactory;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+@Service
 public class UserService {
     @Inject
     private UserRepository userRepository;
 
-    public void registerUser(@NotNull @Valid RegisterUserDTO registerUserDTO) {
-        User existing = this.userRepository.findByEmail(registerUserDTO.email());
+    @Inject
+    private AuthTokenRepository authTokenRepository;
 
-        if (existing != null)
-            throw new UserAlreadyExistsException();
+    @Inject
+    private RoleChangeAuthorizationChain roleChangeAuthorizationChain;
 
-        if (registerUserDTO.isPasswordNotMatch()) {
-            throw new PasswordDoesntMatchException();
+    @Inject
+    private AccountStateChangeAuthorizationChain accountStateChangeAuthorizationChain;
+
+    @Inject
+    private AccountRemovalAuthorizationChain accountRemovalAuthorizationChain;
+
+    @Inject
+    private AttributeChangeAuthorizationChain attributeChangeAuthorizationChain;
+
+    public List<User> listUsers(String tokenId) {
+        AuthToken authToken = authTokenRepository.findById(tokenId);
+
+        if (authToken == null || authToken.isExpired()) {
+            throw new AuthTokenNotFoundException();
         }
 
-        PersonalInfo personalInfo = new PersonalInfo(
-            registerUserDTO.email(),
-            registerUserDTO.username(),
-            registerUserDTO.fullName(),
-            registerUserDTO.phoneNumber(),
-            registerUserDTO.password(),
-            Optional.of(registerUserDTO.photo())
-        );
+        User currentUser = userRepository.findByUsername(authToken.getUsername());
+        if (currentUser == null) {
+            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
+        }
 
-        IdentificationInfo identificationInfo = new IdentificationInfo(
-            Optional.of(registerUserDTO.citizenCardNumber()),
-            Optional.of(registerUserDTO.taxNumber()),
-            Optional.of(registerUserDTO.address())
-        );
+        List<User> allUsers = userRepository.findAllUsers();
+        UserFilterStrategy filterStrategy = UserFilterStrategyFactory.getStrategy(currentUser.getRole());
 
-        ProfessionalInfo professionalInfo = new ProfessionalInfo(
-            Optional.of(registerUserDTO.employer()),
-            Optional.of(registerUserDTO.jobTitle()),
-            Optional.of(registerUserDTO.employerTaxNumber())
-        );
+        return allUsers.stream()
+            .filter(filterStrategy::shouldInclude)
+            .collect(Collectors.toList());
+    }
 
-        User user = new User(
-            personalInfo,
-            identificationInfo,
-            professionalInfo,
-            UserProfile.valueOf(registerUserDTO.profile()),
-            UserRole.ENDUSER,
-            AccountStatus.DESATIVADA
-        );
+    public void changeRole(String tokenId, String username, UserRole newRole) {
+        AuthToken authToken = authTokenRepository.findById(tokenId);
 
-        this.userRepository.save(user);
+        if (authToken == null || authToken.isExpired()) {
+            throw new AuthTokenNotFoundException();
+        }
+
+        User currentUser = userRepository.findByUsername(authToken.getUsername());
+        if (currentUser == null) {
+            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
+        }
+
+        User targetUser = userRepository.findByUsername(username);
+        if (targetUser == null) {
+            throw new UserNotFoundException("Utilizador não encontrado.");
+        }
+
+        this.roleChangeAuthorizationChain.handle(currentUser, targetUser, newRole);
+
+        userRepository.updateRole(targetUser, newRole);
+    }
+
+    public void changeAccountState(String tokenId, String username, AccountStatus newState) {
+        AuthToken authToken = authTokenRepository.findById(tokenId);
+
+        if (authToken == null || authToken.isExpired()) {
+            throw new AuthTokenNotFoundException();
+        }
+
+        User currentUser = userRepository.findByUsername(authToken.getUsername());
+        if (currentUser == null) {
+            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
+        }
+
+        User targetUser = userRepository.findByUsername(username);
+        if (targetUser == null) {
+            throw new UserNotFoundException("Utilizador não encontrado.");
+        }
+
+        this.accountStateChangeAuthorizationChain.handle(currentUser, targetUser, newState);
+        
+        userRepository.updateAccountState(targetUser, newState);
+    }
+
+    public void removeAccount(String tokenId, String identifier) {
+        AuthToken authToken = authTokenRepository.findById(tokenId);
+
+        if (authToken == null || authToken.isExpired()) {
+            throw new AuthTokenNotFoundException();
+        }
+
+        User currentUser = userRepository.findByUsername(authToken.getUsername());
+        if (currentUser == null) {
+            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
+        }
+
+        User targetUser = userRepository.findByIdentifier(identifier);
+        if (targetUser == null) {
+            throw new UserNotFoundException("Utilizador não encontrado.");
+        }
+
+        this.accountRemovalAuthorizationChain.handle(currentUser, targetUser);
+        
+        userRepository.delete(targetUser);
+    }
+
+    public void changeAttributes(String tokenId, String identifier, Map<String, String> attributes) {
+        AuthToken authToken = authTokenRepository.findById(tokenId);
+
+        if (authToken == null || authToken.isExpired()) {
+            throw new AuthTokenNotFoundException();
+        }
+
+        User currentUser = userRepository.findByUsername(authToken.getUsername());
+        if (currentUser == null) {
+            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
+        }
+
+        User targetUser = userRepository.findByIdentifier(identifier);
+        if (targetUser == null) {
+            throw new UserNotFoundException("Utilizador não encontrado.");
+        }
+
+        // Check authorization for each attribute
+        for (String attributeName : attributes.keySet()) {
+            attributeChangeAuthorizationChain.handle(currentUser, targetUser, attributeName);
+        }
+
+        userRepository.updateAttributes(targetUser, attributes);
+    }
+
+    public void changePassword(String tokenId, String currentPassword, String newPassword) {
+        AuthToken authToken = authTokenRepository.findById(tokenId);
+
+        if (authToken == null || authToken.isExpired()) {
+            throw new AuthTokenNotFoundException();
+        }
+
+        User currentUser = userRepository.findByUsername(authToken.getUsername());
+        if (currentUser == null) {
+            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
+        }
+
+        if (currentUser.isPasswordInvalid(currentPassword)) {
+            throw new InvalidCredentialsException();
+        }
+
+        userRepository.updatePassword(currentUser, newPassword);
     }
 }

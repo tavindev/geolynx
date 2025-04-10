@@ -11,5 +11,6 @@ public class ApplicationConfig extends ResourceConfig {
         packages("tavindev");
         register(new InjectionConfig());
         register(AuthTokenExtractionFilter.class);
+
     }
 } 

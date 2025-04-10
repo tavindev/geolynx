@@ -19,7 +19,7 @@
 		<maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
 
 	    <app.deploy.projectId>root-app-453615-f3</app.deploy.projectId>
-		<app.deploy.version>5</app.deploy.version>
+		<app.deploy.version>10</app.deploy.version>
   </properties>
 
 	<dependencyManagement>
@@ -35,8 +35,6 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<!-- Compile/runtime dependencies -->
-
 		<dependency>
 			<groupId>com.google.appengine</groupId>
 			<artifactId>appengine-api-1.0-sdk</artifactId>
@@ -131,6 +129,17 @@
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
 			<version>3.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.16.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.16.1</version>
 		</dependency>
 
 		<!-- Test dependencies -->
