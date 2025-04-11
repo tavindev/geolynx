@@ -9,7 +9,7 @@ public class EndUserFilterStrategy implements UserFilterStrategy {
     @Override
     public boolean shouldInclude(User user) {
         return user.getRole() == UserRole.ENDUSER && 
-               user.profile() == UserProfile.PUBLICO &&
-               user.accountStatus() == AccountStatus.ATIVADA;
+               user.getProfile() == UserProfile.PUBLICO &&
+               user.getAccountStatus() == AccountStatus.ATIVADA;
     }
 } 

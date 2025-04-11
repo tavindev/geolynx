@@ -19,7 +19,7 @@
 		<maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
 
 	    <app.deploy.projectId>root-app-453615-f3</app.deploy.projectId>
-		<app.deploy.version>10</app.deploy.version>
+		<app.deploy.version>11</app.deploy.version>
   </properties>
 
 	<dependencyManagement>
@@ -168,6 +168,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.mindrot</groupId>
+			<artifactId>jbcrypt</artifactId>
+			<version>0.4</version>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>
@@ -178,6 +185,15 @@
 				<groupId>com.google.cloud.tools</groupId>
 				<artifactId>appengine-maven-plugin</artifactId>
 				<version>${appengine.maven.plugin.version}</version>
+				<configuration>
+					<version>${app.deploy.version}</version>
+					<projectId>${app.deploy.projectId}</projectId>
+					<devserver>
+						<port>8080</port>
+						<address>0.0.0.0</address>
+						<automaticRestart>true</automaticRestart>
+					</devserver>
+				</configuration>
 			</plugin>
 		</plugins>
 

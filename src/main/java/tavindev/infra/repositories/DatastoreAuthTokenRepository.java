@@ -6,10 +6,8 @@ import tavindev.core.entities.AuthToken;
 import tavindev.core.repositories.AuthTokenRepository;
 import tavindev.core.entities.UserRole;
 
-import java.time.Instant;
-
 @Service
-public class FirebaseAuthTokenRepository implements AuthTokenRepository {
+public class DatastoreAuthTokenRepository implements AuthTokenRepository {
     private static final String AUTH_TOKEN_KIND = "AuthToken";
     private final Datastore datastore = DatastoreManager.getInstance();
 
@@ -45,7 +43,7 @@ public class FirebaseAuthTokenRepository implements AuthTokenRepository {
 
         Entity tokenEntity = Entity.newBuilder(tokenKey)
             .set("username", authToken.getUsername())
-            .set("role", authToken.getUserRole().name())
+            .set("role", authToken.getUserRole().toString())
             .set("createdAt", authToken.getCreationData())
             .set("expiresAt", authToken.getExpirationData())
             .build();

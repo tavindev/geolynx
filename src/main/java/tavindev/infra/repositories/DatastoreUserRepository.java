@@ -4,6 +4,7 @@ import com.google.cloud.datastore.*;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.repositories.UserRepository;
 import tavindev.core.entities.*;
+import tavindev.core.utils.PasswordUtils;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -11,31 +12,31 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-public class FirebaseUserRepository implements UserRepository {
+public class DatastoreUserRepository implements UserRepository {
     private static final String USER_KIND = "User";
     private final Datastore datastore = DatastoreManager.getInstance();
 
     @Override
     public void save(User user) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(user.getUsername());
+        Key userKey = keyFactory.newKey(user.getId());
 
         Entity userEntity = Entity.newBuilder(userKey)
             .set("email", user.getEmail())
             .set("username", user.getUsername())
-            .set("fullName", user.personalInfo().fullName())
-            .set("phone", user.personalInfo().phone())
-            .set("password", user.personalInfo().password())
+            .set("fullName", user.getPersonalInfo().fullName())
+            .set("phone", user.getPersonalInfo().phone())
+            .set("password", PasswordUtils.hashPassword(user.getPersonalInfo().password()))
             .set("role", user.getRole().name())
-            .set("accountStatus", user.accountStatus().name())
-            .set("profile", user.profile().name())
-            .set("citizenCard", user.identificationInfo().citizenCard().orElse(""))
-            .set("taxId", user.identificationInfo().taxId().orElse(""))
-            .set("address", user.identificationInfo().address().orElse(""))
-            .set("employer", user.professionalInfo().employer().orElse(""))
-            .set("jobTitle", user.professionalInfo().jobTitle().orElse(""))
-            .set("employerTaxId", user.professionalInfo().employerTaxId().orElse(""))
-            .set("photo", user.personalInfo().photo().orElse(""))
+            .set("accountStatus", user.getAccountStatus().name())
+            .set("profile", user.getProfile().name())
+            .set("citizenCard", user.getIdentificationInfo().citizenCard().orElse(""))
+            .set("taxId", user.getIdentificationInfo().taxId().orElse(""))
+            .set("address", user.getIdentificationInfo().address().orElse(""))
+            .set("employer", user.getProfessionalInfo().employer().orElse(""))
+            .set("jobTitle", user.getProfessionalInfo().jobTitle().orElse(""))
+            .set("employerTaxId", user.getProfessionalInfo().employerTaxId().orElse(""))
+            .set("photo", user.getPersonalInfo().photo().orElse(""))
             .build();
 
         datastore.put(userEntity);
@@ -44,7 +45,7 @@ public class FirebaseUserRepository implements UserRepository {
     @Override
     public void delete(User user) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(user.getUsername());
+        Key userKey = keyFactory.newKey(user.getId());
         datastore.delete(userKey);
     }
 
@@ -84,7 +85,7 @@ public class FirebaseUserRepository implements UserRepository {
     @Override
     public void updateRole(User user, UserRole newRole) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(user.getUsername());
+        Key userKey = keyFactory.newKey(user.getId());
         Entity userEntity = datastore.get(userKey);
         
         if (userEntity != null) {
@@ -99,7 +100,7 @@ public class FirebaseUserRepository implements UserRepository {
     @Override
     public void updateAccountState(User user, AccountStatus accountStatus) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(user.getUsername());
+        Key userKey = keyFactory.newKey(user.getId());
         Entity userEntity = datastore.get(userKey);
         
         if (userEntity != null) {
@@ -114,7 +115,7 @@ public class FirebaseUserRepository implements UserRepository {
     @Override
     public void updateAttributes(User user, Map<String, String> attributes) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(user.getUsername());
+        Key userKey = keyFactory.newKey(user.getId());
         Entity userEntity = datastore.get(userKey);
         
         if (userEntity != null) {
@@ -147,12 +148,12 @@ public class FirebaseUserRepository implements UserRepository {
     @Override
     public void updatePassword(User user, String newPassword) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(user.getUsername());
+        Key userKey = keyFactory.newKey(user.getId());
         Entity userEntity = datastore.get(userKey);
         
         if (userEntity != null) {
             Entity updatedEntity = Entity.newBuilder(userEntity)
-                .set("password", newPassword)
+                .set("password", PasswordUtils.hashPassword(newPassword))
                 .build();
             datastore.update(updatedEntity);
         }

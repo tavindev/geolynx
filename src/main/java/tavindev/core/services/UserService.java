@@ -17,6 +17,7 @@ import tavindev.core.exceptions.UserNotFoundException;
 import tavindev.core.exceptions.InvalidCredentialsException;
 import tavindev.core.services.strategy.UserFilterStrategy;
 import tavindev.core.services.strategy.UserFilterStrategyFactory;
+import tavindev.core.utils.AuthUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -42,17 +43,11 @@ public class UserService {
     @Inject
     private AttributeChangeAuthorizationChain attributeChangeAuthorizationChain;
 
+    @Inject
+    private AuthUtils authUtils;
+
     public List<User> listUsers(String tokenId) {
-        AuthToken authToken = authTokenRepository.findById(tokenId);
-
-        if (authToken == null || authToken.isExpired()) {
-            throw new AuthTokenNotFoundException();
-        }
-
-        User currentUser = userRepository.findByUsername(authToken.getUsername());
-        if (currentUser == null) {
-            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
-        }
+        User currentUser = authUtils.validateAndGetUser(tokenId);
 
         List<User> allUsers = userRepository.findAllUsers();
         UserFilterStrategy filterStrategy = UserFilterStrategyFactory.getStrategy(currentUser.getRole());
@@ -63,16 +58,7 @@ public class UserService {
     }
 
     public void changeRole(String tokenId, String username, UserRole newRole) {
-        AuthToken authToken = authTokenRepository.findById(tokenId);
-
-        if (authToken == null || authToken.isExpired()) {
-            throw new AuthTokenNotFoundException();
-        }
-
-        User currentUser = userRepository.findByUsername(authToken.getUsername());
-        if (currentUser == null) {
-            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
-        }
+        User currentUser = authUtils.validateAndGetUser(tokenId);
 
         User targetUser = userRepository.findByUsername(username);
         if (targetUser == null) {
@@ -85,16 +71,7 @@ public class UserService {
     }
 
     public void changeAccountState(String tokenId, String username, AccountStatus newState) {
-        AuthToken authToken = authTokenRepository.findById(tokenId);
-
-        if (authToken == null || authToken.isExpired()) {
-            throw new AuthTokenNotFoundException();
-        }
-
-        User currentUser = userRepository.findByUsername(authToken.getUsername());
-        if (currentUser == null) {
-            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
-        }
+        User currentUser = authUtils.validateAndGetUser(tokenId);
 
         User targetUser = userRepository.findByUsername(username);
         if (targetUser == null) {
@@ -107,16 +84,7 @@ public class UserService {
     }
 
     public void removeAccount(String tokenId, String identifier) {
-        AuthToken authToken = authTokenRepository.findById(tokenId);
-
-        if (authToken == null || authToken.isExpired()) {
-            throw new AuthTokenNotFoundException();
-        }
-
-        User currentUser = userRepository.findByUsername(authToken.getUsername());
-        if (currentUser == null) {
-            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
-        }
+        User currentUser = authUtils.validateAndGetUser(tokenId);
 
         User targetUser = userRepository.findByIdentifier(identifier);
         if (targetUser == null) {
@@ -129,16 +97,7 @@ public class UserService {
     }
 
     public void changeAttributes(String tokenId, String identifier, Map<String, String> attributes) {
-        AuthToken authToken = authTokenRepository.findById(tokenId);
-
-        if (authToken == null || authToken.isExpired()) {
-            throw new AuthTokenNotFoundException();
-        }
-
-        User currentUser = userRepository.findByUsername(authToken.getUsername());
-        if (currentUser == null) {
-            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
-        }
+        User currentUser = authUtils.validateAndGetUser(tokenId);
 
         User targetUser = userRepository.findByIdentifier(identifier);
         if (targetUser == null) {
@@ -154,16 +113,7 @@ public class UserService {
     }
 
     public void changePassword(String tokenId, String currentPassword, String newPassword) {
-        AuthToken authToken = authTokenRepository.findById(tokenId);
-
-        if (authToken == null || authToken.isExpired()) {
-            throw new AuthTokenNotFoundException();
-        }
-
-        User currentUser = userRepository.findByUsername(authToken.getUsername());
-        if (currentUser == null) {
-            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
-        }
+        User currentUser = authUtils.validateAndGetUser(tokenId);
 
         if (currentUser.isPasswordInvalid(currentPassword)) {
             throw new InvalidCredentialsException();

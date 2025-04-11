@@ -82,17 +82,17 @@ public class UserController {
             .map(user -> new UserDTO(
                 user.getUsername(),
                 user.getEmail(),
-                user.personalInfo().fullName(),
-                user.personalInfo().phone(),
-                user.accountStatus().name(),
-                user.profile().name(),
+                user.getPersonalInfo().fullName(),
+                user.getPersonalInfo().phone(),
+                user.getAccountStatus().name(),
+                user.getProfile().name(),
                 user.getRole().name(),
-                user.identificationInfo().address().orElse(null),
-                user.identificationInfo().taxId().orElse(null),
-                user.professionalInfo().employer().orElse(null),
-                user.professionalInfo().jobTitle().orElse(null),
-                user.professionalInfo().employerTaxId().orElse(null),
-                user.personalInfo().photo().orElse(null)
+                user.getIdentificationInfo().address().orElse(null),
+                user.getIdentificationInfo().taxId().orElse(null),
+                user.getProfessionalInfo().employer().orElse(null),
+                user.getProfessionalInfo().jobTitle().orElse(null),
+                user.getProfessionalInfo().employerTaxId().orElse(null),
+                user.getPersonalInfo().photo().orElse(null)
             ))
             .collect(Collectors.toList());
             

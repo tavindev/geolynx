@@ -9,8 +9,8 @@ public class ApplicationConfig extends ResourceConfig {
     public ApplicationConfig() {
         // Register packages to scan for resources
         packages("tavindev");
+
         register(new InjectionConfig());
         register(AuthTokenExtractionFilter.class);
-
     }
 } 
