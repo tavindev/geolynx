@@ -37,21 +37,7 @@ Content-Type: application/json
 
 ```json
 {
-  "email": "utilizador@example.com"
-}
-
-ou
-
-```json
-{
-  "userID": "1234567890"
-}
-
-ou
-
-```json
-{
-  "username": "utilizador123"
+  "identificador": "gvwchevrand@gmail.com"
 }
 ```
 

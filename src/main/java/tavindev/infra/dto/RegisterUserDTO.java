@@ -42,6 +42,10 @@ public record RegisterUserDTO(
     String employerTaxNumber,
     String photo
 ) {
+    public RegisterUserDTO(String email, String username, String fullName, String phoneNumber, String password, String confirmPassword, String profile) {
+        this(email, username, fullName, phoneNumber, password, confirmPassword, profile, null, null, null, null, null, null, null);
+    }
+        
     public boolean isPasswordNotMatch() {
         return !password.equals(confirmPassword);
     }

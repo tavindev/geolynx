@@ -77,7 +77,7 @@ public class UserController {
         return Response.ok(RemoveUserAccountResponseDTO.success(request.identifier())).build();
     }
 
-    @GET
+    @POST
     @Path("/all")
     public Response listUsers(@HeaderParam("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
