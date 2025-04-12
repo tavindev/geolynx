@@ -21,7 +21,7 @@ public class DatastoreUserRepository implements UserRepository {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
         Key userKey = keyFactory.newKey(user.getId());
 
-        Entity userEntity = Entity.newBuilder(userKey)
+        Entity.Builder userEntityBuilder = Entity.newBuilder(userKey)
             .set("email", user.getEmail())
             .set("username", user.getUsername())
             .set("fullName", user.getPersonalInfo().fullName())
@@ -30,16 +30,15 @@ public class DatastoreUserRepository implements UserRepository {
             .set("role", user.getRole().name())
             .set("accountStatus", user.getAccountStatus().name())
             .set("profile", user.getProfile().name())
-            .set("citizenCard", user.getIdentificationInfo().citizenCard().orElse(""))
-            .set("taxId", user.getIdentificationInfo().taxId().orElse(""))
-            .set("address", user.getIdentificationInfo().address().orElse(""))
-            .set("employer", user.getProfessionalInfo().employer().orElse(""))
-            .set("jobTitle", user.getProfessionalInfo().jobTitle().orElse(""))
-            .set("employerTaxId", user.getProfessionalInfo().employerTaxId().orElse(""))
-            .set("photo", user.getPersonalInfo().photo().orElse(""))
-            .build();
+            .set("citizenCard", user.getIdentificationInfo().citizenCard())
+            .set("taxId", user.getIdentificationInfo().taxId())
+            .set("address", user.getIdentificationInfo().address())
+            .set("employer", user.getProfessionalInfo().employer())
+            .set("jobTitle", user.getProfessionalInfo().jobTitle())
+            .set("employerTaxId", user.getProfessionalInfo().employerTaxId())
+            .set("photo", user.getPersonalInfo().photo());
 
-        datastore.put(userEntity);
+        datastore.put(userEntityBuilder.build());
     }
 
     @Override
@@ -50,11 +49,19 @@ public class DatastoreUserRepository implements UserRepository {
     }
 
     @Override
-    public User findByEmail(String email) {
+    public User findById(String id) {
+        KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
+        Key userKey = keyFactory.newKey(id);
+        Entity userEntity = datastore.get(userKey);
+        
+        return userEntity != null ? convertToUser(userEntity) : null;
+    }
+
+    private User findByProperty(String property, String value) {
         Query<Entity> query = Query.newEntityQueryBuilder()
-            .setKind(USER_KIND)
-            .setFilter(StructuredQuery.PropertyFilter.eq("email", email))
-            .build();
+                .setKind(USER_KIND)
+                .setFilter(StructuredQuery.PropertyFilter.eq(property, value))
+                .build();
 
         QueryResults<Entity> results = datastore.run(query);
         if (results.hasNext()) {
@@ -64,21 +71,21 @@ public class DatastoreUserRepository implements UserRepository {
     }
 
     @Override
+    public User findByEmail(String email) {
+        return findByProperty("email", email);
+    }
+
+    @Override
     public User findByUsername(String username) {
-        KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(username);
-        Entity userEntity = datastore.get(userKey);
-        return userEntity != null ? convertToUser(userEntity) : null;
+        return findByProperty("username", username);
     }
 
     @Override
     public User findByIdentifier(String identifier) {
-        // Try email first
         User user = findByEmail(identifier);
-        if (user != null) {
-            return user;
-        }
-        // Then try username
+
+        if (user != null) return user;
+
         return findByUsername(identifier);
     }
 
@@ -180,22 +187,23 @@ public class DatastoreUserRepository implements UserRepository {
             entity.getString("fullName"),
             entity.getString("phone"),
             entity.getString("password"),
-            Optional.ofNullable(entity.getString("photo"))
+            entity.getString("photo")
         );
 
         IdentificationInfo identificationInfo = new IdentificationInfo(
-            Optional.ofNullable(entity.getString("citizenCard")),
-            Optional.ofNullable(entity.getString("taxId")),
-            Optional.ofNullable(entity.getString("address"))
+            entity.getString("citizenCard"),
+            entity.getString("taxId"),
+            entity.getString("address")
         );
 
         ProfessionalInfo professionalInfo = new ProfessionalInfo(
-            Optional.ofNullable(entity.getString("employer")),
-            Optional.ofNullable(entity.getString("jobTitle")),
-            Optional.ofNullable(entity.getString("employerTaxId"))
+            entity.getString("employer"),
+            entity.getString("jobTitle"),
+            entity.getString("employerTaxId")
         );
 
         return new User(
+            entity.getKey().getName(),
             personalInfo,
             identificationInfo,
             professionalInfo,

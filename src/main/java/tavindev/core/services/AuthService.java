@@ -23,6 +23,10 @@ public class AuthService {
     @Inject
     private AuthTokenRepository authTokenRepository;
 
+    private String orNotDefined(String field) {
+        return field != null ? field : "NOT DEFINED";
+    }
+
     public AuthToken login(@Valid LoginDTO request) {
         User user = userRepository.findByIdentifier(request.identificador());
 
@@ -34,7 +38,7 @@ public class AuthService {
             throw new InvalidCredentialsException();
         }
         
-        AuthToken authToken = new AuthToken(user.getUsername(), user.getRole());
+        AuthToken authToken = new AuthToken(user.getId(), user.getUsername(), user.getRole());
 
         authTokenRepository.save(authToken);
 
@@ -52,7 +56,7 @@ public class AuthService {
     }
 
 
-    public void registerUser(@NotNull @Valid RegisterUserDTO registerUserDTO) {
+    public User registerUser(@NotNull @Valid RegisterUserDTO registerUserDTO) {
         User existing = this.userRepository.findByEmail(registerUserDTO.email());
 
         if (existing != null)
@@ -68,19 +72,19 @@ public class AuthService {
                 registerUserDTO.fullName(),
                 registerUserDTO.phoneNumber(),
                 registerUserDTO.password(),
-                Optional.of(registerUserDTO.photo())
+                orNotDefined(registerUserDTO.photo())
         );
 
         IdentificationInfo identificationInfo = new IdentificationInfo(
-                Optional.of(registerUserDTO.citizenCardNumber()),
-                Optional.of(registerUserDTO.taxNumber()),
-                Optional.of(registerUserDTO.address())
+                orNotDefined(registerUserDTO.citizenCardNumber()),
+                orNotDefined(registerUserDTO.taxNumber()),
+                orNotDefined(registerUserDTO.address())
         );
 
         ProfessionalInfo professionalInfo = new ProfessionalInfo(
-                Optional.of(registerUserDTO.employer()),
-                Optional.of(registerUserDTO.jobTitle()),
-                Optional.of(registerUserDTO.employerTaxNumber())
+                orNotDefined(registerUserDTO.employer()),
+                orNotDefined(registerUserDTO.jobTitle()),
+                orNotDefined(registerUserDTO.employerTaxNumber())
         );
 
         User user = new User(
@@ -93,6 +97,8 @@ public class AuthService {
         );
 
         this.userRepository.save(user);
+
+        return user;
     }
 
 } 

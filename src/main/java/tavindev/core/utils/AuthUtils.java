@@ -24,9 +24,10 @@ public class AuthUtils {
             throw new AuthTokenNotFoundException();
         }
 
-        User currentUser = userRepository.findByUsername(authToken.getUsername());
+        User currentUser = userRepository.findById(authToken.getUserId());
+
         if (currentUser == null) {
-            throw new UserNotFoundException("Utilizador autenticado não encontrado.");
+            throw new UserNotFoundException(authToken.getUserId());
         }
 
         return currentUser;

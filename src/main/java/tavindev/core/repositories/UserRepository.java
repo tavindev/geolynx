@@ -9,6 +9,7 @@ import java.util.Map;
 public interface UserRepository {
 	void save(User user);
 	void delete(User user);
+	User findById(String id);
 	User findByEmail(String email);
 	User findByUsername(String username);
 	User findByIdentifier(String identifier);

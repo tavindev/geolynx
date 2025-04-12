@@ -6,4 +6,4 @@ public class AuthTokenNotFoundException extends DomainException {
   public AuthTokenNotFoundException() {
     super(Error.FORBIDDEN, "Sessão inválida ou já encerrada.");
   }
-} 
+}

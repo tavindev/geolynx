@@ -8,16 +8,6 @@ public record PersonalInfo(
     String fullName,
     String phone,
     String password,
-    Optional<String> photo
+    String photo
 ) {
-    public static PersonalInfo empty() {
-        return new PersonalInfo(
-            "",
-            "",
-            "",
-            "",
-            "",
-            Optional.empty()
-        );
-    }
 }

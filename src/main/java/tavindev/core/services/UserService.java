@@ -2,7 +2,6 @@ package tavindev.core.services;
 
 import jakarta.inject.Inject;
 import org.jvnet.hk2.annotations.Service;
-import tavindev.core.entities.AuthToken;
 import tavindev.core.repositories.AuthTokenRepository;
 import tavindev.core.repositories.UserRepository;
 import tavindev.core.authorization.roleChange.RoleChangeAuthorizationChain;
@@ -12,7 +11,6 @@ import tavindev.core.authorization.attributeChange.AttributeChangeAuthorizationC
 import tavindev.core.entities.User;
 import tavindev.core.entities.UserRole;
 import tavindev.core.entities.AccountStatus;
-import tavindev.core.exceptions.AuthTokenNotFoundException;
 import tavindev.core.exceptions.UserNotFoundException;
 import tavindev.core.exceptions.InvalidCredentialsException;
 import tavindev.core.services.strategy.UserFilterStrategy;

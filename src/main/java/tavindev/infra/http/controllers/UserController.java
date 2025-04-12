@@ -24,7 +24,9 @@ import tavindev.infra.dto.changeAttributes.ChangeAttributesResponseDTO;
 import tavindev.infra.dto.changePassword.ChangePasswordDTO;
 import tavindev.infra.dto.changePassword.ChangePasswordResponseDTO;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,14 +35,18 @@ import java.util.stream.Collectors;
 public class UserController {
     @Inject
     private UserService userService;
-    
+
+    private String orNotDefined(Optional<String> field) {
+        return field.orElse("NOT DEFINED");
+    }
+
     @POST
     @Path("/change-role")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response changeRole(@HeaderParam("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
 
-        return Response.ok().build();
+        return null;
     }
 
     @POST
@@ -79,21 +85,7 @@ public class UserController {
         List<User> users = userService.listUsers(token);
         
         List<UserDTO> userDTOs = users.stream()
-            .map(user -> new UserDTO(
-                user.getUsername(),
-                user.getEmail(),
-                user.getPersonalInfo().fullName(),
-                user.getPersonalInfo().phone(),
-                user.getAccountStatus().name(),
-                user.getProfile().name(),
-                user.getRole().name(),
-                user.getIdentificationInfo().address().orElse(null),
-                user.getIdentificationInfo().taxId().orElse(null),
-                user.getProfessionalInfo().employer().orElse(null),
-                user.getProfessionalInfo().jobTitle().orElse(null),
-                user.getProfessionalInfo().employerTaxId().orElse(null),
-                user.getPersonalInfo().photo().orElse(null)
-            ))
+            .map(UserMapper::toDTO)
             .collect(Collectors.toList());
             
         return Response.ok(userDTOs).build();

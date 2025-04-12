@@ -13,4 +13,3 @@ mvn clean install package appengine:run
 
 # Datastore
 
-gcloud beta emulators datastore start

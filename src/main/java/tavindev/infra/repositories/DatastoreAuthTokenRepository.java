@@ -16,14 +16,16 @@ public class DatastoreAuthTokenRepository implements AuthTokenRepository {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(AUTH_TOKEN_KIND);
         Key tokenKey = keyFactory.newKey(tokenId);
         Entity tokenEntity = datastore.get(tokenKey);
-        
+
         if (tokenEntity != null) {
+            String userId = tokenEntity.getString("userId");
             String username = tokenEntity.getString("username");
             UserRole role = UserRole.valueOf(tokenEntity.getString("role"));
             long createdAt = tokenEntity.getLong("createdAt");
             long expiresAt = tokenEntity.getLong("expiresAt");
             
-            return new AuthToken(username, role, new AuthToken.TokenData(tokenId, createdAt, expiresAt));
+            String actualTokenId = tokenEntity.getKey().getName();
+            return new AuthToken(userId, username, role, new AuthToken.TokenData(actualTokenId, createdAt, expiresAt));
         }
 
         return null;
@@ -42,6 +44,7 @@ public class DatastoreAuthTokenRepository implements AuthTokenRepository {
         Key tokenKey = keyFactory.newKey(authToken.getTokenId());
 
         Entity tokenEntity = Entity.newBuilder(tokenKey)
+            .set("userId", authToken.getUserId())
             .set("username", authToken.getUsername())
             .set("role", authToken.getUserRole().toString())
             .set("createdAt", authToken.getCreationData())

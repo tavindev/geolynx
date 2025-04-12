@@ -19,7 +19,7 @@
 		<maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
 
 	    <app.deploy.projectId>root-app-453615-f3</app.deploy.projectId>
-		<app.deploy.version>11</app.deploy.version>
+		<app.deploy.version>12</app.deploy.version>
   </properties>
 
 	<dependencyManagement>
