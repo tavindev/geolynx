@@ -8,7 +8,8 @@ import jakarta.ws.rs.core.Response;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.WorkSheet;
 import tavindev.core.services.WorkSheetService;
-import tavindev.infra.dto.CreateOrUpdateWorkSheetResponseDTO;
+import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetDTO;
+import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetResponseDTO;
 
 @Service
 @Path("/work-sheet")
@@ -20,15 +21,14 @@ public class WorkSheetController {
     @POST
     @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createOrUpdateWorkSheet(
+    public CreateOrUpdateWorkSheetResponseDTO createOrUpdateWorkSheet(
             @HeaderParam("Authorization") String authHeader,
-            @Valid WorkSheet workSheet) {
+            @Valid CreateOrUpdateWorkSheetDTO dto) {
         String token = extractBearerToken(authHeader);
-        WorkSheet savedWorkSheet = workSheetService.createOrUpdateWorkSheet(token, workSheet);
 
-        return Response.ok()
-                .entity(CreateOrUpdateWorkSheetResponseDTO.fromWorkSheet(savedWorkSheet.getId()))
-                .build();
+        workSheetService.createOrUpdateWorkSheet(token, dto);
+
+        return new CreateOrUpdateWorkSheetResponseDTO("Folha de obra criada/modificada com sucesso.");
     }
 
     private String extractBearerToken(String authHeader) {

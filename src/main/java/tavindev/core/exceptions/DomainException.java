@@ -2,7 +2,7 @@ package tavindev.core.exceptions;
 
 import tavindev.core.errors.Error;
 
-public class DomainException extends RuntimeException {
+public abstract class DomainException extends RuntimeException {
     private final Error error;
     private final String message;
 

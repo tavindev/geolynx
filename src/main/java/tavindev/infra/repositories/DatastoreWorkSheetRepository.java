@@ -2,6 +2,7 @@ package tavindev.infra.repositories;
 
 import com.google.cloud.datastore.*;
 import org.jvnet.hk2.annotations.Service;
+import tavindev.api.mappers.WorkSheetMapper;
 import tavindev.core.entities.WorkSheet;
 import tavindev.core.entities.WorkSheet.TargetType;
 import tavindev.core.entities.WorkSheet.AwardStatus;
@@ -21,65 +22,55 @@ public class DatastoreWorkSheetRepository implements WorkSheetRepository {
     @Override
     public WorkSheet save(WorkSheet workSheet) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(WORK_SHEET_KIND);
-        Key workSheetKey;
-        
-        if (workSheet.getId() == null) {
-            workSheetKey = datastore.allocateId(keyFactory.newKey());
-            workSheet.setId(workSheetKey.getName());
-        } else {
-            workSheetKey = keyFactory.newKey(workSheet.getId());
+        Key workSheetKey = keyFactory.newKey(workSheet.getReferenciaObra());
+
+        Entity.Builder entityBuilder = Entity.newBuilder(workSheetKey);
+
+        if (workSheet.getDescricao() != null) {
+            entityBuilder.set("descricao", workSheet.getDescricao());
+        }
+        if (workSheet.getTipoAlvo() != null) {
+            entityBuilder.set("tipoAlvo", workSheet.getTipoAlvo().name());
+        }
+        if (workSheet.getEstadoAdjudicacao() != null) {
+            entityBuilder.set("estadoAdjudicacao", workSheet.getEstadoAdjudicacao().name());
+        }
+        if (workSheet.getDataAdjudicacao() != null) {
+            entityBuilder.set("dataAdjudicacao", workSheet.getDataAdjudicacao());
+        }
+        if (workSheet.getDataInicioPrevista() != null) {
+            entityBuilder.set("dataInicioPrevista", workSheet.getDataInicioPrevista());
+        }
+        if (workSheet.getDataConclusaoPrevista() != null) {
+            entityBuilder.set("dataConclusaoPrevista", workSheet.getDataConclusaoPrevista());
+        }
+        if (workSheet.getContaEntidade() != null) {
+            entityBuilder.set("contaEntidade", workSheet.getContaEntidade());
+        }
+        if (workSheet.getEntidadeAdjudicacao() != null) {
+            entityBuilder.set("entidadeAdjudicacao", workSheet.getEntidadeAdjudicacao());
+        }
+        if (workSheet.getNifEmpresa() != null) {
+            entityBuilder.set("nifEmpresa", workSheet.getNifEmpresa());
+        }
+        if (workSheet.getEstadoObra() != null) {
+            entityBuilder.set("estadoObra", workSheet.getEstadoObra().name());
+        }
+        if (workSheet.getObservacoes() != null) {
+            entityBuilder.set("observacoes", workSheet.getObservacoes());
         }
 
-        Entity workSheetEntity = Entity.newBuilder(workSheetKey)
-            .set("referenciaObra", workSheet.getWorkReference())
-            .set("descricao", workSheet.getDescription())
-            .set("tipoAlvo", workSheet.getTargetType().name())
-            .set("estadoAdjudicacao", workSheet.getAwardStatus().name())
-            .set("dataAdjudicacao", workSheet.getAwardDate())
-            .set("dataInicioPrevista", workSheet.getExpectedStartDate())
-            .set("dataConclusaoPrevista", workSheet.getExpectedCompletionDate())
-            .set("contaEntidade", workSheet.getEntityAccount())
-            .set("entidadeAdjudicacao", workSheet.getAwardingEntity())
-            .set("nifEmpresa", workSheet.getCompanyTaxId())
-            .set("estadoObra", workSheet.getWorkStatus().name())
-            .set("observacoes", workSheet.getObservations())
-            .build();
-
+        Entity workSheetEntity = entityBuilder.build();
         datastore.put(workSheetEntity);
         return workSheet;
     }
 
-    private WorkSheet convertToWorkSheet(Entity entity) {
-        String id = entity.getKey().getName();
-        String workReference = entity.getString("referenciaObra");
-        String description = entity.getString("descricao");
-        TargetType targetType = TargetType.valueOf(entity.getString("tipoAlvo"));
-        AwardStatus awardStatus = AwardStatus.valueOf(entity.getString("estadoAdjudicacao"));
+    @Override
+    public boolean exists(String id) {
+        KeyFactory keyFactory = datastore.newKeyFactory().setKind(WORK_SHEET_KIND);
+        Key workSheetKey = keyFactory.newKey(id);
+        Entity workSheetEntity = datastore.get(workSheetKey);
 
-        String awardDate = entity.getString("dataAdjudicacao");
-        String startDateStr = entity.getString("dataInicioPrevista");
-        String expectedCompletionDate = entity.getString("dataConclusaoPrevista");
-        
-        String entityAccount = entity.getString("contaEntidade");
-        String awardingEntity = entity.getString("entidadeAdjudicacao");
-        String companyTaxId = entity.getString("nifEmpresa");
-        WorkStatus workStatus = WorkStatus.valueOf(entity.getString("estadoObra"));
-        String observations = entity.getString("observacoes");
-
-        return new WorkSheet(
-            id,
-            workReference,
-            description,
-            targetType,
-            awardStatus,
-            awardDate,
-                startDateStr,
-            expectedCompletionDate,
-            entityAccount,
-            awardingEntity,
-            companyTaxId,
-            workStatus,
-            observations
-        );
+        return workSheetEntity != null;
     }
 } 

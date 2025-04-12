@@ -15,7 +15,7 @@ public class PartnerWorksheetHandler extends BaseWorksheetHandler {
     protected void doHandle(User currentUser, WorkSheet workSheet, WorksheetAction action) {
         switch (action) {
             case UPDATE_STATUS:
-                if (!workSheet.getEntityAccount().equals(currentUser.getUsername())) {
+                if (!workSheet.getContaEntidade().equals(currentUser.getUsername())) {
                     throw new UnauthorizedException("Parceiro só pode atualizar o estado das suas próprias obras.");
                 }
                 break;

@@ -13,6 +13,7 @@ import jakarta.ws.rs.HeaderParam;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.User;
 import tavindev.core.entities.AccountStatus;
+import tavindev.core.entities.UserRole;
 import tavindev.core.services.UserService;
 import tavindev.infra.dto.*;
 import tavindev.infra.dto.changeAccountState.ChangeAccountStateDTO;
@@ -23,6 +24,8 @@ import tavindev.infra.dto.changeAttributes.ChangeAttributesDTO;
 import tavindev.infra.dto.changeAttributes.ChangeAttributesResponseDTO;
 import tavindev.infra.dto.changePassword.ChangePasswordDTO;
 import tavindev.infra.dto.changePassword.ChangePasswordResponseDTO;
+import tavindev.infra.dto.changeRole.ChangeRoleDTO;
+import tavindev.infra.dto.changeRole.ChangeRoleResponseDTO;
 
 import javax.swing.text.html.Option;
 import java.util.List;
@@ -43,10 +46,15 @@ public class UserController {
     @POST
     @Path("/change-role")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response changeRole(@HeaderParam("Authorization") String authHeader) {
+    public Response changeRole(
+        @HeaderParam("Authorization") String authHeader,
+        @Valid ChangeRoleDTO request
+    ) {
         String token = authHeader.replace("Bearer ", "");
 
-        return null;
+        userService.changeRole(token, request.username(), UserRole.valueOf(request.novo_role()));
+
+        return Response.ok(ChangeRoleResponseDTO.success(request.username(), request.novo_role())).build();
     }
 
     @POST
@@ -72,9 +80,9 @@ public class UserController {
     ) {
         String token = authHeader.replace("Bearer ", "");
 
-        userService.removeAccount(token, request.identifier());
+        userService.removeAccount(token, request.identificador());
 
-        return Response.ok(RemoveUserAccountResponseDTO.success(request.identifier())).build();
+        return Response.ok(RemoveUserAccountResponseDTO.success(request.identificador())).build();
     }
 
     @POST

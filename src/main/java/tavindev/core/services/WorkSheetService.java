@@ -7,10 +7,12 @@ import tavindev.core.repositories.WorkSheetRepository;
 import tavindev.core.authorization.worksheet.WorksheetAuthorizationChain;
 import tavindev.core.authorization.worksheet.WorksheetAction;
 import tavindev.core.utils.AuthUtils;
+import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetDTO;
+import tavindev.api.mappers.WorkSheetMapper;
 
 public class WorkSheetService {
     @Inject
-    private WorkSheetRepository datastoreWorkSheetRepository;
+    private WorkSheetRepository workSheetRepository;
 
     @Inject
     private WorksheetAuthorizationChain worksheetAuthorizationChain;
@@ -24,18 +26,18 @@ public class WorkSheetService {
     @Inject
     private UserService userService;
 
-    public WorkSheet createOrUpdateWorkSheet(String tokenId, WorkSheet workSheet) {
+    public WorkSheet createOrUpdateWorkSheet(String tokenId, CreateOrUpdateWorkSheetDTO dto) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
-        
-        if (workSheet.getId() == null) {
+        WorkSheet workSheet = WorkSheetMapper.toEntity(dto);
+
+        if (workSheetRepository.exists(dto.referencia_obra())) {
             worksheetAuthorizationChain.handle(currentUser, workSheet, WorksheetAction.CREATE);
         } else {
             worksheetAuthorizationChain.handle(currentUser, workSheet, WorksheetAction.UPDATE);
         }
 
-        datastoreWorkSheetRepository.save(workSheet);
+        workSheetRepository.save(workSheet);
 
         return workSheet;
     }
-
 } 

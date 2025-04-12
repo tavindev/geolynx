@@ -86,7 +86,7 @@ public class UserService {
 
         User targetUser = userRepository.findByIdentifier(identifier);
         if (targetUser == null) {
-            throw new UserNotFoundException("Utilizador não encontrado.");
+            throw new UserNotFoundException(identifier);
         }
 
         this.accountRemovalAuthorizationChain.handle(currentUser, targetUser);

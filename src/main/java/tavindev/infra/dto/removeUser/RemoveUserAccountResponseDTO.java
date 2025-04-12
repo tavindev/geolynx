@@ -2,7 +2,7 @@ package tavindev.infra.dto.removeUser;
 
 public record RemoveUserAccountResponseDTO(
     String message,
-    String identifier
+    String identificador
 ) {
     public static RemoveUserAccountResponseDTO success(String identifier) {
         return new RemoveUserAccountResponseDTO(
