@@ -16,11 +16,11 @@ public record RegisterUserDTO(
     String username,
 
     @NotBlank(message = "Full name is required")
-    String fullName,
+    String nome_completo,
 
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^\\+[0-9]{1,15}$", message = "Invalid phone number format")
-    String phoneNumber,
+    String telefone,
 
     @NotBlank(message = "Password is required")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$", 
@@ -28,25 +28,24 @@ public record RegisterUserDTO(
     String password,
 
     @NotBlank(message = "Password confirmation is required")
-    String confirmPassword,
+    String confirmar_password,
 
     @NotBlank(message = "Profile type is required")
     @Pattern(regexp = "^(PUBLICO|PRIVADO)$", message = "Profile must be either 'public' or 'private'")
-    String profile,
+    String perfil,
 
-    String citizenCardNumber,
-    String taxNumber,
-    String employer,
-    String jobTitle,
-    String address,
-    String employerTaxNumber,
-    String photo
+    String cartao_cidadao,
+    String nif,
+    String entidade_empregadora,
+    String funcao,
+    String morada,
+    String nif_entidade_empregadora
 ) {
-    public RegisterUserDTO(String email, String username, String fullName, String phoneNumber, String password, String confirmPassword, String profile) {
-        this(email, username, fullName, phoneNumber, password, confirmPassword, profile, null, null, null, null, null, null, null);
+    public RegisterUserDTO(String email, String username, String nome_completo, String telefone, String password, String confirmar_password, String perfil) {
+        this(email, username, nome_completo, telefone, password, confirmar_password, perfil, null, null, null, null, null, null);
     }
         
     public boolean isPasswordNotMatch() {
-        return !password.equals(confirmPassword);
+        return !password.equals(confirmar_password);
     }
 }

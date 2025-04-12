@@ -13,7 +13,9 @@ import tavindev.infra.dto.login.LoginDTO;
 import tavindev.infra.dto.logout.LogoutRequestDTO;
 import tavindev.infra.dto.RegisterUserDTO;
 
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 public class AuthService {
@@ -55,11 +57,20 @@ public class AuthService {
         authTokenRepository.logout(authToken);
     }
 
+    private User findUserByIdentifiers(String email, String username) {
+       User user = userRepository.findByEmail(email);
+
+       if (user == null) {
+           return userRepository.findByUsername(username);
+       }
+
+       return user;
+    }
 
     public User registerUser(@NotNull @Valid RegisterUserDTO registerUserDTO) {
-        User existing = this.userRepository.findByEmail(registerUserDTO.email());
+        User existingUser = findUserByIdentifiers(registerUserDTO.email(), registerUserDTO.username());
 
-        if (existing != null)
+        if (existingUser != null)
             throw new UserAlreadyExistsException();
 
         if (registerUserDTO.isPasswordNotMatch()) {
@@ -69,29 +80,28 @@ public class AuthService {
         PersonalInfo personalInfo = new PersonalInfo(
                 registerUserDTO.email(),
                 registerUserDTO.username(),
-                registerUserDTO.fullName(),
-                registerUserDTO.phoneNumber(),
-                registerUserDTO.password(),
-                orNotDefined(registerUserDTO.photo())
+                registerUserDTO.nome_completo(),
+                registerUserDTO.telefone(),
+                registerUserDTO.password()
         );
 
         IdentificationInfo identificationInfo = new IdentificationInfo(
-                orNotDefined(registerUserDTO.citizenCardNumber()),
-                orNotDefined(registerUserDTO.taxNumber()),
-                orNotDefined(registerUserDTO.address())
+                orNotDefined(registerUserDTO.cartao_cidadao()),
+                orNotDefined(registerUserDTO.nif()),
+                orNotDefined(registerUserDTO.morada())
         );
 
         ProfessionalInfo professionalInfo = new ProfessionalInfo(
-                orNotDefined(registerUserDTO.employer()),
-                orNotDefined(registerUserDTO.jobTitle()),
-                orNotDefined(registerUserDTO.employerTaxNumber())
+                orNotDefined(registerUserDTO.entidade_empregadora()),
+                orNotDefined(registerUserDTO.funcao()),
+                orNotDefined(registerUserDTO.nif_entidade_empregadora())
         );
 
         User user = new User(
                 personalInfo,
                 identificationInfo,
                 professionalInfo,
-                UserProfile.valueOf(registerUserDTO.profile()),
+                UserProfile.valueOf(registerUserDTO.perfil()),
                 UserRole.ENDUSER,
                 AccountStatus.DESATIVADA
         );

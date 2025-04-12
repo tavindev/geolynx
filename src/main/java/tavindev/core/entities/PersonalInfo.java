@@ -7,7 +7,6 @@ public record PersonalInfo(
     String username,
     String fullName,
     String phone,
-    String password,
-    String photo
+    String password
 ) {
 }

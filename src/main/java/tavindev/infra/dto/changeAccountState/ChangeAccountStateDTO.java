@@ -8,6 +8,6 @@ public record ChangeAccountStateDTO(
     String username,
     
     @NotBlank(message = "New state is required")
-    @Pattern(regexp = "^(ATIVADA|DESATIVADA)$", message = "New state must be either 'ATIVADA' or 'DESATIVADA'")
+    @Pattern(regexp = "^(ATIVADA|DESATIVADA|SUSPENSA)$", message = "New state must be either 'ATIVADA', 'DESATIVADA' or 'SUSPENSA'")
     String novo_estado
 ) {} 

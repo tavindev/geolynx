@@ -1,4 +1,3 @@
-
 package tavindev.infra.dto.login;
 
 import tavindev.core.entities.AuthToken;
@@ -24,9 +23,9 @@ public record LoginResponseDTO(
                 token.getUsername(),
                 token.getUserRole().toString(),
                 new ValidityDTO(
-                        token.getCreationData(),
-                        token.getExpirationData(),
-                        token.getTokenId()
+                    token.getCreationData(),
+                    token.getExpirationData(),
+                    token.getTokenId()
                 )
             )
         );

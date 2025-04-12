@@ -17,8 +17,7 @@ public class UserMapper {
             user.getIdentificationInfo().taxId(),
             user.getProfessionalInfo().employer(),
             user.getProfessionalInfo().jobTitle(),
-            user.getProfessionalInfo().employerTaxId(),
-            user.getPersonalInfo().photo()
+            user.getProfessionalInfo().employerTaxId()
         );
     }
 } 

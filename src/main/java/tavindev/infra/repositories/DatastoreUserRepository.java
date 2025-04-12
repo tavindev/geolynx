@@ -35,8 +35,7 @@ public class DatastoreUserRepository implements UserRepository {
             .set("address", user.getIdentificationInfo().address())
             .set("employer", user.getProfessionalInfo().employer())
             .set("jobTitle", user.getProfessionalInfo().jobTitle())
-            .set("employerTaxId", user.getProfessionalInfo().employerTaxId())
-            .set("photo", user.getPersonalInfo().photo());
+            .set("employerTaxId", user.getProfessionalInfo().employerTaxId());
 
         datastore.put(userEntityBuilder.build());
     }
@@ -186,8 +185,7 @@ public class DatastoreUserRepository implements UserRepository {
             entity.getString("username"),
             entity.getString("fullName"),
             entity.getString("phone"),
-            entity.getString("password"),
-            entity.getString("photo")
+            entity.getString("password")
         );
 
         IdentificationInfo identificationInfo = new IdentificationInfo(

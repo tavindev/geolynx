@@ -10,7 +10,7 @@ import tavindev.infra.repositories.DatastoreUserRepository;
 
 @WebListener
 public class AdminAccountCreation implements ServletContextListener {
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     public AdminAccountCreation() {
         this.userRepository = new DatastoreUserRepository();
@@ -24,8 +24,7 @@ public class AdminAccountCreation implements ServletContextListener {
                     "admin",
                     "Admin",
                     "registerUserDTO.phoneNumber()",
-                    "admin",
-                    "NOT DEFINED"
+                    "admin"
             );
 
             IdentificationInfo identificationInfo = new IdentificationInfo(
