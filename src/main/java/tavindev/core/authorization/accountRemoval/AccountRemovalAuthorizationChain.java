@@ -13,7 +13,9 @@ public class AccountRemovalAuthorizationChain {
         AccountRemovalAuthorizationHandler backOfficeHandler = new BackOfficeAccountRemovalHandler();
         AccountRemovalAuthorizationHandler adminHandler = new AdminAccountRemovalHandler();
 
-        this.chain = backOfficeHandler.setNext(adminHandler);
+        this.chain = backOfficeHandler;
+
+        backOfficeHandler.setNext(adminHandler);
     }
 
     public void handle(User currentUser, User targetUser) {

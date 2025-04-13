@@ -18,41 +18,38 @@ public class AdminAccountCreation implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        try {
-            PersonalInfo personalInfo = new PersonalInfo(
-                    "admin@gmail.com",
-                    "admin",
-                    "Admin",
-                    "registerUserDTO.phoneNumber()",
-                    "admin"
-            );
+        if (userRepository.findByIdentifier("admin") != null) return;
 
-            IdentificationInfo identificationInfo = new IdentificationInfo(
-                    "NOT DEFINED",
-                    "NOT DEFINED",
-                    "NOT DEFINED"
-            );
+        PersonalInfo personalInfo = new PersonalInfo(
+                "admin@gmail.com",
+                "admin",
+                "Admin",
+                "NOT DEFINED",
+                "admin"
+        );
 
-            ProfessionalInfo professionalInfo = new ProfessionalInfo(
-                    "NOT DEFINED",
-                    "NOT DEFINED",
-                    "NOT DEFINED"
-            );
+        IdentificationInfo identificationInfo = new IdentificationInfo(
+                "NOT DEFINED",
+                "NOT DEFINED",
+                "NOT DEFINED"
+        );
 
-            User user = new User(
-                    personalInfo,
-                    identificationInfo,
-                    professionalInfo,
-                    UserProfile.PRIVADO,
-                    UserRole.ADMIN,
-                    AccountStatus.ATIVADA
-            );
+        ProfessionalInfo professionalInfo = new ProfessionalInfo(
+                "NOT DEFINED",
+                "NOT DEFINED",
+                "NOT DEFINED"
+        );
 
-            userRepository.save(user);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        User user = new User(
+                personalInfo,
+                identificationInfo,
+                professionalInfo,
+                UserProfile.PRIVADO,
+                UserRole.ADMIN,
+                AccountStatus.ATIVADA
+        );
 
+        userRepository.save(user);
     }
 
     @Override

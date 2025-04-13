@@ -15,9 +15,9 @@ public class WorksheetAuthorizationChain {
         WorksheetAuthorizationHandler backOfficeHandler = new BackOfficeWorksheetHandler();
         WorksheetAuthorizationHandler adminHandler = new AdminWorksheetHandler();
 
-        this.chain = partnerHandler
-            .setNext(backOfficeHandler)
-            .setNext(adminHandler);
+        this.chain = partnerHandler;
+
+        partnerHandler.setNext(backOfficeHandler).setNext(adminHandler);
     }
 
     public void handle(User currentUser, WorkSheet workSheet, WorksheetAction action) {

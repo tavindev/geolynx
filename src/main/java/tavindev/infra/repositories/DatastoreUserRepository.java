@@ -44,6 +44,7 @@ public class DatastoreUserRepository implements UserRepository {
     public void delete(User user) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
         Key userKey = keyFactory.newKey(user.getId());
+
         datastore.delete(userKey);
     }
 
@@ -64,7 +65,9 @@ public class DatastoreUserRepository implements UserRepository {
 
         QueryResults<Entity> results = datastore.run(query);
         if (results.hasNext()) {
-            return convertToUser(results.next());
+            Entity entity = results.next();
+
+            return convertToUser(entity);
         }
         return null;
     }

@@ -18,7 +18,9 @@ public class AccountStateChangeAuthorizationChain {
         AccountStateChangeAuthorizationHandler adminHandler = new AdminAccountStateChangeHandler();
         AccountStateChangeAuthorizationHandler backOfficeHandler = new BackOfficeAccountStateChangeHandler();
 
-        this.chain = adminHandler.setNext(backOfficeHandler);
+        this.chain = backOfficeHandler;
+
+        backOfficeHandler.setNext(adminHandler);
     }
 
     public void handle(User currentUser, User targetUser, AccountStatus newState) {

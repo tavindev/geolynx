@@ -19,7 +19,9 @@ public class RoleChangeAuthorizationChain {
         RoleChangeAuthorizationHandler backOfficeHandler = new BackOfficeRoleChangeHandler();
         RoleChangeAuthorizationHandler adminHandler = new AdminRoleChangeHandler();
 
-        this.chain = endUserHandler.setNext(backOfficeHandler).setNext(adminHandler);
+        this.chain = endUserHandler;
+
+        endUserHandler.setNext(backOfficeHandler).setNext(adminHandler);
     }
 
     public void handle(User currentUser, User targetUser, UserRole newRole) {

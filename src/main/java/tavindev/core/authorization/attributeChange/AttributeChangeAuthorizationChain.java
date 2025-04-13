@@ -18,7 +18,9 @@ public class AttributeChangeAuthorizationChain {
         AttributeChangeAuthorizationHandler backOfficeHandler = new BackOfficeAttributeChangeHandler();
         AttributeChangeAuthorizationHandler adminHandler = new AdminAttributeChangeHandler();
 
-        this.chain = endUserHandler.setNext(backOfficeHandler).setNext(adminHandler);
+        this.chain = endUserHandler;
+
+        endUserHandler.setNext(backOfficeHandler).setNext(adminHandler);
     }
 
     public void handle(User currentUser, User targetUser, String attributeName) {

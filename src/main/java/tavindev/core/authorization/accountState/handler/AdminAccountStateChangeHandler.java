@@ -12,6 +12,6 @@ public class AdminAccountStateChangeHandler extends AccountStateChangeAuthorizat
 
     @Override
     protected void validate(User currentUser, User targetUser, AccountStatus newState) {
-        // ADMIN can change any account state, no validation needed
+
     }
 } 

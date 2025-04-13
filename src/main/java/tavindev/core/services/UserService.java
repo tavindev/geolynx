@@ -60,7 +60,7 @@ public class UserService {
 
         User targetUser = userRepository.findByUsername(username);
         if (targetUser == null) {
-            throw new UserNotFoundException("Utilizador não encontrado.");
+            throw new UserNotFoundException(username);
         }
 
         this.roleChangeAuthorizationChain.handle(currentUser, targetUser, newRole);
@@ -73,7 +73,7 @@ public class UserService {
 
         User targetUser = userRepository.findByUsername(username);
         if (targetUser == null) {
-            throw new UserNotFoundException("Utilizador não encontrado.");
+            throw new UserNotFoundException(username);
         }
 
         this.accountStateChangeAuthorizationChain.handle(currentUser, targetUser, newState);
@@ -85,6 +85,7 @@ public class UserService {
         User currentUser = authUtils.validateAndGetUser(tokenId);
 
         User targetUser = userRepository.findByIdentifier(identifier);
+
         if (targetUser == null) {
             throw new UserNotFoundException(identifier);
         }
@@ -99,7 +100,7 @@ public class UserService {
 
         User targetUser = userRepository.findByIdentifier(identifier);
         if (targetUser == null) {
-            throw new UserNotFoundException("Utilizador não encontrado.");
+            throw new UserNotFoundException(identifier);
         }
 
         // Check authorization for each attribute

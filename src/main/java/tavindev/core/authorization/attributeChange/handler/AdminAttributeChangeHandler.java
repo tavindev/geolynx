@@ -11,6 +11,6 @@ public class AdminAttributeChangeHandler extends BaseAttributeChangeHandler {
 
     @Override
     protected void doHandle(User currentUser, User targetUser, String attributeName) {
-        // Admin can modify any attribute
+
     }
 } 
