@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Firstwebapp" />
+        <module name="APDC-2025-Individual-64616" />
       </profile>
     </annotationProcessing>
   </component>

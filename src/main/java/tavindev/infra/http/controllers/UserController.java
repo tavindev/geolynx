@@ -9,7 +9,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.CookieParam;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.User;
 import tavindev.core.entities.AccountStatus;
@@ -47,12 +47,10 @@ public class UserController {
     @Path("/change-role")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response changeRole(
-        @HeaderParam("Authorization") String authHeader,
+        @CookieParam("session") String sessionToken,
         @Valid ChangeRoleDTO request
     ) {
-        String token = authHeader.replace("Bearer ", "");
-
-        userService.changeRole(token, request.username(), UserRole.valueOf(request.novo_role()));
+        userService.changeRole(sessionToken, request.username(), UserRole.valueOf(request.novo_role()));
 
         return Response.ok(ChangeRoleResponseDTO.success(request.username(), request.novo_role())).build();
     }
@@ -61,12 +59,10 @@ public class UserController {
     @Path("/change-account-state")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response changeAccountState(
-        @HeaderParam("Authorization") String authHeader,
+        @CookieParam("session") String sessionToken,
         @Valid ChangeAccountStateDTO request
     ) {
-        String token = authHeader.replace("Bearer ", "");
-
-        userService.changeAccountState(token, request.username(), AccountStatus.valueOf(request.novo_estado()));
+        userService.changeAccountState(sessionToken, request.username(), AccountStatus.valueOf(request.novo_estado()));
 
         return Response.ok(ChangeAccountStateResponseDTO.success(request.username(), request.novo_estado())).build();
     }
@@ -75,22 +71,18 @@ public class UserController {
     @Path("/remove")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removeUserAccount(
-        @HeaderParam("Authorization") String authHeader,
+        @CookieParam("session") String sessionToken,
         @Valid RemoveUserAccountDTO request
     ) {
-        String token = authHeader.replace("Bearer ", "");
-
-        userService.removeAccount(token, request.identificador());
+        userService.removeAccount(sessionToken, request.identificador());
 
         return Response.ok(RemoveUserAccountResponseDTO.success(request.identificador())).build();
     }
 
     @POST
     @Path("/all")
-    public Response listUsers(@HeaderParam("Authorization") String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
-        
-        List<User> users = userService.listUsers(token);
+    public Response listUsers(@CookieParam("session") String sessionToken) {
+        List<User> users = userService.listUsers(sessionToken);
         
         List<UserDTO> userDTOs = users.stream()
             .map(UserMapper::toDTO)
@@ -103,12 +95,10 @@ public class UserController {
     @Path("/change-attributes")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response changeAttributes(
-        @HeaderParam("Authorization") String authHeader,
+        @CookieParam("session") String sessionToken,
         @Valid ChangeAttributesDTO request
     ) {
-        String token = authHeader.replace("Bearer ", "");
-
-        userService.changeAttributes(token, request.identificador(), request.atributos());
+        userService.changeAttributes(sessionToken, request.identificador(), request.atributos());
 
         return Response.ok(ChangeAttributesResponseDTO.success(request.identificador())).build();
     }
@@ -117,18 +107,16 @@ public class UserController {
     @Path("/change-password")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response changePassword(
-        @HeaderParam("Authorization") String authHeader,
+        @CookieParam("session") String sessionToken,
         @Valid ChangePasswordDTO request
     ) {
-        String token = authHeader.replace("Bearer ", "");
-
         if (request.isPasswordNotMatch()) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new ChangePasswordResponseDTO("As senhas não coincidem."))
                 .build();
         }
 
-        userService.changePassword(token, request.senha_atual(), request.nova_senha());
+        userService.changePassword(sessionToken, request.senha_atual(), request.nova_senha());
 
         return Response.ok(ChangePasswordResponseDTO.success()).build();
     }

@@ -8,15 +8,22 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.Response;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.AuthToken;
 import tavindev.core.entities.User;
 import tavindev.core.services.AuthService;
+import tavindev.infra.JWTConfig;
+import tavindev.infra.JWTToken;
 import tavindev.infra.dto.*;
 import tavindev.infra.dto.login.LoginDTO;
 import tavindev.infra.dto.login.LoginResponseDTO;
 import tavindev.infra.dto.logout.LogoutRequestDTO;
 import tavindev.infra.dto.logout.LogoutResponseDTO;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Path("/user")
@@ -37,10 +44,27 @@ public class AuthController {
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
-    public LoginResponseDTO login(@Valid LoginDTO request) {
+    public Response login(@Valid LoginDTO request) {
         AuthToken token = authService.login(request);
 
-        return LoginResponseDTO.fromAuthToken(token);
+        Map<String, Object> fields = new HashMap<>();
+
+        fields.put("id", token.getTokenId());
+        fields.put("role", token.getUserRole());
+
+        String jwt = JWTToken.createJWT(token.getUsername(), fields);
+
+        // Create and return a secure HTTP-only cookie with the JWT token
+        NewCookie cookie = new NewCookie.Builder("session")
+                .value(jwt) // JWT token
+                .path("/")
+                .comment("JWT session token")
+                .maxAge((int) (JWTConfig.EXPIRATION_TIME / 1000))
+                .secure(false) // (set to false if not using HTTPS, but **not recommended** for production)
+                .httpOnly(true)
+                .build();
+
+        return Response.noContent().cookie(cookie).build();
     }
 
     @POST
