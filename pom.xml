@@ -18,8 +18,8 @@
 		<maven.compiler.target>21</maven.compiler.target>
 		<maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
 
-	    <app.deploy.projectId>root-app-453615-f3</app.deploy.projectId>
-		<app.deploy.version>12</app.deploy.version>
+	    <app.deploy.projectId>glass-gasket-463218-j2</app.deploy.projectId>
+		<app.deploy.version>1</app.deploy.version>
   </properties>
 
 	<dependencyManagement>
