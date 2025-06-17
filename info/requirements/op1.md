@@ -75,6 +75,7 @@ Durante o **deployment** da aplicação, deverá ser criada automaticamente uma 
   "nome_completo": "Administrador do Sistema",
   "telefone": "+351900000000",
   "password": "RootAdmin123!",
+
   "perfil": "privado",
   "role": "ADMIN",
   "estado_conta": "ATIVADA"

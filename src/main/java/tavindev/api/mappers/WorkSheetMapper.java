@@ -1,23 +1,45 @@
 package tavindev.api.mappers;
 
 import tavindev.core.entities.WorkSheet;
+import tavindev.core.entities.WorkSheet.Operation;
+import tavindev.core.entities.WorkSheet.Feature;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetDTO;
+import java.util.stream.Collectors;
+import java.util.List;
 
 public class WorkSheetMapper {
     public static WorkSheet toEntity(CreateOrUpdateWorkSheetDTO dto) {
+        CreateOrUpdateWorkSheetDTO.MetadataDTO metadata = dto.getMetadata();
         return new WorkSheet(
-            dto.referencia_obra(),
-            dto.descricao(),
-            WorkSheet.TargetType.valueOf(dto.tipo_alvo().toUpperCase()),
-            WorkSheet.AwardStatus.valueOf(dto.estado_adjudicacao().toUpperCase()),
-            dto.data_adjudicacao() != null ? dto.data_adjudicacao() : null,
-            dto.data_inicio_prevista() != null ? dto.data_inicio_prevista() : null,
-            dto.data_conclusao_prevista() != null ? dto.data_conclusao_prevista() : null,
-            dto.conta_entidade(),
-            dto.entidade_adjudicacao(),
-            dto.nif_empresa(),
-            dto.estado_obra() != null ? WorkSheet.WorkStatus.valueOf(dto.estado_obra().toUpperCase()) : null,
-            dto.observacoes()
-        );
+                metadata.getId(),
+                metadata.getStartingDate(),
+                metadata.getFinishingDate(),
+                metadata.getIssueDate(),
+                metadata.getServiceProviderId(),
+                metadata.getAwardDate(),
+                metadata.getIssuingUserId(),
+                metadata.getAigp(),
+                metadata.getPosaCode(),
+                metadata.getPosaDescription(),
+                metadata.getPospCode(),
+                metadata.getPospDescription(),
+                metadata.getOperations().stream()
+                        .map(op -> new Operation(
+                                op.getOperationCode(),
+                                op.getOperationDescription(),
+                                op.getAreaHa()))
+                        .collect(Collectors.toList()),
+                dto.getFeatures().stream()
+                        .map(f -> {
+                            // Get the first ring of the polygon (outer ring)
+                            List<List<Double>> coordinates = f.getGeometry().getCoordinates().get(0);
+                            return new Feature(
+                                    f.getProperties().getAigp(),
+                                    f.getProperties().getRuralPropertyId(),
+                                    f.getProperties().getPolygonId(),
+                                    f.getProperties().getUiId(),
+                                    coordinates);
+                        })
+                        .collect(Collectors.toList()));
     }
-} 
+}

@@ -22,19 +22,10 @@ public class WorkSheetController {
     @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
     public CreateOrUpdateWorkSheetResponseDTO createOrUpdateWorkSheet(
-            @HeaderParam("Authorization") String authHeader,
+            @CookieParam("session") String token,
             @Valid CreateOrUpdateWorkSheetDTO dto) {
-        String token = extractBearerToken(authHeader);
-
         workSheetService.createOrUpdateWorkSheet(token, dto);
 
         return new CreateOrUpdateWorkSheetResponseDTO("Folha de obra criada/modificada com sucesso.");
     }
-
-    private String extractBearerToken(String authHeader) {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring("Bearer ".length()).trim();
-        }
-        throw new WebApplicationException("Authorization header is missing or invalid", Response.Status.UNAUTHORIZED);
-    }
-} 
+}

@@ -4,6 +4,6 @@ import tavindev.core.entities.WorkSheet;
 import java.util.Optional;
 
 public interface WorkSheetRepository {
-    boolean exists(String id);
+    boolean exists(Long id);
     WorkSheet save(WorkSheet workSheet);
 }

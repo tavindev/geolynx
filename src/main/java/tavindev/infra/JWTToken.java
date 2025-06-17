@@ -62,7 +62,7 @@ public class JWTToken {
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT decoded = verifier.verify(token);
 
-            return decoded;
+            return decoded;''
         } catch (Exception e) {
             return null;
         }

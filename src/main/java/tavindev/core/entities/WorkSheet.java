@@ -1,138 +1,160 @@
 package tavindev.core.entities;
 
+import java.util.List;
 import java.util.UUID;
 import tavindev.core.exceptions.BadRequestException;
 
 public class WorkSheet {
-    private final String referenciaObra;
-    private final String descricao;
-    private final TargetType tipoAlvo;
-    private final AwardStatus estadoAdjudicacao;
-    private final String dataAdjudicacao;
-    private final String dataInicioPrevista;
-    private final String dataConclusaoPrevista;
-    private final String contaEntidade;
-    private final String entidadeAdjudicacao;
-    private final String nifEmpresa;
-    private final WorkStatus estadoObra;
-    private final String observacoes;
+    private final Long id;
+    private final String startingDate;
+    private final String finishingDate;
+    private final String issueDate;
+    private final Long serviceProviderId;
+    private final String awardDate;
+    private final Long issuingUserId;
+    private final List<String> aigp;
+    private final String posaCode;
+    private final String posaDescription;
+    private final String pospCode;
+    private final String pospDescription;
+    private final List<Operation> operations;
+    private final List<Feature> features;
 
-    public WorkSheet(String referenciaObra, String descricao, TargetType tipoAlvo,
-                    AwardStatus estadoAdjudicacao, String dataAdjudicacao,
-                    String dataInicioPrevista, String dataConclusaoPrevista,
-                    String contaEntidade, String entidadeAdjudicacao, String nifEmpresa,
-                    WorkStatus estadoObra, String observacoes) {
-        this.referenciaObra = referenciaObra;
-        this.descricao = descricao;
-        this.tipoAlvo = tipoAlvo;
-        this.estadoAdjudicacao = estadoAdjudicacao;
-        
-        if (estadoAdjudicacao == AwardStatus.ADJUDICADO) {
-            // Validate all adjudication-related fields are provided
-            if (dataAdjudicacao == null) {
-                throw new BadRequestException("Data de adjudicação é obrigatória quando a obra está adjudicada");
-            }
-            if (dataInicioPrevista == null) {
-                throw new BadRequestException("Data prevista de início é obrigatória quando a obra está adjudicada");
-            }
-            if (dataConclusaoPrevista == null) {
-                throw new BadRequestException("Data prevista de conclusão é obrigatória quando a obra está adjudicada");
-            }
-            if (contaEntidade == null) {
-                throw new BadRequestException("Conta de entidade é obrigatória quando a obra está adjudicada");
-            }
-            if (entidadeAdjudicacao == null) {
-                throw new BadRequestException("Entidade de adjudicação é obrigatória quando a obra está adjudicada");
-            }
-            if (nifEmpresa == null) {
-                throw new BadRequestException("NIF da empresa é obrigatório quando a obra está adjudicada");
-            }
-            if (estadoObra == null) {
-                throw new BadRequestException("Estado da obra é obrigatório quando a obra está adjudicada");
-            }
+    public WorkSheet(Long id, String startingDate, String finishingDate, String issueDate,
+            Long serviceProviderId, String awardDate, Long issuingUserId,
+            List<String> aigp, String posaCode, String posaDescription,
+            String pospCode, String pospDescription, List<Operation> operations,
+            List<Feature> features) {
+        this.id = id;
+        this.startingDate = startingDate;
+        this.finishingDate = finishingDate;
+        this.issueDate = issueDate;
+        this.serviceProviderId = serviceProviderId;
+        this.awardDate = awardDate;
+        this.issuingUserId = issuingUserId;
+        this.aigp = aigp;
+        this.posaCode = posaCode;
+        this.posaDescription = posaDescription;
+        this.pospCode = pospCode;
+        this.pospDescription = pospDescription;
+        this.operations = operations;
+        this.features = features;
+    }
 
-            this.dataAdjudicacao = dataAdjudicacao;
-            this.dataInicioPrevista = dataInicioPrevista;
-            this.dataConclusaoPrevista = dataConclusaoPrevista;
-            this.contaEntidade = contaEntidade;
-            this.entidadeAdjudicacao = entidadeAdjudicacao;
-            this.nifEmpresa = nifEmpresa;
-            this.estadoObra = estadoObra;
-            this.observacoes = observacoes; // observações são opcionais
-        } else {
-            // Clear all adjudication-related fields if not adjudicated
-            this.dataAdjudicacao = null;
-            this.dataInicioPrevista = null;
-            this.dataConclusaoPrevista = null;
-            this.contaEntidade = null;
-            this.entidadeAdjudicacao = null;
-            this.nifEmpresa = null;
-            this.estadoObra = null;
-            this.observacoes = null;
+    // Getters
+    public Long getId() {
+        return id;
+    }
+
+    public String getStartingDate() {
+        return startingDate;
+    }
+
+    public String getFinishingDate() {
+        return finishingDate;
+    }
+
+    public String getIssueDate() {
+        return issueDate;
+    }
+
+    public Long getServiceProviderId() {
+        return serviceProviderId;
+    }
+
+    public String getAwardDate() {
+        return awardDate;
+    }
+
+    public Long getIssuingUserId() {
+        return issuingUserId;
+    }
+
+    public List<String> getAigp() {
+        return aigp;
+    }
+
+    public String getPosaCode() {
+        return posaCode;
+    }
+
+    public String getPosaDescription() {
+        return posaDescription;
+    }
+
+    public String getPospCode() {
+        return pospCode;
+    }
+
+    public String getPospDescription() {
+        return pospDescription;
+    }
+
+    public List<Operation> getOperations() {
+        return operations;
+    }
+
+    public List<Feature> getFeatures() {
+        return features;
+    }
+
+    public static class Operation {
+        private final String operationCode;
+        private final String operationDescription;
+        private final double areaHa;
+
+        public Operation(String operationCode, String operationDescription, double areaHa) {
+            this.operationCode = operationCode;
+            this.operationDescription = operationDescription;
+            this.areaHa = areaHa;
+        }
+
+        public String getOperationCode() {
+            return operationCode;
+        }
+
+        public String getOperationDescription() {
+            return operationDescription;
+        }
+
+        public double getAreaHa() {
+            return areaHa;
         }
     }
 
-    public String getReferenciaObra() {
-        return referenciaObra;
-    }
+    public static class Feature {
+        private final String aigp;
+        private final String ruralPropertyId;
+        private final int polygonId;
+        private final int uiId;
+        private final List<List<Double>> coordinates;
 
-    public String getDescricao() {
-        return descricao;
-    }
+        public Feature(String aigp, String ruralPropertyId, int polygonId, int uiId, List<List<Double>> coordinates) {
+            this.aigp = aigp;
+            this.ruralPropertyId = ruralPropertyId;
+            this.polygonId = polygonId;
+            this.uiId = uiId;
+            this.coordinates = coordinates;
+        }
 
-    public TargetType getTipoAlvo() {
-        return tipoAlvo;
-    }
+        public String getAigp() {
+            return aigp;
+        }
 
-    public AwardStatus getEstadoAdjudicacao() {
-        return estadoAdjudicacao;
-    }
+        public String getRuralPropertyId() {
+            return ruralPropertyId;
+        }
 
-    public String getDataAdjudicacao() {
-        return dataAdjudicacao;
-    }
+        public int getPolygonId() {
+            return polygonId;
+        }
 
-    public String getDataInicioPrevista() {
-        return dataInicioPrevista;
-    }
+        public int getUiId() {
+            return uiId;
+        }
 
-    public String getDataConclusaoPrevista() {
-        return dataConclusaoPrevista;
+        public List<List<Double>> getCoordinates() {
+            return coordinates;
+        }
     }
-
-    public String getContaEntidade() {
-        return contaEntidade;
-    }
-
-    public String getEntidadeAdjudicacao() {
-        return entidadeAdjudicacao;
-    }
-
-    public String getNifEmpresa() {
-        return nifEmpresa;
-    }
-
-    public WorkStatus getEstadoObra() {
-        return estadoObra;
-    }
-
-    public String getObservacoes() {
-        return observacoes;
-    }
-
-    public enum TargetType {
-        PROPRIEDADE_PUBLICA,
-        PROPRIEDADE_PRIVADA
-    }
-
-    public enum AwardStatus {
-        ADJUDICADO,
-        NAO_ADJUDICADO
-    }
-
-    public enum WorkStatus {
-        NAO_INICIADO,
-        EM_CURSO,
-        CONCLUIDO
-    }
-} 
+}

@@ -20,17 +20,11 @@ public class WorkSheetService {
     @Inject
     private AuthUtils authUtils;
 
-    @Inject
-    private AuthService authService;
-
-    @Inject
-    private UserService userService;
-
     public WorkSheet createOrUpdateWorkSheet(String tokenId, CreateOrUpdateWorkSheetDTO dto) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
         WorkSheet workSheet = WorkSheetMapper.toEntity(dto);
 
-        if (workSheetRepository.exists(dto.referencia_obra())) {
+        if (!workSheetRepository.exists(dto.getMetadata().getId())) {
             worksheetAuthorizationChain.handle(currentUser, workSheet, WorksheetAction.CREATE);
         } else {
             worksheetAuthorizationChain.handle(currentUser, workSheet, WorksheetAction.UPDATE);
