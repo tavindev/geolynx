@@ -24,14 +24,13 @@ public class WorkSheetService {
         User currentUser = authUtils.validateAndGetUser(tokenId);
         WorkSheet workSheet = WorkSheetMapper.toEntity(dto);
 
-        if (!workSheetRepository.exists(dto.getMetadata().getId())) {
+        if (!workSheetRepository.exists(dto.getMetadata().getId()))
             worksheetAuthorizationChain.handle(currentUser, workSheet, WorksheetAction.CREATE);
-        } else {
+        else
             worksheetAuthorizationChain.handle(currentUser, workSheet, WorksheetAction.UPDATE);
-        }
 
         workSheetRepository.save(workSheet);
 
         return workSheet;
     }
-} 
+}

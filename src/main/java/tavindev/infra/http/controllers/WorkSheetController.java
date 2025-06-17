@@ -19,7 +19,7 @@ public class WorkSheetController {
     private WorkSheetService workSheetService;
 
     @POST
-    @Path("/create")
+    @Path("/import")
     @Consumes(MediaType.APPLICATION_JSON)
     public CreateOrUpdateWorkSheetResponseDTO createOrUpdateWorkSheet(
             @CookieParam("session") String token,
