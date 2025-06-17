@@ -10,16 +10,18 @@ import tavindev.core.entities.WorkSheet;
 import tavindev.core.services.WorkSheetService;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetDTO;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetResponseDTO;
+import tavindev.infra.dto.worksheet.GeoJsonImportDTO;
+import tavindev.infra.dto.worksheet.GeoJsonImportResponseDTO;
 
 @Service
-@Path("/work-sheet")
+@Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 public class WorkSheetController {
     @Inject
     private WorkSheetService workSheetService;
 
     @POST
-    @Path("/create")
+    @Path("/work-sheet/create")
     @Consumes(MediaType.APPLICATION_JSON)
     public CreateOrUpdateWorkSheetResponseDTO createOrUpdateWorkSheet(
             @HeaderParam("Authorization") String authHeader,
@@ -29,6 +31,22 @@ public class WorkSheetController {
         workSheetService.createOrUpdateWorkSheet(token, dto);
 
         return new CreateOrUpdateWorkSheetResponseDTO("Folha de obra criada/modificada com sucesso.");
+    }
+
+    @POST
+    @Path("/folhas-obra/importar")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public GeoJsonImportResponseDTO importGeoJsonWorkSheet(
+            @HeaderParam("Authorization") String authHeader,
+            @Valid GeoJsonImportDTO dto) {
+        String token = extractBearerToken(authHeader);
+
+        WorkSheet workSheet = workSheetService.importGeoJsonWorkSheet(token, dto);
+
+        return new GeoJsonImportResponseDTO(
+            "Folha de obra importada com sucesso", 
+            workSheet.getId()
+        );
     }
 
     private String extractBearerToken(String authHeader) {

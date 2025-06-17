@@ -4,5 +4,6 @@ public enum UserRole {
     ENDUSER,
     BACKOFFICE,
     ADMIN,
-    PARTNER
+    PARTNER,
+    SMBO
 } 

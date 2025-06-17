@@ -13,11 +13,14 @@ public class WorksheetAuthorizationChain {
     public WorksheetAuthorizationChain() {
         WorksheetAuthorizationHandler partnerHandler = new PartnerWorksheetHandler();
         WorksheetAuthorizationHandler backOfficeHandler = new BackOfficeWorksheetHandler();
+        WorksheetAuthorizationHandler smboHandler = new SMBOWorksheetHandler();
         WorksheetAuthorizationHandler adminHandler = new AdminWorksheetHandler();
 
         this.chain = partnerHandler;
 
-        partnerHandler.setNext(backOfficeHandler).setNext(adminHandler);
+        partnerHandler.setNext(backOfficeHandler)
+                     .setNext(smboHandler)
+                     .setNext(adminHandler);
     }
 
     public void handle(User currentUser, WorkSheet workSheet, WorksheetAction action) {
