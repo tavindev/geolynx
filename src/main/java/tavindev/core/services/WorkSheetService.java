@@ -48,7 +48,7 @@ public class WorkSheetService {
 
     public WorkSheet getWorkSheet(String tokenId, Long id) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
-        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_GEN_FO);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_DET_FO);
 
         return workSheetRepository.get(id);
     }
