@@ -6,6 +6,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jvnet.hk2.annotations.Service;
+import tavindev.core.entities.WorkSheet;
 import tavindev.core.services.WorkSheetService;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetDTO;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetResponseDTO;
@@ -43,9 +44,17 @@ public class WorkSheetController {
     }
 
     @GET
-    @Path("/all")
+    @Path("/")
     public List<WorkSheetListResponseDTO> getAllWorkSheets(
             @CookieParam("session") String token) {
         return workSheetService.getAllWorkSheets(token);
+    }
+
+    @GET
+    @Path("/{id}")
+    public WorkSheet getWorkSheet(
+            @CookieParam("session") String token,
+            @PathParam("id") Long id) {
+        return workSheetService.getWorkSheet(token, id);
     }
 }

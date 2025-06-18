@@ -46,6 +46,13 @@ public class WorkSheetService {
         workSheetRepository.remove(workSheet);
     }
 
+    public WorkSheet getWorkSheet(String tokenId, Long id) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_GEN_FO);
+
+        return workSheetRepository.get(id);
+    }
+
     public List<WorkSheetListResponseDTO> getAllWorkSheets(String tokenId) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_GEN_FO);
