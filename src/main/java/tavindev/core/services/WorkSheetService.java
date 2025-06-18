@@ -1,5 +1,8 @@
 package tavindev.core.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 import tavindev.core.entities.User;
@@ -8,6 +11,7 @@ import tavindev.core.entities.Permission;
 import tavindev.core.authorization.PermissionAuthorizationHandler;
 import tavindev.core.utils.AuthUtils;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetDTO;
+import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
 import tavindev.api.mappers.WorkSheetMapper;
 import tavindev.infra.repositories.WorkSheetRepository;
 
@@ -40,5 +44,12 @@ public class WorkSheetService {
             throw new NotFoundException("Folha de obra não encontrada");
 
         workSheetRepository.remove(workSheet);
+    }
+
+    public List<WorkSheetListResponseDTO> getAllWorkSheets(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_GEN_FO);
+
+        return workSheetRepository.getAll();
     }
 }

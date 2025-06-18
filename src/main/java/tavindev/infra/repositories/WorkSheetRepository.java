@@ -5,6 +5,8 @@ import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.WorkSheet;
 import tavindev.core.entities.WorkSheet.Operation;
 import tavindev.core.entities.WorkSheet.Feature;
+import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
+import tavindev.api.mappers.WorkSheetMapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -190,7 +192,6 @@ public class WorkSheetRepository {
                 featuresBuilder.addValue(featureEntity);
             }
             entityBuilder.set("features", featuresBuilder.build());
-
         }
 
         Entity workSheetEntity = entityBuilder.build();
@@ -203,5 +204,59 @@ public class WorkSheetRepository {
         Entity workSheetEntity = datastore.get(workSheetKey);
 
         return workSheetEntity != null;
+    }
+
+    public List<WorkSheetListResponseDTO> getAll() {
+        Query<Entity> query = Query.newEntityQueryBuilder()
+                .setKind(WORK_SHEET_KIND)
+                .build();
+
+        QueryResults<Entity> results = datastore.run(query);
+        List<WorkSheetListResponseDTO> workSheets = new ArrayList<>();
+
+        while (results.hasNext()) {
+            Entity workSheetEntity = results.next();
+
+            // Extract basic metadata
+            Long workSheetId = workSheetEntity.getLong("id");
+            String startingDate = workSheetEntity.getString("startingDate");
+            String finishingDate = workSheetEntity.getString("finishingDate");
+            String issueDate = workSheetEntity.getString("issueDate");
+            Long serviceProviderId = workSheetEntity.getLong("serviceProviderId");
+            String awardDate = workSheetEntity.getString("awardDate");
+
+            // Extract AIGP list
+            List<String> aigp = null;
+            if (workSheetEntity.contains("aigp")) {
+                String aigpString = workSheetEntity.getString("aigp");
+                if (aigpString != null && !aigpString.isEmpty()) {
+                    aigp = Arrays.asList(aigpString.split(","));
+                }
+            }
+
+            // Extract operations
+            List<WorkSheetListResponseDTO.OperationDTO> operations = new ArrayList<>();
+            if (workSheetEntity.contains("operations")) {
+                List<Value<?>> operationsList = workSheetEntity.getList("operations");
+                for (Value<?> operationValue : operationsList) {
+                    if (operationValue instanceof EntityValue) {
+                        FullEntity<?> operationEntity = ((EntityValue) operationValue).get();
+                        String operationCode = operationEntity.getString("operationCode");
+                        String operationDescription = operationEntity.getString("operationDescription");
+                        double areaHa = operationEntity.getDouble("areaHa");
+                        operations.add(
+                                new WorkSheetListResponseDTO.OperationDTO(operationCode, operationDescription, areaHa));
+                    }
+                }
+            }
+
+            WorkSheetListResponseDTO workSheet = new WorkSheetListResponseDTO(
+                    workSheetId, aigp, startingDate, finishingDate, issueDate, awardDate, serviceProviderId,
+                    operations);
+
+            workSheets.add(workSheet);
+        }
+
+        return workSheets;
     }
 }

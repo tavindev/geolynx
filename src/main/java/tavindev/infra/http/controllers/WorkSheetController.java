@@ -6,10 +6,11 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jvnet.hk2.annotations.Service;
-import tavindev.core.entities.WorkSheet;
 import tavindev.core.services.WorkSheetService;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetDTO;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetResponseDTO;
+import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
+import java.util.List;
 
 @Service
 @Path("/work-sheet")
@@ -39,5 +40,12 @@ public class WorkSheetController {
         return Response.ok()
                 .entity(new CreateOrUpdateWorkSheetResponseDTO("Folha de obra removida com sucesso."))
                 .build();
+    }
+
+    @GET
+    @Path("/all")
+    public List<WorkSheetListResponseDTO> getAllWorkSheets(
+            @CookieParam("session") String token) {
+        return workSheetService.getAllWorkSheets(token);
     }
 }
