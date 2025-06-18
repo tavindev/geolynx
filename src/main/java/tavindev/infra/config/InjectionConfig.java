@@ -8,21 +8,20 @@ import tavindev.core.authorization.roleChange.RoleChangeAuthorizationChain;
 import tavindev.core.authorization.accountState.AccountStateChangeAuthorizationChain;
 import tavindev.core.authorization.accountRemoval.AccountRemovalAuthorizationChain;
 import tavindev.core.authorization.attributeChange.AttributeChangeAuthorizationChain;
-import tavindev.core.repositories.WorkSheetRepository;
 import tavindev.core.services.AuthService;
 import tavindev.core.services.UserService;
 import tavindev.core.services.WorkSheetService;
 import tavindev.core.utils.AuthUtils;
 import tavindev.infra.repositories.DatastoreAuthTokenRepository;
 import tavindev.infra.repositories.DatastoreUserRepository;
-import tavindev.infra.repositories.DatastoreWorkSheetRepository;
+import tavindev.infra.repositories.WorkSheetRepository;
 
 public class InjectionConfig extends AbstractBinder {
     @Override
     protected void configure() {
         bind(DatastoreUserRepository.class).to(UserRepository.class);
         bind(DatastoreAuthTokenRepository.class).to(AuthTokenRepository.class);
-        bind(DatastoreWorkSheetRepository.class).to(WorkSheetRepository.class);
+        bind(WorkSheetRepository.class).to(WorkSheetRepository.class);
         bind(AuthService.class).to(AuthService.class);
         bind(UserService.class).to(UserService.class);
         bind(AuthUtils.class).to(AuthUtils.class);

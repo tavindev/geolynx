@@ -5,8 +5,7 @@ package tavindev.core.entities;
  */
 public enum Permission {
     // Sheet Manager (SMBO) permissions
-    IMP_FO("Import work sheets"),
-    EDIT_FO("Edit work sheets"),
+    IMP_FO("Upsert work sheets"),
     REM_FO("Remove work sheets and associated executions"),
     VIEW_GEN_FO("View work sheet (generic)"),
     VIEW_DET_FO("View work sheet (detailed)"),
@@ -53,4 +52,4 @@ public enum Permission {
     public String getDescription() {
         return description;
     }
-} 
+}

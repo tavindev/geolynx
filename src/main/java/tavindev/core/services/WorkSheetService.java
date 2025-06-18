@@ -1,36 +1,44 @@
 package tavindev.core.services;
 
 import jakarta.inject.Inject;
+import jakarta.ws.rs.NotFoundException;
 import tavindev.core.entities.User;
 import tavindev.core.entities.WorkSheet;
-import tavindev.core.repositories.WorkSheetRepository;
-import tavindev.core.authorization.worksheet.WorksheetAuthorizationChain;
-import tavindev.core.authorization.worksheet.WorksheetAction;
+import tavindev.core.entities.Permission;
+import tavindev.core.authorization.PermissionAuthorizationHandler;
 import tavindev.core.utils.AuthUtils;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetDTO;
 import tavindev.api.mappers.WorkSheetMapper;
+import tavindev.infra.repositories.WorkSheetRepository;
 
 public class WorkSheetService {
     @Inject
     private WorkSheetRepository workSheetRepository;
 
     @Inject
-    private WorksheetAuthorizationChain worksheetAuthorizationChain;
-
-    @Inject
     private AuthUtils authUtils;
 
     public WorkSheet createOrUpdateWorkSheet(String tokenId, CreateOrUpdateWorkSheetDTO dto) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
-        WorkSheet workSheet = WorkSheetMapper.toEntity(dto);
 
-        if (!workSheetRepository.exists(dto.getMetadata().getId()))
-            worksheetAuthorizationChain.handle(currentUser, workSheet, WorksheetAction.CREATE);
-        else
-            worksheetAuthorizationChain.handle(currentUser, workSheet, WorksheetAction.UPDATE);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.IMP_FO);
+
+        WorkSheet workSheet = WorkSheetMapper.toEntity(dto);
 
         workSheetRepository.save(workSheet);
 
         return workSheet;
+    }
+
+    public void removeWorkSheet(String tokenId, Long id) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.REM_FO);
+
+        WorkSheet workSheet = workSheetRepository.get(id);
+
+        if (workSheet == null)
+            throw new NotFoundException("Folha de obra não encontrada");
+
+        workSheetRepository.remove(workSheet);
     }
 }
