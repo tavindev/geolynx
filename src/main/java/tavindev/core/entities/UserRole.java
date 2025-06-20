@@ -1,7 +1,8 @@
 package tavindev.core.entities;
 
 /**
- * Represents the different roles in the system and their associated permissions.
+ * Represents the different roles in the system and their associated
+ * permissions.
  */
 public enum UserRole {
     /**
@@ -75,8 +76,49 @@ public enum UserRole {
      */
     SYSTEM,
 
-    ENDUSER,
-    BACKOFFICE,
-    ADMIN,
-    PARTNER
-} 
+    /**
+     * Adherent Landowner User - Landowner adherent to AIGP (landscape management)
+     * Permissions:
+     * - Provide information about land availability for use
+     * - Similar permissions to RU
+     */
+    ADLU,
+
+    /**
+     * Registered User - External user with registered account
+     * Permissions:
+     * - LIKE-INT: Like interventions
+     * - SUGGEST-INT: Publish suggestions or intervention requests
+     * - ROUTE-INT: Organize visits with route editing
+     * - Access to "before/after" of interventions
+     */
+    RU,
+
+    /**
+     * Visitor User - External user without registered account (public)
+     * Permissions:
+     * - View institutional information or results from RU actions
+     * - Read-only/search, no system modification
+     */
+    VU,
+
+    /**
+     * System Administrator - Responsible for technical system administration
+     * Permissions:
+     * - Manage account activation, suspension, removal
+     * - Promote SYSBO users to SYSADMIN
+     * - View all system data
+     * - Force logout of any user
+     */
+    SYSADMIN,
+
+    /**
+     * System BackOffice - Responsible for operational system management
+     * Permissions:
+     * - Obtain operational data and statistics
+     * - Manage productivity
+     * - Activate/deactivate/suspend accounts (except SYSADMIN)
+     * - Force logout of any user except SYSADMIN
+     */
+    SYSBO
+}

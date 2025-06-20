@@ -15,7 +15,7 @@ public class RolePermissionManager {
 
     static {
         // Admin has all permissions
-        ROLE_PERMISSIONS.put(UserRole.ADMIN, EnumSet.allOf(Permission.class));
+        ROLE_PERMISSIONS.put(UserRole.SYSADMIN, EnumSet.allOf(Permission.class));
 
         // Sheet Manager (SMBO) permissions
         ROLE_PERMISSIONS.put(UserRole.SMBO, EnumSet.of(
@@ -79,7 +79,7 @@ public class RolePermissionManager {
      */
     public static boolean hasPermission(UserRole role, Permission permission) {
         // Admin role always has all permissions
-        if (role == UserRole.ADMIN) {
+        if (role == UserRole.SYSADMIN) {
             return true;
         }
         Set<Permission> permissions = ROLE_PERMISSIONS.get(role);
@@ -94,7 +94,7 @@ public class RolePermissionManager {
      */
     public static Set<Permission> getPermissions(UserRole role) {
         // Admin role always has all permissions
-        if (role == UserRole.ADMIN) {
+        if (role == UserRole.SYSADMIN) {
             return EnumSet.allOf(Permission.class);
         }
         return ROLE_PERMISSIONS.getOrDefault(role, EnumSet.noneOf(Permission.class));
@@ -109,7 +109,7 @@ public class RolePermissionManager {
      */
     public static boolean hasAllPermissions(UserRole role, Set<Permission> permissions) {
         // Admin role always has all permissions
-        if (role == UserRole.ADMIN) {
+        if (role == UserRole.SYSADMIN) {
             return true;
         }
         Set<Permission> rolePermissions = ROLE_PERMISSIONS.get(role);
@@ -125,7 +125,7 @@ public class RolePermissionManager {
      */
     public static boolean hasAnyPermission(UserRole role, Set<Permission> permissions) {
         // Admin role always has all permissions
-        if (role == UserRole.ADMIN) {
+        if (role == UserRole.SYSADMIN) {
             return true;
         }
         Set<Permission> rolePermissions = ROLE_PERMISSIONS.get(role);

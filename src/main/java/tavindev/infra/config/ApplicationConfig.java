@@ -14,5 +14,6 @@ public class ApplicationConfig extends ResourceConfig {
         register(new InjectionConfig());
         register(AuthTokenExtractionFilter.class);
         register(AdminAccountCreation.class);
+        register(JacksonConfig.class);
     }
-} 
+}

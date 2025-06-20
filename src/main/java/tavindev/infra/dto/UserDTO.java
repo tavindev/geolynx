@@ -1,16 +1,23 @@
 package tavindev.infra.dto;
 
+import java.time.LocalDate;
+
 public record UserDTO(
-    String username,
-    String email,
-    String nome_completo,
-    String telefone,
-    String estado_conta,
-    String perfil,
-    String role,
-    String morada,
-    String nif,
-    String entidade_empregadora,
-    String funcao,
-    String nif_entidade_empregadora
-) {} 
+        String username,
+        String email,
+        String fullName,
+        String phone,
+        String accountStatus,
+        String profile,
+        String role,
+        String nationality,
+        String residence,
+        String address,
+        String postalCode,
+        LocalDate birthDate,
+        String citizenCard,
+        String taxId,
+        String employer,
+        String jobTitle,
+        String employerTaxId) {
+}

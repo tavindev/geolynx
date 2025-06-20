@@ -39,7 +39,7 @@ public class AuthService {
         if (user.isPasswordInvalid(request.password())) {
             throw new InvalidCredentialsException();
         }
-        
+
         AuthToken authToken = new AuthToken(user.getId(), user.getUsername(), user.getRole());
 
         authTokenRepository.save(authToken);
@@ -58,13 +58,13 @@ public class AuthService {
     }
 
     private User findUserByIdentifiers(String email, String username) {
-       User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email);
 
-       if (user == null) {
-           return userRepository.findByUsername(username);
-       }
+        if (user == null) {
+            return userRepository.findByUsername(username);
+        }
 
-       return user;
+        return user;
     }
 
     public User registerUser(@NotNull @Valid RegisterUserDTO registerUserDTO) {
@@ -80,35 +80,46 @@ public class AuthService {
         PersonalInfo personalInfo = new PersonalInfo(
                 registerUserDTO.email(),
                 registerUserDTO.username(),
-                registerUserDTO.nome_completo(),
-                registerUserDTO.telefone(),
-                registerUserDTO.password()
-        );
+                registerUserDTO.fullName(),
+                registerUserDTO.phone(),
+                registerUserDTO.password(),
+                registerUserDTO.nationality(),
+                registerUserDTO.residence(),
+                registerUserDTO.address(),
+                registerUserDTO.postalCode(),
+                registerUserDTO.birthDate());
 
         IdentificationInfo identificationInfo = new IdentificationInfo(
-                orNotDefined(registerUserDTO.cartao_cidadao()),
-                orNotDefined(registerUserDTO.nif()),
-                orNotDefined(registerUserDTO.morada())
-        );
+                registerUserDTO.citizenCard(),
+                registerUserDTO.taxId(),
+                registerUserDTO.address());
 
         ProfessionalInfo professionalInfo = new ProfessionalInfo(
-                orNotDefined(registerUserDTO.entidade_empregadora()),
-                orNotDefined(registerUserDTO.funcao()),
-                orNotDefined(registerUserDTO.nif_entidade_empregadora())
-        );
+                registerUserDTO.employer(),
+                registerUserDTO.jobTitle(),
+                registerUserDTO.employerTaxId());
+
+        UserRole userRole = UserRole.RU;
+
+        UserProfile userProfile = UserProfile.valueOf(registerUserDTO.profile().toUpperCase());
 
         User user = new User(
                 personalInfo,
                 identificationInfo,
                 professionalInfo,
-                UserProfile.valueOf(registerUserDTO.perfil()),
-                UserRole.ENDUSER,
-                AccountStatus.DESATIVADA
-        );
+                userProfile,
+                userRole,
+                AccountStatus.DESATIVADA);
+
+        try {
+            user.validateMinimumRequirements();
+        } catch (ValidationException e) {
+            throw new BadRequestException("User validation failed: " + e.getMessage());
+        }
 
         this.userRepository.save(user);
 
         return user;
     }
 
-} 
+}

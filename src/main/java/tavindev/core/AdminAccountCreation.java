@@ -7,6 +7,8 @@ import tavindev.core.entities.*;
 import tavindev.core.repositories.UserRepository;
 import tavindev.infra.repositories.DatastoreUserRepository;
 
+import java.time.LocalDate;
+
 
 @WebListener
 public class AdminAccountCreation implements ServletContextListener {
@@ -25,7 +27,12 @@ public class AdminAccountCreation implements ServletContextListener {
                 "admin",
                 "Admin",
                 "NOT DEFINED",
-                "admin"
+                "admin",
+                "",
+                "",
+                "",
+                "",
+                LocalDate.now()
         );
 
         IdentificationInfo identificationInfo = new IdentificationInfo(
@@ -45,7 +52,7 @@ public class AdminAccountCreation implements ServletContextListener {
                 identificationInfo,
                 professionalInfo,
                 UserProfile.PRIVADO,
-                UserRole.ADMIN,
+                UserRole.SYSADMIN,
                 AccountStatus.ATIVADA
         );
 
