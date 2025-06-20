@@ -13,7 +13,7 @@ public class User {
     private PersonalInfo personalInfo;
     private final IdentificationInfo identificationInfo;
     private ProfessionalInfo professionalInfo;
-    private final UserProfile profile;
+    private UserProfile profile;
     private UserRole role;
     private AccountStatus accountStatus;
 
@@ -104,6 +104,10 @@ public class User {
         this.accountStatus = newAccountStatus;
     }
 
+    public void setProfile(UserProfile newProfile) {
+        this.profile = newProfile;
+    }
+
     public void setAttributes(Map<String, String> attributes) {
         if (attributes.containsKey("fullName")) {
             this.personalInfo = this.personalInfo.updateFullName(attributes.get("fullName"));
@@ -123,7 +127,6 @@ public class User {
         if (attributes.containsKey("photo")) {
             this.professionalInfo = this.professionalInfo.updatePhoto(attributes.get("photo"));
         }
-
     }
 
     public String getUsername() {

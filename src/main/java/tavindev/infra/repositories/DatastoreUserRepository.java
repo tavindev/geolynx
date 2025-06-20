@@ -140,6 +140,20 @@ public class DatastoreUserRepository {
         return users;
     }
 
+    public List<User> findByAccountStatus(AccountStatus accountStatus) {
+        Query<Entity> query = Query.newEntityQueryBuilder()
+                .setKind(USER_KIND)
+                .setFilter(StructuredQuery.PropertyFilter.eq("accountStatus", accountStatus.name()))
+                .build();
+
+        List<User> users = new ArrayList<>();
+        QueryResults<Entity> results = datastore.run(query);
+        while (results.hasNext()) {
+            users.add(convertToUser(results.next()));
+        }
+        return users;
+    }
+
     private User convertToUser(Entity entity) {
         // Use safe getters for fields that might not exist in existing data
         String birthDateStr = entity.contains("birthDate") ? entity.getString("birthDate") : null;

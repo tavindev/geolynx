@@ -6,9 +6,11 @@ import tavindev.core.repositories.AuthTokenRepository;
 import tavindev.infra.repositories.DatastoreUserRepository;
 import tavindev.core.entities.User;
 import tavindev.core.entities.UserRole;
+import tavindev.core.entities.UserProfile;
 import tavindev.core.entities.AccountStatus;
 import tavindev.core.exceptions.UserNotFoundException;
 import tavindev.core.exceptions.InvalidCredentialsException;
+import tavindev.core.exceptions.UnauthorizedException;
 import tavindev.core.utils.AuthUtils;
 
 import java.util.List;
@@ -88,5 +90,87 @@ public class UserService {
 
         currentUser.setPassword(newPassword);
         userRepository.save(currentUser);
+    }
+
+    public void activateAccount(String tokenId, String identifier) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        User targetUser = userRepository.findByIdentifier(identifier);
+        if (targetUser == null) {
+            throw new UserNotFoundException(identifier);
+        }
+
+        targetUser.setAccountStatus(AccountStatus.ATIVADA);
+        userRepository.save(targetUser);
+    }
+
+    public void deactivateAccount(String tokenId, String identifier) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        User targetUser = userRepository.findByIdentifier(identifier);
+        if (targetUser == null) {
+            throw new UserNotFoundException(identifier);
+        }
+
+        targetUser.setAccountStatus(AccountStatus.DESATIVADA);
+        userRepository.save(targetUser);
+    }
+
+    public void suspendAccount(String tokenId, String identifier) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        User targetUser = userRepository.findByIdentifier(identifier);
+        if (targetUser == null) {
+            throw new UserNotFoundException(identifier);
+        }
+
+        targetUser.setAccountStatus(AccountStatus.SUSPENSA);
+        userRepository.save(targetUser);
+    }
+
+    public void requestAccountRemoval(String tokenId, String identifier) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        User targetUser = userRepository.findByIdentifier(identifier);
+        if (targetUser == null) {
+            throw new UserNotFoundException(identifier);
+        }
+
+        targetUser.setAccountStatus(AccountStatus.A_REMOVER);
+        userRepository.save(targetUser);
+    }
+
+    public List<User> getAccountsForRemoval(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        return userRepository.findByAccountStatus(AccountStatus.A_REMOVER);
+    }
+
+    public AccountStatus getAccountStatus(String tokenId, String identifier) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        User targetUser = userRepository.findByIdentifier(identifier);
+        if (targetUser == null) {
+            throw new UserNotFoundException(identifier);
+        }
+
+        return targetUser.getAccountStatus();
+    }
+
+    public void changeProfile(String tokenId, String identifier, UserProfile newProfile) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        User targetUser = userRepository.findByIdentifier(identifier);
+        if (targetUser == null) {
+            throw new UserNotFoundException(identifier);
+        }
+
+        // Only RU role can change profile
+        if (targetUser.getRole() != UserRole.RU) {
+            throw new UnauthorizedException("Only RU role can change profile");
+        }
+
+        targetUser.setProfile(newProfile);
+        userRepository.save(targetUser);
     }
 }

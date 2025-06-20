@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+  - Only make the minimal necessary changes to implement the requested feature or fix.
+  - Do not refactor unrelated code, even if it could be improved.
+  - Preserve existing formatting and structure unless explicitly asked to change it.
+  - Avoid renaming variables, methods, or files unless required for the task.
+  - Add comments only when the user requests them.
+  - Do not auto-fix linter or style issues unless directly relevant.
+  - Do not modify tests unless the user specifically asks to update or add them.
+  - Maintain the current project structure and avoid moving code across files unless asked.
