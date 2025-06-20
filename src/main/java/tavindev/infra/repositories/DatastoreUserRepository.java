@@ -2,7 +2,6 @@ package tavindev.infra.repositories;
 
 import com.google.cloud.datastore.*;
 import org.jvnet.hk2.annotations.Service;
-import tavindev.core.repositories.UserRepository;
 import tavindev.core.entities.*;
 import tavindev.core.utils.PasswordUtils;
 
@@ -13,11 +12,10 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-public class DatastoreUserRepository implements UserRepository {
+public class DatastoreUserRepository {
     private static final String USER_KIND = "User";
     private final Datastore datastore = DatastoreManager.getInstance();
 
-    @Override
     public void save(User user) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
         Key userKey = keyFactory.newKey(user.getId());
@@ -82,7 +80,6 @@ public class DatastoreUserRepository implements UserRepository {
         datastore.put(userEntityBuilder.build());
     }
 
-    @Override
     public void delete(User user) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
         Key userKey = keyFactory.newKey(user.getId());
@@ -90,7 +87,6 @@ public class DatastoreUserRepository implements UserRepository {
         datastore.delete(userKey);
     }
 
-    @Override
     public User findById(String id) {
         KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
         Key userKey = keyFactory.newKey(id);
@@ -114,17 +110,14 @@ public class DatastoreUserRepository implements UserRepository {
         return null;
     }
 
-    @Override
     public User findByEmail(String email) {
         return findByProperty("email", email);
     }
 
-    @Override
     public User findByUsername(String username) {
         return findByProperty("username", username);
     }
 
-    @Override
     public User findByIdentifier(String identifier) {
         User user = findByEmail(identifier);
 
@@ -134,84 +127,6 @@ public class DatastoreUserRepository implements UserRepository {
         return findByUsername(identifier);
     }
 
-    @Override
-    public void updateRole(User user, UserRole newRole) {
-        KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(user.getId());
-        Entity userEntity = datastore.get(userKey);
-
-        if (userEntity != null) {
-            Entity updatedEntity = Entity.newBuilder(userEntity)
-                    .set("role", newRole.name())
-                    .build();
-
-            datastore.update(updatedEntity);
-        }
-    }
-
-    @Override
-    public void updateAccountState(User user, AccountStatus accountStatus) {
-        KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(user.getId());
-        Entity userEntity = datastore.get(userKey);
-
-        if (userEntity != null) {
-            Entity updatedEntity = Entity.newBuilder(userEntity)
-                    .set("accountStatus", accountStatus.name())
-                    .build();
-
-            datastore.update(updatedEntity);
-        }
-    }
-
-    @Override
-    public void updateAttributes(User user, Map<String, String> attributes) {
-        KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(user.getId());
-        Entity userEntity = datastore.get(userKey);
-
-        if (userEntity != null) {
-            Entity.Builder updatedEntity = Entity.newBuilder(userEntity);
-
-            // Update only the attributes that are provided
-            if (attributes.containsKey("fullName")) {
-                updatedEntity.set("fullName", attributes.get("fullName"));
-            }
-            if (attributes.containsKey("phone")) {
-                updatedEntity.set("phone", attributes.get("phone"));
-            }
-            if (attributes.containsKey("address")) {
-                updatedEntity.set("address", attributes.get("address"));
-            }
-            if (attributes.containsKey("employer")) {
-                updatedEntity.set("employer", attributes.get("employer"));
-            }
-            if (attributes.containsKey("jobTitle")) {
-                updatedEntity.set("jobTitle", attributes.get("jobTitle"));
-            }
-            if (attributes.containsKey("photo")) {
-                updatedEntity.set("photo", attributes.get("photo"));
-            }
-
-            datastore.update(updatedEntity.build());
-        }
-    }
-
-    @Override
-    public void updatePassword(User user, String newPassword) {
-        KeyFactory keyFactory = datastore.newKeyFactory().setKind(USER_KIND);
-        Key userKey = keyFactory.newKey(user.getId());
-        Entity userEntity = datastore.get(userKey);
-
-        if (userEntity != null) {
-            Entity updatedEntity = Entity.newBuilder(userEntity)
-                    .set("password", PasswordUtils.hashPassword(newPassword))
-                    .build();
-            datastore.update(updatedEntity);
-        }
-    }
-
-    @Override
     public List<User> findAllUsers() {
         Query<Entity> query = Query.newEntityQueryBuilder()
                 .setKind(USER_KIND)

@@ -4,7 +4,6 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import tavindev.core.entities.*;
-import tavindev.core.repositories.UserRepository;
 import tavindev.infra.repositories.DatastoreUserRepository;
 
 import java.time.LocalDate;
@@ -12,7 +11,7 @@ import java.time.LocalDate;
 
 @WebListener
 public class AdminAccountCreation implements ServletContextListener {
-    private final UserRepository userRepository;
+    private final DatastoreUserRepository userRepository;
 
     public AdminAccountCreation() {
         this.userRepository = new DatastoreUserRepository();

@@ -5,11 +5,11 @@ import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.AuthToken;
 import tavindev.core.entities.User;
 import tavindev.core.repositories.AuthTokenRepository;
-import tavindev.core.repositories.UserRepository;
 import tavindev.core.exceptions.AuthTokenNotFoundException;
 import tavindev.core.exceptions.UserNotFoundException;
 import tavindev.infra.JWTToken;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import tavindev.infra.repositories.DatastoreUserRepository;
 
 @Service
 public class AuthUtils {
@@ -17,7 +17,7 @@ public class AuthUtils {
     private AuthTokenRepository authTokenRepository;
 
     @Inject
-    private UserRepository userRepository;
+    private DatastoreUserRepository userRepository;
 
     public User validateAndGetUser(String jwtToken) {
         // First validate the JWT token

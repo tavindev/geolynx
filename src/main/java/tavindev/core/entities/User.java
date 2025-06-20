@@ -4,16 +4,18 @@ import tavindev.core.utils.PasswordUtils;
 import tavindev.core.validation.UserValidationFactory;
 import tavindev.core.validation.UserValidationStrategy;
 import tavindev.core.exceptions.ValidationException;
+import tavindev.core.exceptions.InvalidCredentialsException;
 import java.util.UUID;
+import java.util.Map;
 
 public class User {
     private final String id;
-    private final PersonalInfo personalInfo;
+    private PersonalInfo personalInfo;
     private final IdentificationInfo identificationInfo;
-    private final ProfessionalInfo professionalInfo;
+    private ProfessionalInfo professionalInfo;
     private final UserProfile profile;
-    private final UserRole role;
-    private final AccountStatus accountStatus;
+    private UserRole role;
+    private AccountStatus accountStatus;
 
     public User(String id, PersonalInfo personalInfo, IdentificationInfo identificationInfo,
             ProfessionalInfo professionalInfo, UserProfile profile, UserRole role,
@@ -84,6 +86,44 @@ public class User {
         } catch (ValidationException e) {
             return false;
         }
+    }
+
+    public void setPassword(String newPassword) {
+        if (isPasswordInvalid(this.personalInfo.password())) {
+            throw new InvalidCredentialsException();
+        }
+
+        this.personalInfo = this.personalInfo.updatePassword(newPassword);
+    }
+
+    public void setRole(UserRole newRole) {
+        this.role = newRole;
+    }
+
+    public void setAccountStatus(AccountStatus newAccountStatus) {
+        this.accountStatus = newAccountStatus;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        if (attributes.containsKey("fullName")) {
+            this.personalInfo = this.personalInfo.updateFullName(attributes.get("fullName"));
+        }
+        if (attributes.containsKey("phone")) {
+            this.personalInfo = this.personalInfo.updatePhone(attributes.get("phone"));
+        }
+        if (attributes.containsKey("address")) {
+            this.personalInfo = this.personalInfo.updateAddress(attributes.get("address"));
+        }
+        if (attributes.containsKey("employer")) {
+            this.professionalInfo = this.professionalInfo.updateEmployer(attributes.get("employer"));
+        }
+        if (attributes.containsKey("jobTitle")) {
+            this.professionalInfo = this.professionalInfo.updateJobTitle(attributes.get("jobTitle"));
+        }
+        if (attributes.containsKey("photo")) {
+            this.professionalInfo = this.professionalInfo.updatePhoto(attributes.get("photo"));
+        }
+
     }
 
     public String getUsername() {

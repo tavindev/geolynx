@@ -6,21 +6,17 @@ import jakarta.validation.constraints.NotNull;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.AuthToken;
 import tavindev.core.repositories.AuthTokenRepository;
-import tavindev.core.repositories.UserRepository;
 import tavindev.core.entities.*;
 import tavindev.core.exceptions.*;
 import tavindev.infra.dto.login.LoginDTO;
 import tavindev.infra.dto.logout.LogoutRequestDTO;
 import tavindev.infra.dto.RegisterUserDTO;
-
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Stream;
+import tavindev.infra.repositories.DatastoreUserRepository;
 
 @Service
 public class AuthService {
     @Inject
-    private UserRepository userRepository;
+    private DatastoreUserRepository userRepository;
 
     @Inject
     private AuthTokenRepository authTokenRepository;
@@ -30,10 +26,10 @@ public class AuthService {
     }
 
     public AuthToken login(@Valid LoginDTO request) {
-        User user = userRepository.findByIdentifier(request.identificador());
+        User user = userRepository.findByIdentifier(request.email());
 
         if (user == null) {
-            throw new UserNotFoundException(request.identificador());
+            throw new UserNotFoundException(request.email());
         }
 
         if (user.isPasswordInvalid(request.password())) {
