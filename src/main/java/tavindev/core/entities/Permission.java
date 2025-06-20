@@ -41,7 +41,18 @@ public enum Permission {
     // System permissions
     NOTIFY_OUT("Notify operator outside area"),
     NOTIFY_OPER_POLY_END("Notify PRBO of operation completion in parcel"),
-    NOTIFY_OPER_END("Notify PRBO of total operation completion");
+    NOTIFY_OPER_END("Notify PRBO of total operation completion"),
+
+    // Account Management permissions
+    ACTIVATE_ACCOUNT("Activate user accounts"),
+    DEACTIVATE_ACCOUNT("Deactivate user accounts"),
+    SUSPEND_ACCOUNT("Suspend user accounts"),
+    REMOVE_ACCOUNT("Remove user accounts"),
+    LIST_ACCOUNTS_FOR_REMOVAL("List accounts marked for removal"),
+    VIEW_ACCOUNT_STATUS("View account status"),
+    CHANGE_OWN_ATTRIBUTES("Change own account attributes"),
+    REQUEST_OWN_REMOVAL("Request own account removal"),
+    CHANGE_OWN_PROFILE("Change own account profile");
 
     private final String description;
 

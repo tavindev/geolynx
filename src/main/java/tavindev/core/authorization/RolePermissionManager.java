@@ -17,6 +17,25 @@ public class RolePermissionManager {
         // Admin has all permissions
         ROLE_PERMISSIONS.put(UserRole.SYSADMIN, EnumSet.allOf(Permission.class));
 
+        // System BackOffice (SYSBO) permissions - can manage accounts except SYSADMIN
+        ROLE_PERMISSIONS.put(UserRole.SYSBO, EnumSet.of(
+                Permission.ACTIVATE_ACCOUNT,
+                Permission.DEACTIVATE_ACCOUNT,
+                Permission.SUSPEND_ACCOUNT,
+                Permission.REMOVE_ACCOUNT,
+                Permission.LIST_ACCOUNTS_FOR_REMOVAL,
+                Permission.VIEW_ACCOUNT_STATUS,
+                Permission.CHANGE_OWN_ATTRIBUTES,
+                Permission.REQUEST_OWN_REMOVAL,
+                Permission.CHANGE_OWN_PROFILE));
+
+        // Registered User (RU) permissions
+        ROLE_PERMISSIONS.put(UserRole.RU, EnumSet.of(
+                Permission.CHANGE_OWN_ATTRIBUTES,
+                Permission.REQUEST_OWN_REMOVAL,
+                Permission.CHANGE_OWN_PROFILE,
+                Permission.VIEW_ACCOUNT_STATUS));
+
         // Sheet Manager (SMBO) permissions
         ROLE_PERMISSIONS.put(UserRole.SMBO, EnumSet.of(
                 Permission.IMP_FO,
@@ -24,13 +43,19 @@ public class RolePermissionManager {
                 Permission.VIEW_GEN_FO,
                 Permission.VIEW_DET_FO,
                 Permission.SEARCH_GEN_FO,
-                Permission.SEARCH_DET_FO));
+                Permission.SEARCH_DET_FO,
+                Permission.CHANGE_OWN_ATTRIBUTES,
+                Permission.REQUEST_OWN_REMOVAL,
+                Permission.VIEW_ACCOUNT_STATUS));
 
         // Sheet General Viewer (SGVBO) permissions
         ROLE_PERMISSIONS.put(UserRole.SGVBO, EnumSet.of(
                 Permission.VIEW_GEN_FO,
                 Permission.SEARCH_GEN_FO,
-                Permission.GENERATE_MONTHLY_REPORT));
+                Permission.GENERATE_MONTHLY_REPORT,
+                Permission.CHANGE_OWN_ATTRIBUTES,
+                Permission.REQUEST_OWN_REMOVAL,
+                Permission.VIEW_ACCOUNT_STATUS));
 
         // Sheet Detailed Viewer (SDVBO) permissions
         ROLE_PERMISSIONS.put(UserRole.SDVBO, EnumSet.of(
@@ -40,7 +65,10 @@ public class RolePermissionManager {
                 Permission.EXPORT_FE,
                 Permission.EDIT_OP_FE,
                 Permission.ACCESS_MONITORING_PANEL,
-                Permission.ACCESS_EMERGENCY_CONTACTS));
+                Permission.ACCESS_EMERGENCY_CONTACTS,
+                Permission.CHANGE_OWN_ATTRIBUTES,
+                Permission.REQUEST_OWN_REMOVAL,
+                Permission.VIEW_ACCOUNT_STATUS));
 
         // Representative (PRBO) permissions
         ROLE_PERMISSIONS.put(UserRole.PRBO, EnumSet.of(
@@ -51,7 +79,10 @@ public class RolePermissionManager {
                 Permission.EDIT_OP_FE,
                 Permission.DEFINE_EXECUTION_PLAN,
                 Permission.ADD_SPEED_TIME,
-                Permission.GET_OPERATION_NOTIFICATIONS));
+                Permission.GET_OPERATION_NOTIFICATIONS,
+                Permission.CHANGE_OWN_ATTRIBUTES,
+                Permission.REQUEST_OWN_REMOVAL,
+                Permission.VIEW_ACCOUNT_STATUS));
 
         // Operator (PO) permissions
         ROLE_PERMISSIONS.put(UserRole.PO, EnumSet.of(
@@ -61,7 +92,20 @@ public class RolePermissionManager {
                 Permission.ADDINFO_ACT_OP_FE,
                 Permission.GET_AREA_NOTIFICATIONS,
                 Permission.EXECUTE_ACTIVITIES,
-                Permission.BE_ASSIGNED));
+                Permission.BE_ASSIGNED,
+                Permission.CHANGE_OWN_ATTRIBUTES,
+                Permission.REQUEST_OWN_REMOVAL,
+                Permission.VIEW_ACCOUNT_STATUS));
+
+        // Adherent Landowner User (ADLU) permissions
+        ROLE_PERMISSIONS.put(UserRole.ADLU, EnumSet.of(
+                Permission.CHANGE_OWN_ATTRIBUTES,
+                Permission.REQUEST_OWN_REMOVAL,
+                Permission.VIEW_ACCOUNT_STATUS));
+
+        // Visitor User (VU) permissions
+        ROLE_PERMISSIONS.put(UserRole.VU, EnumSet.of(
+                Permission.VIEW_ACCOUNT_STATUS));
 
         // System permissions
         ROLE_PERMISSIONS.put(UserRole.SYSTEM, EnumSet.of(
