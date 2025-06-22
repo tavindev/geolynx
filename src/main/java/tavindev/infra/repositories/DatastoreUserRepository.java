@@ -8,8 +8,6 @@ import tavindev.core.utils.PasswordUtils;
 import java.util.List;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class DatastoreUserRepository {
@@ -191,5 +189,66 @@ public class DatastoreUserRepository {
                 UserProfile.valueOf(entity.getString("profile")),
                 UserRole.valueOf(entity.getString("role")),
                 AccountStatus.valueOf(entity.getString("accountStatus")));
+    }
+
+    public List<User> findRegisteredUsers() {
+        Query<Entity> query = Query.newEntityQueryBuilder()
+                .setKind(USER_KIND)
+                .setFilter(StructuredQuery.CompositeFilter.and(
+                        StructuredQuery.PropertyFilter.eq("role", UserRole.RU.name()),
+                        StructuredQuery.PropertyFilter.eq("profile", UserProfile.PUBLICO.name()),
+                        StructuredQuery.PropertyFilter.eq("accountStatus", AccountStatus.ATIVADA.name())
+                ))
+                .build();
+
+        List<User> users = new ArrayList<>();
+        QueryResults<Entity> results = datastore.run(query);
+        while (results.hasNext()) {
+            users.add(convertToUser(results.next()));
+        }
+        return users;
+    }
+
+    public List<User> findAllRoleUsers(UserRole role) {
+        Query<Entity> query = Query.newEntityQueryBuilder()
+                .setKind(USER_KIND)
+                .setFilter(StructuredQuery.PropertyFilter.eq("role", role.name()))
+                .build();
+
+        List<User> users = new ArrayList<>();
+        QueryResults<Entity> results = datastore.run(query);
+        while (results.hasNext()) {
+            users.add(convertToUser(results.next()));
+        }
+        return users;
+    }
+
+
+    public List<User> findUsersWithStatus(AccountStatus accountStatus) {
+        Query<Entity> query = Query.newEntityQueryBuilder()
+                .setKind(USER_KIND)
+                .setFilter(StructuredQuery.PropertyFilter.eq("accountStatus", accountStatus.name()))
+                .build();
+
+        List<User> users = new ArrayList<>();
+        QueryResults<Entity> results = datastore.run(query);
+        while (results.hasNext()) {
+            users.add(convertToUser(results.next()));
+        }
+        return users;
+    }
+
+    public List<User> findUsersByProfile(UserProfile userProfile) {
+        Query<Entity> query = Query.newEntityQueryBuilder()
+                .setKind(USER_KIND)
+                .setFilter(StructuredQuery.PropertyFilter.eq("profile", userProfile.name()))
+                .build();
+
+        List<User> users = new ArrayList<>();
+        QueryResults<Entity> results = datastore.run(query);
+        while (results.hasNext()) {
+            users.add(convertToUser(results.next()));
+        }
+        return users;
     }
 }

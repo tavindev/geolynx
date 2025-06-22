@@ -10,7 +10,6 @@ import tavindev.core.entities.UserProfile;
 import tavindev.core.entities.AccountStatus;
 import tavindev.core.entities.Permission;
 import tavindev.core.exceptions.UserNotFoundException;
-import tavindev.core.exceptions.InvalidCredentialsException;
 import tavindev.core.exceptions.UnauthorizedException;
 import tavindev.core.utils.AuthUtils;
 import tavindev.core.authorization.PermissionAuthorizationHandler;
@@ -211,7 +210,34 @@ public class UserService {
             throw new UserNotFoundException(identifier);
         }
 
+        // Users can only see their accountStatus of other accounts with same role unless they have admin permissions
+        if (!currentUser.getRole().equals(targetUser.getRole()) &&
+                currentUser.getRole() != UserRole.SYSADMIN &&
+                currentUser.getRole() != UserRole.SYSBO) {
+            throw new UnauthorizedException("Users can only see their own status or equivalent role users");
+        }
+
         return targetUser.getAccountStatus();
+    }
+
+    public UserProfile getAccountProfile(String tokenId, String identifier) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        // Check if user has permission to view account profile
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_ACCOUNT_PROFILE);
+
+        User targetUser = userRepository.findByIdentifier(identifier);
+        if (targetUser == null) {
+            throw new UserNotFoundException(identifier);
+        }
+        // Users can only see their own profile unless they have admin permissions
+        if (!currentUser.getId().equals(targetUser.getId()) &&
+                currentUser.getRole() != UserRole.SYSADMIN &&
+                currentUser.getRole() != UserRole.SYSBO) {
+            throw new UnauthorizedException("Users can only see their own profile");
+        }
+
+        return targetUser.getProfile();
     }
 
     public void changeProfile(String tokenId, String identifier, UserProfile newProfile) {
@@ -240,4 +266,79 @@ public class UserService {
         targetUser.setProfile(newProfile);
         userRepository.save(targetUser);
     }
+
+    public List<User> listRegisteredUsers(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        // Check if user has permission to change profile
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.LIST_REGISTERED_USERS);
+
+        UserRole role = currentUser.getRole();
+
+        if (role == UserRole.SYSADMIN || role == UserRole.SYSBO)
+            return userRepository.findAllUsers();
+
+        if (role == UserRole.RU)
+            return userRepository.findRegisteredUsers();
+
+        return userRepository.findAllRoleUsers(role);
+
+    }
+
+    public List<User> listActiveUsers(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        // Check if user has permission to list active users
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.LIST_ACTIVE_USERS);
+
+        return userRepository.findUsersWithStatus(AccountStatus.ATIVADA);
+    }
+
+    public List<User> listDeactivatedUsers(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        // Check if user has permission to list deactivated users
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.LIST_DEACTIVATED_USERS);
+
+        return userRepository.findUsersWithStatus(AccountStatus.DESATIVADA);
+    }
+
+    public List<User> listSuspendedUsers(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        // Check if user has permission to list suspended users
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.LIST_SUSPENDED_USERS);
+
+        return userRepository.findUsersWithStatus(AccountStatus.SUSPENSA);
+    }
+    public List<User> listToRemoveUsers(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        // Check if user has permission to list removable users
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.LIST_ACCOUNTS_FOR_REMOVAL);
+
+        return userRepository.findUsersWithStatus(AccountStatus.A_REMOVER);
+    }
+    public List<User> listPublicUsers(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        // Check if user has permission to list public users
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.LIST_PUBLIC_USERS);
+
+        return userRepository.findUsersByProfile(UserProfile.PUBLICO);
+    }
+
+    public List<User> listPrivateUsers(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        // Check if user has permission to list private users
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.LIST_PRIVATE_USERS);
+
+        return userRepository.findUsersByProfile(UserProfile.PRIVADO);
+    }
+
+
+    public List<User> listUsersByRole(String tokenId, UserRole targetRole) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        // Check if user has permission to list users by role
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.LIST_USERS_BY_ROLE);
+
+        return userRepository.findAllRoleUsers(targetRole);
+    }
+
+
 }

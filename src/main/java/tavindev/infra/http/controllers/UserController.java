@@ -2,14 +2,9 @@ package tavindev.infra.http.controllers;
 
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.CookieParam;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.User;
 import tavindev.core.entities.AccountStatus;
@@ -17,6 +12,8 @@ import tavindev.core.entities.UserRole;
 import tavindev.core.entities.UserProfile;
 import tavindev.core.services.UserService;
 import tavindev.infra.dto.*;
+import tavindev.infra.dto.accountProfile.AccountProfileDTO;
+import tavindev.infra.dto.accountProfile.AccountProfileResponseDTO;
 import tavindev.infra.dto.changeAccountState.ChangeAccountStateDTO;
 import tavindev.infra.dto.changeAccountState.ChangeAccountStateResponseDTO;
 import tavindev.infra.dto.removeUser.RemoveUserAccountDTO;
@@ -89,7 +86,7 @@ public class UserController {
         return Response.ok(RemoveUserAccountResponseDTO.success(request.identificador())).build();
     }
 
-    @POST
+    @GET
     @Path("/all")
     public Response listUsers(@CookieParam("session") String sessionToken) {
         List<User> users = userService.listUsers(sessionToken);
@@ -197,6 +194,17 @@ public class UserController {
     }
 
     @POST
+    @Path("/account-profile")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getAccountProfile(
+            @CookieParam("session") String sessionToken,
+            @Valid AccountProfileDTO request) {
+        UserProfile profile = userService.getAccountProfile(sessionToken, request.identificador());
+
+        return Response.ok(AccountProfileResponseDTO.success(request.identificador(), profile.name())).build();
+    }
+
+    @POST
     @Path("/change-profile")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response changeProfile(
@@ -206,4 +214,111 @@ public class UserController {
 
         return Response.ok(ChangeProfileResponseDTO.success(request.identificador(), request.novo_perfil())).build();
     }
+
+    @GET
+    @Path("/list-accs/registered")
+    public Response listAccountsRegistered(
+            @CookieParam("session") String sessionToken) {
+        List<User> users = userService.listRegisteredUsers(sessionToken);
+
+        List<UserDTO> userDTOs = users.stream()
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return Response.ok(userDTOs).build();
+    }
+
+    @GET
+    @Path("/list-accs/active")
+    public Response listAccountsActive(
+            @CookieParam("session") String sessionToken) {
+        List<User> users = userService.listActiveUsers(sessionToken);
+
+        List<UserDTO> userDTOs = users.stream()
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return Response.ok(userDTOs).build();
+    }
+
+    @GET
+    @Path("/list-accs/deactivated")
+    public Response listAccountsDeactivated(
+            @CookieParam("session") String sessionToken) {
+        List<User> users = userService.listDeactivatedUsers(sessionToken);
+
+        List<UserDTO> userDTOs = users.stream()
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return Response.ok(userDTOs).build();
+    }
+
+    @GET
+    @Path("/list-accs/removable")
+    public Response listAccountsToRemove(
+            @CookieParam("session") String sessionToken) {
+        List<User> users = userService.listToRemoveUsers(sessionToken);
+
+        List<UserDTO> userDTOs = users.stream()
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return Response.ok(userDTOs).build();
+    }
+
+    @GET
+    @Path("/list-accs/suspended")
+    public Response listAccountsSuspended(
+            @CookieParam("session") String sessionToken) {
+        List<User> users = userService.listSuspendedUsers(sessionToken);
+
+        List<UserDTO> userDTOs = users.stream()
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return Response.ok(userDTOs).build();
+    }
+    @GET
+    @Path("/list-accs/public")
+    public Response listAccountsPublic(
+            @CookieParam("session") String sessionToken) {
+        List<User> users = userService.listPublicUsers(sessionToken);
+
+        List<UserDTO> userDTOs = users.stream()
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return Response.ok(userDTOs).build();
+    }
+
+    @GET
+    @Path("/list-accs/private")
+    public Response listAccountsPrivate(
+            @CookieParam("session") String sessionToken) {
+        List<User> users = userService.listPrivateUsers(sessionToken);
+
+        List<UserDTO> userDTOs = users.stream()
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return Response.ok(userDTOs).build();
+    }
+
+    @GET
+    @Path("/list-accs/{role}")
+    public Response listUsersByRole(
+            @CookieParam("session") String sessionToken,
+            @PathParam("role") String role) {
+        List<User> users = userService.listUsersByRole(sessionToken, UserRole.valueOf(role));
+
+        List<UserDTO> userDTOs = users.stream()
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return Response.ok(userDTOs).build();
+    }
+
+
+
 }

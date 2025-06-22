@@ -48,11 +48,20 @@ public enum Permission {
     DEACTIVATE_ACCOUNT("Deactivate user accounts"),
     SUSPEND_ACCOUNT("Suspend user accounts"),
     REMOVE_ACCOUNT("Remove user accounts"),
-    LIST_ACCOUNTS_FOR_REMOVAL("List accounts marked for removal"),
     VIEW_ACCOUNT_STATUS("View account status"),
+    VIEW_ACCOUNT_PROFILE("View account profile"),
     CHANGE_OWN_ATTRIBUTES("Change own account attributes"),
     REQUEST_OWN_REMOVAL("Request own account removal"),
-    CHANGE_OWN_PROFILE("Change own account profile");
+    CHANGE_OWN_PROFILE("Change own account profile"),
+
+    LIST_REGISTERED_USERS("List registered accounts"),
+    LIST_ACTIVE_USERS("List active accounts"),
+    LIST_DEACTIVATED_USERS("List deactivated accounts"),
+    LIST_SUSPENDED_USERS("List suspended accounts"),
+    LIST_ACCOUNTS_FOR_REMOVAL("List accounts marked for removal"),
+    LIST_PUBLIC_USERS("List public accounts"),
+    LIST_PRIVATE_USERS("List private accounts"),
+    LIST_USERS_BY_ROLE("List users by role");
 
     private final String description;
 

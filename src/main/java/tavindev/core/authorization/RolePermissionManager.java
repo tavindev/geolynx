@@ -25,16 +25,25 @@ public class RolePermissionManager {
                 Permission.REMOVE_ACCOUNT,
                 Permission.LIST_ACCOUNTS_FOR_REMOVAL,
                 Permission.VIEW_ACCOUNT_STATUS,
+                Permission.VIEW_ACCOUNT_PROFILE,
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
-                Permission.CHANGE_OWN_PROFILE));
+                Permission.CHANGE_OWN_PROFILE,
+                Permission.LIST_REGISTERED_USERS,
+                Permission.LIST_ACTIVE_USERS,
+                Permission.LIST_DEACTIVATED_USERS,
+                Permission.LIST_SUSPENDED_USERS,
+                Permission.LIST_PUBLIC_USERS,
+                Permission.LIST_PRIVATE_USERS,
+                Permission.LIST_USERS_BY_ROLE));
 
         // Registered User (RU) permissions
         ROLE_PERMISSIONS.put(UserRole.RU, EnumSet.of(
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
                 Permission.CHANGE_OWN_PROFILE,
-                Permission.VIEW_ACCOUNT_STATUS));
+                Permission.VIEW_ACCOUNT_STATUS,
+                Permission.VIEW_ACCOUNT_PROFILE));
 
         // Sheet Manager (SMBO) permissions
         ROLE_PERMISSIONS.put(UserRole.SMBO, EnumSet.of(
@@ -46,7 +55,8 @@ public class RolePermissionManager {
                 Permission.SEARCH_DET_FO,
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
-                Permission.VIEW_ACCOUNT_STATUS));
+                Permission.VIEW_ACCOUNT_STATUS,
+                Permission.VIEW_ACCOUNT_PROFILE));
 
         // Sheet General Viewer (SGVBO) permissions
         ROLE_PERMISSIONS.put(UserRole.SGVBO, EnumSet.of(
@@ -55,7 +65,8 @@ public class RolePermissionManager {
                 Permission.GENERATE_MONTHLY_REPORT,
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
-                Permission.VIEW_ACCOUNT_STATUS));
+                Permission.VIEW_ACCOUNT_STATUS,
+                Permission.VIEW_ACCOUNT_PROFILE));
 
         // Sheet Detailed Viewer (SDVBO) permissions
         ROLE_PERMISSIONS.put(UserRole.SDVBO, EnumSet.of(
@@ -68,7 +79,8 @@ public class RolePermissionManager {
                 Permission.ACCESS_EMERGENCY_CONTACTS,
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
-                Permission.VIEW_ACCOUNT_STATUS));
+                Permission.VIEW_ACCOUNT_STATUS,
+                Permission.VIEW_ACCOUNT_PROFILE));
 
         // Representative (PRBO) permissions
         ROLE_PERMISSIONS.put(UserRole.PRBO, EnumSet.of(
@@ -82,7 +94,8 @@ public class RolePermissionManager {
                 Permission.GET_OPERATION_NOTIFICATIONS,
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
-                Permission.VIEW_ACCOUNT_STATUS));
+                Permission.VIEW_ACCOUNT_STATUS,
+                Permission.VIEW_ACCOUNT_PROFILE));
 
         // Operator (PO) permissions
         ROLE_PERMISSIONS.put(UserRole.PO, EnumSet.of(
@@ -95,17 +108,20 @@ public class RolePermissionManager {
                 Permission.BE_ASSIGNED,
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
-                Permission.VIEW_ACCOUNT_STATUS));
+                Permission.VIEW_ACCOUNT_STATUS,
+                Permission.VIEW_ACCOUNT_PROFILE));
 
         // Adherent Landowner User (ADLU) permissions
         ROLE_PERMISSIONS.put(UserRole.ADLU, EnumSet.of(
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
-                Permission.VIEW_ACCOUNT_STATUS));
+                Permission.VIEW_ACCOUNT_STATUS,
+                Permission.VIEW_ACCOUNT_PROFILE));
 
         // Visitor User (VU) permissions
         ROLE_PERMISSIONS.put(UserRole.VU, EnumSet.of(
-                Permission.VIEW_ACCOUNT_STATUS));
+                Permission.VIEW_ACCOUNT_STATUS,
+                Permission.VIEW_ACCOUNT_PROFILE));
 
         // System permissions
         ROLE_PERMISSIONS.put(UserRole.SYSTEM, EnumSet.of(
