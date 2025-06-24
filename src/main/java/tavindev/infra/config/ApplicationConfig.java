@@ -4,6 +4,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import jakarta.ws.rs.ApplicationPath;
 import tavindev.core.AdminAccountCreation;
 import tavindev.infra.filters.AuthTokenExtractionFilter;
+import tavindev.infra.filters.AdditionalResponseHeadersFilter;
 
 @ApplicationPath("/api")
 public class ApplicationConfig extends ResourceConfig {
@@ -13,6 +14,7 @@ public class ApplicationConfig extends ResourceConfig {
 
         register(new InjectionConfig());
         register(AuthTokenExtractionFilter.class);
+        register(AdditionalResponseHeadersFilter.class);
         register(AdminAccountCreation.class);
         register(JacksonConfig.class);
     }

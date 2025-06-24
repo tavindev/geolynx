@@ -11,9 +11,14 @@
    <!-- Define the number of idle instances -->
   <automatic-scaling>
   	<min-idle-instances>0</min-idle-instances>
-    <max-instances>1</max-instances>
+    <max-instances>5</max-instances>
   </automatic-scaling>
 
+
+  <staging>
+    <enable-jar-classes>true</enable-jar-classes>
+  </staging>
+  
   <static-files>
     <include path="/**.html" expiration="1m" /> <!-- 1 minute, normal is 12h or more -->
     <include path="/**.css" expiration="1m" />  <!-- 1 minute, normal is 12h or more -->

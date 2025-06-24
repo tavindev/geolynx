@@ -24,8 +24,8 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
-    identificador: '',
-    senha: '',
+    email: '',
+    password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -46,13 +46,15 @@ const Login = () => {
     setError('');
 
     try {
-      const result = await login(formData.identificador, formData.senha);
+      const result = await login(formData.email, formData.password);
       if (result.success) {
         enqueueSnackbar('Login realizado com sucesso!', { variant: 'success' });
         navigate('/dashboard');
       } else {
         setError(result.error || 'Erro ao fazer login.');
-        enqueueSnackbar(result.error || 'Erro ao fazer login.', { variant: 'error' });
+        enqueueSnackbar(result.error || 'Erro ao fazer login.', {
+          variant: 'error',
+        });
       }
     } catch (err) {
       setError('Erro ao fazer login. Por favor, tente novamente.');
@@ -77,47 +79,57 @@ const Login = () => {
         }}
       >
         <Paper elevation={3} sx={{ padding: 4, width: '100%' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
             <LoginIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-            <Typography component="h1" variant="h5" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+            <Typography
+              component="h1"
+              variant="h5"
+              sx={{ color: 'primary.main', fontWeight: 'bold' }}
+            >
               GeoLynx
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               Aceda à sua conta para continuar
             </Typography>
           </Box>
-          
+
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
             {error && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
               </Alert>
             )}
-            
+
             <TextField
               margin="normal"
               required
               fullWidth
-              id="identificador"
-              label="Nome de Utilizador"
-              name="identificador"
+              id="email"
+              label="Email"
+              name="email"
               autoComplete="username"
               autoFocus
-              value={formData.identificador}
+              value={formData.email}
               onChange={handleChange}
               disabled={loading}
             />
-            
+
             <TextField
               margin="normal"
               required
               fullWidth
-              name="senha"
+              name="password"
               label="Password"
               type={showPassword ? 'text' : 'password'}
-              id="senha"
+              id="password"
               autoComplete="current-password"
-              value={formData.senha}
+              value={formData.password}
               onChange={handleChange}
               disabled={loading}
               InputProps={{
@@ -134,7 +146,7 @@ const Login = () => {
                 ),
               }}
             />
-            
+
             <Button
               type="submit"
               fullWidth
@@ -144,8 +156,15 @@ const Login = () => {
             >
               {loading ? <CircularProgress size={24} /> : 'Entrar'}
             </Button>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mt: 1,
+              }}
+            >
               <Link to="/" style={{ textDecoration: 'none' }}>
                 <Typography variant="body2" color="primary">
                   ‹ Voltar ao Mapa
@@ -159,8 +178,13 @@ const Login = () => {
             </Box>
           </Box>
         </Paper>
-        
-        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 5 }}>
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          align="center"
+          sx={{ mt: 5 }}
+        >
           Copyright: ADC-PEI, FCT NOVA 2025
         </Typography>
       </Box>

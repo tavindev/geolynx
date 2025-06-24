@@ -29,6 +29,10 @@ public class UserService {
     @Inject
     private AuthUtils authUtils;
 
+    public User getUserInfo(String tokenId) {
+        return authUtils.validateAndGetUser(tokenId);
+    }
+
     public List<User> listUsers(String tokenId) {
         List<User> allUsers = userRepository.findAllUsers();
 
@@ -210,7 +214,8 @@ public class UserService {
             throw new UserNotFoundException(identifier);
         }
 
-        // Users can only see their accountStatus of other accounts with same role unless they have admin permissions
+        // Users can only see their accountStatus of other accounts with same role
+        // unless they have admin permissions
         if (!currentUser.getRole().equals(targetUser.getRole()) &&
                 currentUser.getRole() != UserRole.SYSADMIN &&
                 currentUser.getRole() != UserRole.SYSBO) {
@@ -308,6 +313,7 @@ public class UserService {
 
         return userRepository.findUsersWithStatus(AccountStatus.SUSPENSA);
     }
+
     public List<User> listToRemoveUsers(String tokenId) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
         // Check if user has permission to list removable users
@@ -315,6 +321,7 @@ public class UserService {
 
         return userRepository.findUsersWithStatus(AccountStatus.A_REMOVER);
     }
+
     public List<User> listPublicUsers(String tokenId) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
         // Check if user has permission to list public users
@@ -331,7 +338,6 @@ public class UserService {
         return userRepository.findUsersByProfile(UserProfile.PRIVADO);
     }
 
-
     public List<User> listUsersByRole(String tokenId, UserRole targetRole) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
         // Check if user has permission to list users by role
@@ -339,6 +345,5 @@ public class UserService {
 
         return userRepository.findAllRoleUsers(targetRole);
     }
-
 
 }

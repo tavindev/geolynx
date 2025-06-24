@@ -19,7 +19,7 @@
 		<maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
 
 	    <app.deploy.projectId>glass-gasket-463218-j2</app.deploy.projectId>
-		<app.deploy.version>3</app.deploy.version>
+		<app.deploy.version>6</app.deploy.version>
   </properties>
 
 	<dependencyManagement>
@@ -193,20 +193,60 @@
 		<outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/classes</outputDirectory>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>src/main/webapp</directory>
+							<includes>
+								<include>app/**</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.3.1</version>
+				<executions>
+					<execution>
+						<id>copy-react-build</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>src/main/webapp/app</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/webapp/react-app/build</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>3.4.0</version>
+				<configuration>
+					<warSourceExcludes>react-app/**</warSourceExcludes>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>com.google.cloud.tools</groupId>
 				<artifactId>appengine-maven-plugin</artifactId>
 				<version>${appengine.maven.plugin.version}</version>
 				<configuration>
 					<version>${app.deploy.version}</version>
 					<projectId>${app.deploy.projectId}</projectId>
-					<devserver>
-						<port>8080</port>
-						<address>0.0.0.0</address>
-						<automaticRestart>true</automaticRestart>
-					</devserver>
 				</configuration>
 			</plugin>
 		</plugins>
-
 	</build>
 </project>

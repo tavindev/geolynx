@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: '/rest',
-  withCredentials: true,  // This ensures cookies are sent with requests
+  baseURL: '/api',
+  withCredentials: true, // This ensures cookies are sent with requests
   headers: {
     'Content-Type': 'application/json',
   },
@@ -36,9 +36,13 @@ api.interceptors.response.use(
 
 // Auth services
 export const authService = {
-  login: (data) => api.post('/user/login', data),
+  login: (data) =>
+    api.post('/user/login', {
+      email: data.identificador,
+      password: data.senha,
+    }),
   register: (data) => api.post('/user/register', data),
-  logout: () => api.post('/user/logout', {}),  // Added empty object for body
+  logout: () => api.post('/user/logout', {}), // Added empty object for body
 };
 
 // User management services
@@ -57,7 +61,7 @@ export const userService = {
   requestAccountRemoval: (data) => api.post('/user/request-removal', data),
   getAccountsForRemoval: () => api.post('/user/accounts-for-removal'),
   getAccountStatus: (data) => api.post('/user/account-status', data),
-  changeProfile: (data) => api.post('/user/change-profile', data),  // Added missing endpoint
+  changeProfile: (data) => api.post('/user/change-profile', data), // Added missing endpoint
 };
 
 // Worksheet services

@@ -6,10 +6,6 @@
 
 	<display-name>My First Web Application</display-name>
 
-	<welcome-file-list>
-		<welcome-file>index.html</welcome-file>
-	</welcome-file-list>
-	
 	<error-page>
 		<error-code>500</error-code>
 		<location>/error/500.html</location>
@@ -19,6 +15,11 @@
 		<error-code>404</error-code>
 		<location>/error/404.html</location>
 	</error-page>
+	
+
+	<welcome-file-list>
+		<welcome-file>app/index.html</welcome-file>
+	</welcome-file-list>
 	
 
 	<servlet>

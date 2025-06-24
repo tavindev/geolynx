@@ -1,0 +1,25 @@
+# Exclude React source files and dependencies
+src/main/webapp/react-app/node_modules/
+src/main/webapp/react-app/src/
+src/main/webapp/react-app/public/
+src/main/webapp/react-app/package.json
+src/main/webapp/react-app/package-lock.json
+src/main/webapp/react-app/.gitignore
+src/main/webapp/react-app/README.md
+
+# Exclude development files
+.git/
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Exclude test files
+src/test/
+**/*Test.java
+**/*Tests.java
+
+# Exclude logs
+*.log
+logs/

@@ -36,6 +36,7 @@ import tavindev.infra.dto.changeProfile.ChangeProfileDTO;
 import tavindev.infra.dto.changeProfile.ChangeProfileResponseDTO;
 import tavindev.infra.dto.accountStatus.AccountStatusDTO;
 import tavindev.infra.dto.accountStatus.AccountStatusResponseDTO;
+import tavindev.infra.dto.UserInfoDTO;
 
 import javax.swing.text.html.Option;
 import java.util.List;
@@ -51,6 +52,13 @@ public class UserController {
 
     private String orNotDefined(Optional<String> field) {
         return field.orElse("NOT DEFINED");
+    }
+
+    @GET
+    public Response getUserInfo(@CookieParam("session") String sessionToken) {
+        User user = userService.getUserInfo(sessionToken);
+        UserInfoDTO userInfo = new UserInfoDTO(user.getId(), user.getRole().name(), user.getPersonalInfo().fullName());
+        return Response.ok(userInfo).build();
     }
 
     @POST
@@ -279,6 +287,7 @@ public class UserController {
 
         return Response.ok(userDTOs).build();
     }
+
     @GET
     @Path("/list-accs/public")
     public Response listAccountsPublic(
@@ -318,7 +327,5 @@ public class UserController {
 
         return Response.ok(userDTOs).build();
     }
-
-
 
 }
