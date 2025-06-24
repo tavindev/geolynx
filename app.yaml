@@ -1,0 +1,18 @@
+runtime: java17
+
+handlers:
+  - url: /api/.*
+    script: auto  # forward to Servlet
+    secure: always
+    
+  - url: /static/.*
+    static_files: src/main/webapp/app/static/\1
+    upload: src/main/webapp/app/static/.*
+    
+  - url: /(manifest\.json|asset-manifest\.json|favicon\.ico|logo192\.png)
+    static_files: src/main/webapp/app/\1
+    upload: src/main/webapp/app/(manifest\.json|asset-manifest\.json|favicon\.ico|logo192\.png)
+    
+  - url: /.*
+    static_files: src/main/webapp/app/index.html
+    upload: src/main/webapp/app/index.html 

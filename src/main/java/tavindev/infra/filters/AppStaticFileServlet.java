@@ -1,7 +1,6 @@
 package tavindev.infra.filters;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
-@WebServlet(urlPatterns = { "/static/*", "/manifest.json", "/favicon.ico", "/logo192.png" })
 public class AppStaticFileServlet extends HttpServlet {
 
 	@Override
@@ -27,6 +25,8 @@ public class AppStaticFileServlet extends HttpServlet {
 
 		// Map root paths to /app directory
 		String appPath = "/app" + requestPath;
+
+		System.out.println("AppStaticFileServlet requestPath: " + requestPath);
 
 		// Get the resource from the /app directory
 		URL resourceUrl = getServletContext().getResource(appPath);
