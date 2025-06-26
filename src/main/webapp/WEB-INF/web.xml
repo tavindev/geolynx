@@ -17,9 +17,6 @@
 	</error-page>
 	
 
-	<welcome-file-list>
-		<welcome-file>app/index.html</welcome-file>
-	</welcome-file-list>
 	
 
 	<servlet>
@@ -41,47 +38,28 @@
 			<param-name>jersey.config.server.tracing.type</param-name>
 			<param-value>ALL</param-value>
 		</init-param>
+		<init-param>
+			<param-name>jersey.config.servlet.filter.contextPath</param-name>
+			<param-value>/api/*</param-value>
+		</init-param>
+		<init-param>
+			<param-name>jersey.config.server.provider.packages</param-name>
+			<param-value>tavindev</param-value>
+		</init-param>
+		<init-param>
+			<param-name>jersey.config.server.provider.scanning.recursive</param-name>
+			<param-value>false</param-value>
+		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
-
-	<servlet>
-		<servlet-name>ReactAppServlet</servlet-name>
-		<servlet-class>tavindev.infra.filters.ReactAppServlet</servlet-class>
-		<load-on-startup>3</load-on-startup>
-	</servlet>
-	
-	<servlet>
-		<servlet-name>StaticFileServlet</servlet-name>
-		<servlet-class>tavindev.infra.filters.AppStaticFileServlet</servlet-class>
-		<load-on-startup>2</load-on-startup>
-	</servlet>
-	
 	
 	<servlet-mapping>
 		<servlet-name>MainServices</servlet-name>
 		<url-pattern>/api/*</url-pattern>
 	</servlet-mapping>
 
-	<servlet-mapping>
-		<servlet-name>StaticFileServlet</servlet-name>
-		<url-pattern>/static/*</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>StaticFileServlet</servlet-name>
-		<url-pattern>/manifest.json</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>StaticFileServlet</servlet-name>
-		<url-pattern>/favicon.ico</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>StaticFileServlet</servlet-name>
-		<url-pattern>/logo192.png</url-pattern>
-	</servlet-mapping>
-
-	<servlet-mapping>
-		<servlet-name>ReactAppServlet</servlet-name>
-		<url-pattern>/</url-pattern>
-	</servlet-mapping>
+	<welcome-file-list>
+		<welcome-file>app/index.html</welcome-file>
+	</welcome-file-list>
 
 </web-app>
