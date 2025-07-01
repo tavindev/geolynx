@@ -1,5 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -74,7 +79,8 @@ const theme = createTheme({
     borderRadius: 8, // Slightly increased for consistency with home page
   },
   typography: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     h4: {
       fontWeight: 600,
       color: '#4A7C59', // Forest green for main headings
@@ -138,7 +144,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+        <SnackbarProvider
+          maxSnack={3}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
           <AuthProvider>
             <Router>
               <Routes>
@@ -169,22 +178,99 @@ function App() {
                     </PublicRoute>
                   }
                 />
-                
+
                 {/* Private Routes */}
-                <Route path="/dashboard" element={<PrivateRoute><Layout /></PrivateRoute>}>
+                <Route
+                  path="/dashboard"
+                  element={
+                    <PrivateRoute>
+                      <Layout />
+                    </PrivateRoute>
+                  }
+                >
                   <Route index element={<Home />} />
-                  <Route path="list-users" element={<PrivateRoute roles={['SYSADMIN', 'SMBO']}><ListUsers /></PrivateRoute>} />
-                  <Route path="change-attributes/:userId" element={<PrivateRoute roles={['SYSADMIN', 'SMBO']}><ChangeAttributes /></PrivateRoute>} />
-                  <Route path="change-role/:userId" element={<PrivateRoute roles={['SYSADMIN', 'SMBO']}><ChangeRole /></PrivateRoute>} />
-                  <Route path="change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
-                  <Route path="account-management/:userId" element={<PrivateRoute roles={['SYSADMIN', 'SMBO']}><AccountManagement /></PrivateRoute>} />
-                  <Route path="removal-requests" element={<PrivateRoute roles={['SYSADMIN', 'SMBO']}><AccountRemovalRequests /></PrivateRoute>} />
-                  <Route path="request-removal" element={<PrivateRoute><RequestAccountRemoval /></PrivateRoute>} />
-                  <Route path="worksheet/create" element={<PrivateRoute roles={['PO', 'ADLU']}><WorksheetCreate /></PrivateRoute>} />
-                  <Route path="worksheet-update/:worksheetId" element={<PrivateRoute roles={['PO', 'ADLU']}><WorksheetUpdate /></PrivateRoute>} />
-                  <Route path="map" element={<PrivateRoute><Map /></PrivateRoute>} />
+                  <Route
+                    path="list-users"
+                    element={
+                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                        <ListUsers />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="change-attributes/:userId"
+                    element={
+                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                        <ChangeAttributes />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="change-role/:userId"
+                    element={
+                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                        <ChangeRole />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="change-password"
+                    element={
+                      <PrivateRoute>
+                        <ChangePassword />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="account-management/:userId"
+                    element={
+                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                        <AccountManagement />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="removal-requests"
+                    element={
+                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                        <AccountRemovalRequests />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="request-removal"
+                    element={
+                      <PrivateRoute>
+                        <RequestAccountRemoval />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="worksheet/create"
+                    element={
+                      <PrivateRoute roles={['PO', 'ADLU']}>
+                        <WorksheetCreate />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="worksheet-update/:worksheetId"
+                    element={
+                      <PrivateRoute roles={['PO', 'ADLU']}>
+                        <WorksheetUpdate />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="map"
+                    element={
+                      <PrivateRoute>
+                        <Map />
+                      </PrivateRoute>
+                    }
+                  />
                 </Route>
-                
+
                 <Route path="/404" element={<NotFound />} />
                 <Route path="*" element={<Navigate to="/404" replace />} />
               </Routes>

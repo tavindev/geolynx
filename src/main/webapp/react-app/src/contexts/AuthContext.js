@@ -43,20 +43,23 @@ export const AuthProvider = ({ children }) => {
     checkLoggedIn();
   }, []);
 
-  const login = async (identificador, senha) => {
+  const login = async (email, password) => {
     try {
       // The login endpoint returns 204 No Content with a session cookie
-      await api.post('/user/login', { identificador, senha });
-      
+      await api.post('/user/login', { email, password });
+
       // Store minimal user info locally since backend doesn't return it
-      const userData = { username: identificador };
+      const userData = { username: email };
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       setIsAuthenticated(true);
-      
+
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.message || 'Credenciais inválidas' };
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Credenciais inválidas',
+      };
     }
   };
 
@@ -65,7 +68,10 @@ export const AuthProvider = ({ children }) => {
       await api.post('/user/register', userData);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.message || 'Erro no registo' };
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Erro no registo',
+      };
     }
   };
 
@@ -100,14 +106,11 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     hasRole,
-    hasPermission
+    hasPermission,
+    mockUsers: [],
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export default AuthContext;
