@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
-@WebServlet(urlPatterns = { "/*" })
 public class ReactAppServlet extends HttpServlet {
 
 	@Override
