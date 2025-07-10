@@ -3,6 +3,8 @@ package tavindev.infra.config;
 import jakarta.ws.rs.ApplicationPath;
 import org.glassfish.jersey.server.ResourceConfig;
 import tavindev.core.AdminAccountCreation;
+import tavindev.infra.http.controllers.ExecutionSheetController;
+import tavindev.infra.http.controllers.WorkSheetController;
 import tavindev.infra.filters.AuthTokenExtractionFilter;
 import tavindev.infra.filters.AdditionalResponseHeadersFilter;
 import java.util.logging.Logger;
@@ -23,6 +25,8 @@ public class ApplicationConfig extends ResourceConfig {
         register(AdditionalResponseHeadersFilter.class);
         register(AdminAccountCreation.class);
         register(JacksonConfig.class);
+        register(WorkSheetController.class);
+        register(ExecutionSheetController.class);
 
         logger.log(Level.INFO, "ApplicationConfig initialization completed");
     }
