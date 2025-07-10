@@ -72,7 +72,7 @@ public class ExecutionSheetRepository {
 								Long operationId = polygonOpEntity.getLong("operationId");
 								String status = polygonOpEntity.getString("status");
 								String podStartingDate = polygonOpEntity.getString("startingDate");
-								String podFinishingDate = polygonOpEntity.getString("finishingDate");
+								String podFinishingDate = polygonOpEntity.contains("finishingDate") ? polygonOpEntity.getString("finishingDate") : null;
 								String podLastActivityDate = polygonOpEntity.getString("lastActivityDate");
 								String podObservations = polygonOpEntity.getString("observations");
 
