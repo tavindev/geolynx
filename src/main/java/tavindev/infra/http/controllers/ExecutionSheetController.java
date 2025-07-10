@@ -3,11 +3,12 @@ package tavindev.infra.http.controllers;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.ExecutionSheet;
 import tavindev.core.services.ExecutionSheetService;
 import tavindev.infra.dto.executionsheet.CreateExecutionSheetResponseDTO;
+import tavindev.infra.dto.executionsheet.AssignOperationDTO;
+import tavindev.infra.dto.executionsheet.AssignOperationResponseDTO;
 
 @Service
 @Path("/execution-sheet")
@@ -16,8 +17,21 @@ public class ExecutionSheetController {
 	@Inject
 	private ExecutionSheetService executionSheetService;
 
+
 	@POST
-	@Path("/import")
+	@Path("/assign")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public AssignOperationResponseDTO assignOperation(
+			@CookieParam("session") String token,
+			AssignOperationDTO dto) {
+		executionSheetService.assignOperation(token, dto.executionSheetId(), dto.polygonId(), dto.operationId(),
+				dto.operatorId());
+
+		return new AssignOperationResponseDTO("Operação atribuída com sucesso ao operador.");
+	}
+
+	@POST
+	@Path("/")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public CreateExecutionSheetResponseDTO createExecutionSheet(
 			@CookieParam("session") String token,
@@ -34,4 +48,7 @@ public class ExecutionSheetController {
 			@PathParam("id") Long id) {
 		return executionSheetService.getExecutionSheet(token, id);
 	}
+
+
+
 }

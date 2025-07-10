@@ -72,9 +72,12 @@ public class ExecutionSheetRepository {
 								Long operationId = polygonOpEntity.getLong("operationId");
 								String status = polygonOpEntity.getString("status");
 								String podStartingDate = polygonOpEntity.getString("startingDate");
-								String podFinishingDate = polygonOpEntity.contains("finishingDate") ? polygonOpEntity.getString("finishingDate") : null;
+								String podFinishingDate = polygonOpEntity.contains("finishingDate")
+										? polygonOpEntity.getString("finishingDate")
+										: null;
 								String podLastActivityDate = polygonOpEntity.getString("lastActivityDate");
 								String podObservations = polygonOpEntity.getString("observations");
+								Long operatorId = polygonOpEntity.contains("operatorId") ? polygonOpEntity.getLong("operatorId") : null;
 
 								// Extract tracks
 								List<Track> tracks = new ArrayList<>();
@@ -91,7 +94,7 @@ public class ExecutionSheetRepository {
 								}
 
 								polygonOperations.add(new PolygonOperationDetail(operationId, status,
-										podStartingDate, podFinishingDate, podLastActivityDate, podObservations, tracks));
+										podStartingDate, podFinishingDate, podLastActivityDate, podObservations, tracks, operatorId));
 							}
 						}
 					}
@@ -113,9 +116,12 @@ public class ExecutionSheetRepository {
 
 		// Save basic fields
 		entityBuilder.set("startingDate", executionSheet.getStartingDate());
-		entityBuilder.set("finishingDate", executionSheet.getFinishingDate());
-		entityBuilder.set("lastActivityDate", executionSheet.getLastActivityDate());
-		entityBuilder.set("observations", executionSheet.getObservations());
+		if (executionSheet.getFinishingDate() != null)
+			entityBuilder.set("finishingDate", executionSheet.getFinishingDate());
+		if (executionSheet.getLastActivityDate() != null)
+			entityBuilder.set("lastActivityDate", executionSheet.getLastActivityDate());
+		if (executionSheet.getObservations() != null)
+			entityBuilder.set("observations", executionSheet.getObservations());
 
 		// Save operations
 		if (executionSheet.getOperations() != null) {
@@ -129,9 +135,12 @@ public class ExecutionSheetRepository {
 				if (operation.getAreaPerc() != null) {
 					operationBuilder.set("areaPerc", operation.getAreaPerc());
 				}
-				operationBuilder.set("startingDate", operation.getStartingDate());
-				operationBuilder.set("finishingDate", operation.getFinishingDate());
-				operationBuilder.set("observations", operation.getObservations());
+				if (operation.getStartingDate() != null)
+					operationBuilder.set("startingDate", operation.getStartingDate());
+				if (operation.getFinishingDate() != null)
+					operationBuilder.set("finishingDate", operation.getFinishingDate());
+				if (operation.getObservations() != null)
+					operationBuilder.set("observations", operation.getObservations());
 
 				operationsBuilder.addValue(operationBuilder.build());
 			}
@@ -151,12 +160,21 @@ public class ExecutionSheetRepository {
 						FullEntity.Builder<IncompleteKey> polygonOpBuilder = FullEntity.newBuilder();
 						polygonOpBuilder.set("operationId", polygonOpDetail.getOperationId());
 						polygonOpBuilder.set("status", polygonOpDetail.getStatus());
-						polygonOpBuilder.set("startingDate", polygonOpDetail.getStartingDate());
+
+						if (polygonOpDetail.getStartingDate() != null)
+							polygonOpBuilder.set("startingDate", polygonOpDetail.getStartingDate());
 
 						if (polygonOpDetail.getFinishingDate() != null)
 							polygonOpBuilder.set("finishingDate", polygonOpDetail.getFinishingDate());
-						polygonOpBuilder.set("lastActivityDate", polygonOpDetail.getLastActivityDate());
-						polygonOpBuilder.set("observations", polygonOpDetail.getObservations());
+
+						if (polygonOpDetail.getLastActivityDate() != null)
+							polygonOpBuilder.set("lastActivityDate", polygonOpDetail.getLastActivityDate());
+
+						if (polygonOpDetail.getObservations() != null)
+							polygonOpBuilder.set("observations", polygonOpDetail.getObservations());
+
+						if (polygonOpDetail.getOperatorId() != null)
+							polygonOpBuilder.set("operatorId", polygonOpDetail.getOperatorId());
 
 						// Save tracks
 						if (polygonOpDetail.getTracks() != null) {

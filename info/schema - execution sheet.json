@@ -79,12 +79,7 @@
                 },
                 "status": {
                   "type": "string",
-                  "enum": [
-                    "unassigned",
-                    "assigned",
-                    "ongoing",
-                    "completed"
-                  ]
+                  "enum": ["unassigned", "assigned", "ongoing", "completed"]
                 },
                 "starting_date": {
                   "type": "string",
@@ -101,14 +96,14 @@
                 "observations": {
                   "type": "string"
                 },
+                "operator_id": {
+                  "type": "number"
+                },
                 "tracks": {
                   "type": "array",
                   "items": {
                     "type": "object",
-                    "required": [
-                      "type",
-                      "coordinates"
-                    ],
+                    "required": ["type", "coordinates"],
                     "properties": {
                       "type": {
                         "type": "string",
@@ -131,27 +126,16 @@
                   }
                 }
               },
-              "required": [
-                "operation_id",
-                "status"
-              ],
+              "required": ["operation_id", "status"],
               "additionalProperties": false
             }
           }
         }
       },
-      "required": [
-        "polygon_id",
-        "operations"
-      ],
+      "required": ["polygon_id", "operations"],
       "additionalProperties": false
     }
   },
-  "required": [
-    "id",
-    "starting_date",
-    "polygons_operations",
-    "operations"
-  ],
+  "required": ["id", "starting_date", "polygons_operations", "operations"],
   "additionalProperties": false
 }

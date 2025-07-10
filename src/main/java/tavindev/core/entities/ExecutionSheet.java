@@ -141,6 +141,7 @@ public class ExecutionSheet {
 		private final String lastActivityDate;
 		private final String observations;
 		private final List<Track> tracks;
+		private final Long operatorId;
 
 		@JsonCreator
 		public PolygonOperationDetail(@JsonProperty("operation_id") Long operationId,
@@ -149,7 +150,8 @@ public class ExecutionSheet {
 				@JsonProperty("finishing_date") String finishingDate,
 				@JsonProperty("last_activity_date") String lastActivityDate,
 				@JsonProperty("observations") String observations,
-				@JsonProperty("tracks") List<Track> tracks) {
+				@JsonProperty("tracks") List<Track> tracks,
+				@JsonProperty("operator_id") Long operatorId) {
 			this.operationId = operationId;
 			this.status = status;
 			this.startingDate = startingDate;
@@ -157,7 +159,7 @@ public class ExecutionSheet {
 			this.lastActivityDate = lastActivityDate;
 			this.observations = observations;
 			this.tracks = tracks;
-
+			this.operatorId = operatorId;
 		}
 
 		public Long getOperationId() {
@@ -186,6 +188,10 @@ public class ExecutionSheet {
 
 		public List<Track> getTracks() {
 			return tracks;
+		}
+
+		public Long getOperatorId() {
+			return operatorId;
 		}
 	}
 

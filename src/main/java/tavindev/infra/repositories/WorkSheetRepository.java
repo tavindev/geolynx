@@ -31,7 +31,7 @@ public class WorkSheetRepository {
         }
 
         // Extract type and CRS
-        String type = workSheetEntity.getString("type");
+        String type = workSheetEntity.contains("type") ? workSheetEntity.getString("type") : null;
 
         // Extract CRS
         CRS crs = null;
