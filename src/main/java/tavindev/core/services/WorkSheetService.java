@@ -1,7 +1,6 @@
 package tavindev.core.services;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
@@ -10,9 +9,7 @@ import tavindev.core.entities.WorkSheet;
 import tavindev.core.entities.Permission;
 import tavindev.core.authorization.PermissionAuthorizationHandler;
 import tavindev.core.utils.AuthUtils;
-import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetDTO;
 import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
-import tavindev.api.mappers.WorkSheetMapper;
 import tavindev.infra.repositories.WorkSheetRepository;
 
 public class WorkSheetService {
@@ -22,12 +19,10 @@ public class WorkSheetService {
     @Inject
     private AuthUtils authUtils;
 
-    public WorkSheet createOrUpdateWorkSheet(String tokenId, CreateOrUpdateWorkSheetDTO dto) {
+    public WorkSheet createOrUpdateWorkSheet(String tokenId, WorkSheet workSheet) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
 
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.IMP_FO);
-
-        WorkSheet workSheet = WorkSheetMapper.toEntity(dto);
 
         workSheetRepository.save(workSheet);
 

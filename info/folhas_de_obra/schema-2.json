@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GeoJSON - Folha de Obra",
+  "allOf": [
+    {
+      "$ref": "https://geojson.org/schema/FeatureCollection.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "issuing_user_id": {
+              "type": "number"
+            },
+            "starting_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "finishing_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "issue_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "service_provider_id": {
+              "type": "number"
+            },
+            "award_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "aigp": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 9,
+              "uniqueItems": true,
+              "items": {
+                "type": "string"
+              }
+            },
+            "posa_code": {
+              "type": "string"
+            },
+            "posa_description": {
+              "type": "string"
+            },
+            "posp_code": {
+              "type": "string"
+            },
+            "posp_description": {
+              "type": "string"
+            },
+            "operations": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 5,
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "operation_code": {
+                    "type": "string"
+                  },
+                  "operation_description": {
+                    "type": "string"
+                  },
+                  "area_ha": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "operation_code",
+                  "operation_description",
+                  "area_ha"
+                ]
+              }
+            }
+          },
+          "required": [
+            "id",
+            "starting_date",
+            "finishing_date",
+            "issue_date",
+            "service_provider_id",
+            "award_date",
+            "aigp",
+            "posa_code",
+            "posa_description",
+            "posp_code",
+            "posp_description",
+            "operations",
+            "issuing_user_id"
+          ],
+          "additionalProperties": false
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "properties": {
+                "type": "object",
+                "properties": {
+                  "aigp": {
+                    "type": "string"
+                  },
+                  "rural_property_id": {
+                    "type": "string"
+                  },
+                  "UI_id": {
+                    "type": "number"
+                  },
+                  "polygon_id": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "aigp",
+                  "rural_property_id",
+                  "polygon_id"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "properties"
+            ]
+          }
+        }
+      },
+      "required": [
+        "metadata"
+      ]
+    }
+  ]
+}
