@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -11,7 +13,7 @@ public class ExecutionSheet {
 	private final Long id;
 	private final String startingDate;
 	private final String finishingDate;
-	private final String lastActivityDate;
+	private String lastActivityDate;
 	private final String observations;
 	private final List<Operation> operations;
 	private final List<PolygonOperation> polygonsOperations;
@@ -60,6 +62,120 @@ public class ExecutionSheet {
 
 	public List<PolygonOperation> getPolygonsOperations() {
 		return polygonsOperations;
+	}
+
+	// Business Logic Methods
+
+	/**
+	 * Assigns an operation in a polygon to an operator
+	 */
+	public void assignOperationToOperator(Long polygonId, Long operationId, Long operatorId) {
+		PolygonOperationDetail operationDetail = findOperationDetail(polygonId, operationId);
+		if (operationDetail == null) {
+			throw new IllegalArgumentException("Operação não encontrada na parcela especificada");
+		}
+
+		// Update the operation detail with operator assigned
+		updateOperationDetail(polygonId, operationId, operationDetail.withStatus("assigned").withOperatorId(operatorId));
+	}
+
+	/**
+	 * Starts an activity for an operation in a polygon
+	 */
+	public void startActivity(Long polygonId, Long operationId, String operatorId) {
+		PolygonOperationDetail operationDetail = findOperationDetail(polygonId, operationId);
+		if (operationDetail == null) {
+			throw new IllegalArgumentException("Operação não encontrada na parcela especificada");
+		}
+
+		// Validate operator assignment
+		validateOperatorAssignment(operationDetail, operatorId);
+
+		// Validate status
+		if (!"assigned".equals(operationDetail.getStatus())) {
+			throw new IllegalArgumentException("Apenas operações com status 'assigned' podem ser iniciadas");
+		}
+
+		String currentDate = LocalDate.now().toString();
+
+		// Update the operation detail with activity started
+		updateOperationDetail(polygonId, operationId,
+				operationDetail.withStatus("ongoing")
+						.withStartingDate(currentDate)
+						.withLastActivityDate(currentDate));
+
+		// Update execution sheet last activity date
+		this.lastActivityDate = currentDate;
+	}
+
+	/**
+	 * Stops an activity for an operation in a polygon
+	 */
+	public void stopActivity(Long polygonId, Long operationId, String operatorId) {
+		PolygonOperationDetail operationDetail = findOperationDetail(polygonId, operationId);
+		if (operationDetail == null) {
+			throw new IllegalArgumentException("Operação não encontrada na parcela especificada");
+		}
+
+		// Validate operator assignment
+		validateOperatorAssignment(operationDetail, operatorId);
+
+		// Validate status
+		if (!"ongoing".equals(operationDetail.getStatus())) {
+			throw new IllegalArgumentException("Apenas operações com status 'ongoing' podem ser paradas");
+		}
+
+		String currentDate = LocalDate.now().toString();
+
+		// Update the operation detail with activity stopped
+		updateOperationDetail(polygonId, operationId,
+				operationDetail.withStatus("completed")
+						.withFinishingDate(currentDate)
+						.withLastActivityDate(currentDate));
+
+		// Update execution sheet last activity date
+		this.lastActivityDate = currentDate;
+	}
+
+	/**
+	 * Validates that an operation is assigned to the specified operator
+	 */
+	public void validateOperatorAssignment(PolygonOperationDetail operationDetail, String operatorId) {
+		if (operationDetail.getOperatorId() == null) {
+			throw new IllegalArgumentException("Operação não está atribuída a nenhum operador");
+		}
+
+		if (!operationDetail.getOperatorId().toString().equals(operatorId)) {
+			throw new IllegalArgumentException("Apenas o operador atribuído pode executar esta operação");
+		}
+	}
+
+	/**
+	 * Finds an operation detail by polygon and operation IDs
+	 */
+	public PolygonOperationDetail findOperationDetail(Long polygonId, Long operationId) {
+		for (PolygonOperation polygonOperation : polygonsOperations) {
+			if (polygonOperation.getPolygonId().equals(polygonId)) {
+				for (PolygonOperationDetail operationDetail : polygonOperation.getOperations()) {
+					if (operationDetail.getOperationId().equals(operationId)) {
+						return operationDetail;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Updates an operation detail in the execution sheet
+	 */
+	private void updateOperationDetail(Long polygonId, Long operationId, PolygonOperationDetail updatedOperationDetail) {
+		for (PolygonOperation polygonOperation : polygonsOperations) {
+			if (polygonOperation.getPolygonId().equals(polygonId)) {
+				polygonOperation.updateOperation(operationId, updatedOperationDetail);
+				return;
+			}
+		}
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
@@ -130,18 +246,30 @@ public class ExecutionSheet {
 		public List<PolygonOperationDetail> getOperations() {
 			return operations;
 		}
+
+		/**
+		 * Updates an operation in this polygon
+		 */
+		public void updateOperation(Long operationId, PolygonOperationDetail updatedOperation) {
+			for (int i = 0; i < operations.size(); i++) {
+				if (operations.get(i).getOperationId().equals(operationId)) {
+					operations.set(i, updatedOperation);
+					return;
+				}
+			}
+		}
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class PolygonOperationDetail {
 		private final Long operationId;
-		private final String status;
-		private final String startingDate;
-		private final String finishingDate;
-		private final String lastActivityDate;
-		private final String observations;
+		private String status;
+		private String startingDate;
+		private String finishingDate;
+		private String lastActivityDate;
+		private String observations;
 		private final List<Track> tracks;
-		private final Long operatorId;
+		private Long operatorId;
 
 		@JsonCreator
 		public PolygonOperationDetail(@JsonProperty("operation_id") Long operationId,
@@ -192,6 +320,32 @@ public class ExecutionSheet {
 
 		public Long getOperatorId() {
 			return operatorId;
+		}
+
+		// Update methods for immutability pattern
+		public PolygonOperationDetail withStatus(String status) {
+			this.status = status;
+			return this;
+		}
+
+		public PolygonOperationDetail withStartingDate(String startingDate) {
+			this.startingDate = startingDate;
+			return this;
+		}
+
+		public PolygonOperationDetail withFinishingDate(String finishingDate) {
+			this.finishingDate = finishingDate;
+			return this;
+		}
+
+		public PolygonOperationDetail withLastActivityDate(String lastActivityDate) {
+			this.lastActivityDate = lastActivityDate;
+			return this;
+		}
+
+		public PolygonOperationDetail withOperatorId(Long operatorId) {
+			this.operatorId = operatorId;
+			return this;
 		}
 	}
 

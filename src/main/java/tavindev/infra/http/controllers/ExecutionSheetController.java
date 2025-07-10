@@ -9,6 +9,10 @@ import tavindev.core.services.ExecutionSheetService;
 import tavindev.infra.dto.executionsheet.CreateExecutionSheetResponseDTO;
 import tavindev.infra.dto.executionsheet.AssignOperationDTO;
 import tavindev.infra.dto.executionsheet.AssignOperationResponseDTO;
+import tavindev.infra.dto.executionsheet.StartActivityDTO;
+import tavindev.infra.dto.executionsheet.StartActivityResponseDTO;
+import tavindev.infra.dto.executionsheet.StopActivityDTO;
+import tavindev.infra.dto.executionsheet.StopActivityResponseDTO;
 
 @Service
 @Path("/execution-sheet")
@@ -16,19 +20,6 @@ import tavindev.infra.dto.executionsheet.AssignOperationResponseDTO;
 public class ExecutionSheetController {
 	@Inject
 	private ExecutionSheetService executionSheetService;
-
-
-	@POST
-	@Path("/assign")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public AssignOperationResponseDTO assignOperation(
-			@CookieParam("session") String token,
-			AssignOperationDTO dto) {
-		executionSheetService.assignOperation(token, dto.executionSheetId(), dto.polygonId(), dto.operationId(),
-				dto.operatorId());
-
-		return new AssignOperationResponseDTO("Operação atribuída com sucesso ao operador.");
-	}
 
 	@POST
 	@Path("/")
@@ -41,6 +32,40 @@ public class ExecutionSheetController {
 		return new CreateExecutionSheetResponseDTO("Folha de execução criada com sucesso.");
 	}
 
+	@POST
+	@Path("/assign-operation")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public AssignOperationResponseDTO assignOperation(
+			@CookieParam("session") String token,
+			AssignOperationDTO dto) {
+		executionSheetService.assignOperation(token, dto.executionSheetId(), dto.polygonId(), dto.operationId(),
+				dto.operatorId());
+
+		return new AssignOperationResponseDTO("Operação atribuída com sucesso ao operador.");
+	}
+
+	@POST
+	@Path("/start-activity")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public StartActivityResponseDTO startActivity(
+			@CookieParam("session") String token,
+			StartActivityDTO dto) {
+		executionSheetService.startActivity(token, dto.executionSheetId(), dto.polygonId(), dto.operationId());
+
+		return new StartActivityResponseDTO("Atividade iniciada com sucesso.");
+	}
+
+	@POST
+	@Path("/stop-activity")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public StopActivityResponseDTO stopActivity(
+			@CookieParam("session") String token,
+			StopActivityDTO dto) {
+		executionSheetService.stopActivity(token, dto.executionSheetId(), dto.polygonId(), dto.operationId());
+
+		return new StopActivityResponseDTO("Atividade terminada com sucesso.");
+	}
+
 	@GET
 	@Path("/{id}")
 	public ExecutionSheet getExecutionSheet(
@@ -48,7 +73,5 @@ public class ExecutionSheetController {
 			@PathParam("id") Long id) {
 		return executionSheetService.getExecutionSheet(token, id);
 	}
-
-
 
 }
