@@ -116,4 +116,28 @@ public class ExecutionSheetService {
 		// Persist changes
 		executionSheetRepository.save(executionSheet);
 	}
+
+	/**
+	 * Views the state of an operation in a given parcel
+	 */
+	public ExecutionSheet.PolygonOperationDetail viewActivity(String tokenId, Long executionSheetId, Long polygonId,
+			Long operationId) {
+		// Validate user permissions
+		User currentUser = authUtils.validateAndGetUser(tokenId);
+		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_ACT_OP_FE);
+
+		// Get execution sheet
+		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
+		if (executionSheet == null) {
+			throw new IllegalArgumentException("Folha de execução não encontrada");
+		}
+
+		// Find the operation detail
+		ExecutionSheet.PolygonOperationDetail operationDetail = executionSheet.findOperationDetail(polygonId, operationId);
+		if (operationDetail == null) {
+			throw new IllegalArgumentException("Operação não encontrada na parcela especificada");
+		}
+
+		return operationDetail;
+	}
 }

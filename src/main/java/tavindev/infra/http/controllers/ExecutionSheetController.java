@@ -13,6 +13,8 @@ import tavindev.infra.dto.executionsheet.StartActivityDTO;
 import tavindev.infra.dto.executionsheet.StartActivityResponseDTO;
 import tavindev.infra.dto.executionsheet.StopActivityDTO;
 import tavindev.infra.dto.executionsheet.StopActivityResponseDTO;
+import tavindev.infra.dto.executionsheet.ViewActivityDTO;
+import tavindev.infra.dto.executionsheet.ViewActivityResponseDTO;
 
 @Service
 @Path("/execution-sheet")
@@ -64,6 +66,18 @@ public class ExecutionSheetController {
 		executionSheetService.stopActivity(token, dto.executionSheetId(), dto.polygonId(), dto.operationId());
 
 		return new StopActivityResponseDTO("Atividade terminada com sucesso.");
+	}
+
+	@POST
+	@Path("/view-activity")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public ViewActivityResponseDTO viewActivity(
+			@CookieParam("session") String token,
+			ViewActivityDTO dto) {
+		ExecutionSheet.PolygonOperationDetail operationDetail = executionSheetService.viewActivity(
+				token, dto.executionSheetId(), dto.polygonId(), dto.operationId());
+
+		return new ViewActivityResponseDTO("Estado da operação obtido com sucesso.", operationDetail);
 	}
 
 	@GET
