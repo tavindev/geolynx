@@ -7,6 +7,14 @@ import tavindev.infra.http.controllers.ExecutionSheetController;
 import tavindev.infra.http.controllers.WorkSheetController;
 import tavindev.infra.filters.AuthTokenExtractionFilter;
 import tavindev.infra.filters.AdditionalResponseHeadersFilter;
+import tavindev.infra.http.exception.DomainExceptionMapper;
+import tavindev.infra.http.exception.IllegalArgumentExceptionMapper;
+import tavindev.infra.http.exception.NotFoundExceptionMapper;
+import tavindev.infra.http.exception.IllegalStateExceptionMapper;
+import tavindev.infra.http.exception.RuntimeExceptionMapper;
+import tavindev.infra.http.exception.ValidationExceptionMapper;
+import tavindev.infra.http.exception.WebApplicationExceptionMapper;
+import tavindev.infra.http.exception.GenericExceptionMapper;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -27,6 +35,16 @@ public class ApplicationConfig extends ResourceConfig {
         register(JacksonConfig.class);
         register(WorkSheetController.class);
         register(ExecutionSheetController.class);
+
+        // Register exception mappers
+        register(DomainExceptionMapper.class);
+        register(IllegalArgumentExceptionMapper.class);
+        register(NotFoundExceptionMapper.class);
+        register(IllegalStateExceptionMapper.class);
+        register(RuntimeExceptionMapper.class);
+        register(ValidationExceptionMapper.class);
+        register(WebApplicationExceptionMapper.class);
+        register(GenericExceptionMapper.class);
 
         logger.log(Level.INFO, "ApplicationConfig initialization completed");
     }

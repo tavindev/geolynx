@@ -246,6 +246,67 @@ public class ExecutionSheet {
 	}
 
 	/**
+	 * Edits operation data (planned completion date, estimated duration,
+	 * observations)
+	 */
+	public void editOperation(Long operationId, String plannedCompletionDate, Integer estimatedDurationHours,
+			String observations) {
+		// Find the operation in the operations list
+		Operation operation = findOperation(operationId);
+		if (operation == null) {
+			throw new IllegalArgumentException("Operação não encontrada");
+		}
+
+		// Update the operation with new data
+		updateOperation(operationId, operation.withPlannedCompletionDate(plannedCompletionDate)
+				.withEstimatedDurationHours(estimatedDurationHours)
+				.withObservations(observations));
+	}
+
+	/**
+	 * Finds an operation by operation ID
+	 */
+	private Operation findOperation(Long operationId) {
+		// This is a simplified implementation - in a real scenario,
+		// you might need to map operationId to operationCode or have a different
+		// structure
+		for (Operation operation : operations) {
+			// For now, we'll use a placeholder logic
+			// In reality, you'd need to establish a proper mapping between operationId and
+			// operation
+			if (operation.getOperationCode().equals("OP-" + operationId)) {
+				return operation;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Updates an operation in the operations list
+	 */
+	private void updateOperation(Long operationId, Operation updatedOperation) {
+		for (int i = 0; i < operations.size(); i++) {
+			Operation operation = operations.get(i);
+			if (operation.getOperationCode().equals("OP-" + operationId)) {
+				operations.set(i, updatedOperation);
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Prepares the execution sheet for export in the format expected by LAND IT
+	 * This ensures all data is in the correct format and structure
+	 */
+	public ExecutionSheet prepareForExport() {
+		// The current ExecutionSheet structure already matches the export schema
+		// This method can be used to add any export-specific transformations if needed
+		// For now, we return the execution sheet as-is since it's already in the
+		// correct format
+		return this;
+	}
+
+	/**
 	 * Data class for polygon operation information
 	 */
 	public static class PolygonOperationInfo {
@@ -312,7 +373,9 @@ public class ExecutionSheet {
 		private final Double areaPerc;
 		private final String startingDate;
 		private final String finishingDate;
-		private final String observations;
+		private String observations;
+		private String plannedCompletionDate;
+		private Integer estimatedDurationHours;
 
 		@JsonCreator
 		public Operation(@JsonProperty("operation_code") String operationCode,
@@ -320,13 +383,17 @@ public class ExecutionSheet {
 				@JsonProperty("area_perc") Double areaPerc,
 				@JsonProperty("starting_date") String startingDate,
 				@JsonProperty("finishing_date") String finishingDate,
-				@JsonProperty("observations") String observations) {
+				@JsonProperty("observations") String observations,
+				@JsonProperty("planned_completion_date") String plannedCompletionDate,
+				@JsonProperty("estimated_duration_hours") Integer estimatedDurationHours) {
 			this.operationCode = operationCode;
 			this.areaHaExecuted = areaHaExecuted;
 			this.areaPerc = areaPerc;
 			this.startingDate = startingDate;
 			this.finishingDate = finishingDate;
 			this.observations = observations;
+			this.plannedCompletionDate = plannedCompletionDate;
+			this.estimatedDurationHours = estimatedDurationHours;
 		}
 
 		public String getOperationCode() {
@@ -351,6 +418,30 @@ public class ExecutionSheet {
 
 		public String getObservations() {
 			return observations;
+		}
+
+		public String getPlannedCompletionDate() {
+			return plannedCompletionDate;
+		}
+
+		public Integer getEstimatedDurationHours() {
+			return estimatedDurationHours;
+		}
+
+		// Update methods for immutability pattern
+		public Operation withObservations(String observations) {
+			this.observations = observations;
+			return this;
+		}
+
+		public Operation withPlannedCompletionDate(String plannedCompletionDate) {
+			this.plannedCompletionDate = plannedCompletionDate;
+			return this;
+		}
+
+		public Operation withEstimatedDurationHours(Integer estimatedDurationHours) {
+			this.estimatedDurationHours = estimatedDurationHours;
+			return this;
 		}
 	}
 

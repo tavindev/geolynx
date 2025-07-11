@@ -13,6 +13,9 @@ import tavindev.core.utils.AuthUtils;
 import tavindev.infra.repositories.ExecutionSheetRepository;
 import tavindev.infra.repositories.DatastoreUserRepository;
 import tavindev.core.exceptions.UnauthorizedException;
+import tavindev.core.exceptions.BadRequestException;
+import tavindev.core.exceptions.UserNotFoundException;
+import tavindev.core.exceptions.ExecutionSheetNotFoundException;
 
 public class ExecutionSheetService {
 	@Inject
@@ -38,7 +41,7 @@ public class ExecutionSheetService {
 		ExecutionSheet executionSheet = executionSheetRepository.get(id);
 
 		if (executionSheet == null)
-			throw new NotFoundException("Folha de execução não encontrada");
+			throw new ExecutionSheetNotFoundException("Folha de execução não encontrada");
 
 		return executionSheet;
 	}
@@ -55,17 +58,17 @@ public class ExecutionSheetService {
 		User operator = userRepository.findById(operatorId.toString());
 
 		if (operator == null) {
-			throw new IllegalArgumentException("Operador não encontrado");
+			throw new BadRequestException("Operador não encontrado");
 		}
 
 		if (operator.getRole() != UserRole.PO) {
-			throw new IllegalArgumentException("Apenas operadores (PO) podem ser atribuídos a operações");
+			throw new BadRequestException("Apenas operadores (PO) podem ser atribuídos a operações");
 		}
 
 		// Get execution sheet
 		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
 		if (executionSheet == null) {
-			throw new IllegalArgumentException("Folha de execução não encontrada");
+			throw new NotFoundException("Folha de execução não encontrada");
 		}
 
 		// Delegate to domain logic
@@ -159,5 +162,46 @@ public class ExecutionSheetService {
 
 		// Get global operation status
 		return executionSheet.getGlobalOperationStatus(operationId);
+	}
+
+	/**
+	 * Edits operation data (planned completion date, estimated duration,
+	 * observations)
+	 */
+	public void editOperation(String tokenId, Long executionSheetId, Long operationId, String plannedCompletionDate,
+			Integer estimatedDurationHours, String observations) {
+		// Validate user permissions
+		User currentUser = authUtils.validateAndGetUser(tokenId);
+		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.EDIT_OP_FE);
+
+		// Get execution sheet
+		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
+		if (executionSheet == null) {
+			throw new IllegalArgumentException("Folha de execução não encontrada");
+		}
+
+		// Delegate to domain logic
+		executionSheet.editOperation(operationId, plannedCompletionDate, estimatedDurationHours, observations);
+
+		// Persist changes
+		executionSheetRepository.save(executionSheet);
+	}
+
+	/**
+	 * Exports execution sheet data for integration with LAND IT
+	 */
+	public ExecutionSheet exportExecutionSheet(String tokenId, Long executionSheetId) {
+		// Validate user permissions
+		User currentUser = authUtils.validateAndGetUser(tokenId);
+		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.EXPORT_FE);
+
+		// Get execution sheet
+		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
+		if (executionSheet == null) {
+			throw new IllegalArgumentException("Folha de execução não encontrada");
+		}
+
+		// Prepare the execution sheet for export in the format expected by LAND IT
+		return executionSheet.prepareForExport();
 	}
 }

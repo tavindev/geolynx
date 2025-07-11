@@ -47,6 +47,13 @@
           },
           "observations": {
             "type": "string"
+          },
+          "planned_completion_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "estimated_duration_hours": {
+            "type": "integer"
           }
         },
         "required": [

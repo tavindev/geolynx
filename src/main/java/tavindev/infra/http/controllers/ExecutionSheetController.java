@@ -18,6 +18,10 @@ import tavindev.infra.dto.executionsheet.ViewActivityDTO;
 import tavindev.infra.dto.executionsheet.ViewActivityResponseDTO;
 import tavindev.infra.dto.executionsheet.ViewStatusGlobalDTO;
 import tavindev.infra.dto.executionsheet.ViewStatusGlobalResponseDTO;
+import tavindev.infra.dto.executionsheet.EditOperationDTO;
+import tavindev.infra.dto.executionsheet.EditOperationResponseDTO;
+import tavindev.infra.dto.executionsheet.ExportExecutionSheetDTO;
+import tavindev.infra.dto.executionsheet.ExportExecutionSheetResponseDTO;
 
 @Service
 @Path("/execution-sheet")
@@ -109,6 +113,29 @@ public class ExecutionSheetController {
 				globalStatus.getOperationCode(),
 				globalStatus.getGlobalStatus(),
 				polygonStatuses);
+	}
+
+	@POST
+	@Path("/edit-operation")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public EditOperationResponseDTO editOperation(
+			@CookieParam("session") String token,
+			EditOperationDTO dto) {
+		executionSheetService.editOperation(token, dto.executionSheetId(), dto.operationId(),
+				dto.plannedCompletionDate(), dto.estimatedDurationHours(), dto.observations());
+
+		return new EditOperationResponseDTO("Dados da operação editados com sucesso.");
+	}
+
+	@POST
+	@Path("/export")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public ExportExecutionSheetResponseDTO exportExecutionSheet(
+			@CookieParam("session") String token,
+			ExportExecutionSheetDTO dto) {
+		ExecutionSheet executionSheet = executionSheetService.exportExecutionSheet(token, dto.executionSheetId());
+
+		return new ExportExecutionSheetResponseDTO("Folha de execução exportada com sucesso.", executionSheet);
 	}
 
 	@GET

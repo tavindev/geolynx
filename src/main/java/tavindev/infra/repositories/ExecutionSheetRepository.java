@@ -47,9 +47,15 @@ public class ExecutionSheetRepository {
 					String opStartingDate = operationEntity.getString("startingDate");
 					String opFinishingDate = operationEntity.getString("finishingDate");
 					String opObservations = operationEntity.getString("observations");
+					String plannedCompletionDate = operationEntity.contains("plannedCompletionDate")
+							? operationEntity.getString("plannedCompletionDate")
+							: null;
+					Integer estimatedDurationHours = operationEntity.contains("estimatedDurationHours")
+							? (int) operationEntity.getLong("estimatedDurationHours")
+							: null;
 
 					operations.add(new Operation(operationCode, areaHaExecuted, areaPerc,
-							opStartingDate, opFinishingDate, opObservations));
+							opStartingDate, opFinishingDate, opObservations, plannedCompletionDate, estimatedDurationHours));
 				}
 			}
 		}
@@ -141,6 +147,10 @@ public class ExecutionSheetRepository {
 					operationBuilder.set("finishingDate", operation.getFinishingDate());
 				if (operation.getObservations() != null)
 					operationBuilder.set("observations", operation.getObservations());
+				if (operation.getPlannedCompletionDate() != null)
+					operationBuilder.set("plannedCompletionDate", operation.getPlannedCompletionDate());
+				if (operation.getEstimatedDurationHours() != null)
+					operationBuilder.set("estimatedDurationHours", operation.getEstimatedDurationHours());
 
 				operationsBuilder.addValue(operationBuilder.build());
 			}
