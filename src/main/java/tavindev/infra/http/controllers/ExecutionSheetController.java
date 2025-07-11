@@ -1,5 +1,6 @@
 package tavindev.infra.http.controllers;
 
+import java.util.List;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -15,6 +16,8 @@ import tavindev.infra.dto.executionsheet.StopActivityDTO;
 import tavindev.infra.dto.executionsheet.StopActivityResponseDTO;
 import tavindev.infra.dto.executionsheet.ViewActivityDTO;
 import tavindev.infra.dto.executionsheet.ViewActivityResponseDTO;
+import tavindev.infra.dto.executionsheet.ViewStatusGlobalDTO;
+import tavindev.infra.dto.executionsheet.ViewStatusGlobalResponseDTO;
 
 @Service
 @Path("/execution-sheet")
@@ -78,6 +81,34 @@ public class ExecutionSheetController {
 				token, dto.executionSheetId(), dto.polygonId(), dto.operationId());
 
 		return new ViewActivityResponseDTO("Estado da operação obtido com sucesso.", operationDetail);
+	}
+
+	@POST
+	@Path("/view-status-global")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public ViewStatusGlobalResponseDTO viewStatusGlobal(
+			@CookieParam("session") String token,
+			ViewStatusGlobalDTO dto) {
+		ExecutionSheet.GlobalOperationStatus globalStatus = executionSheetService.viewGlobalStatus(
+				token, dto.executionSheetId(), dto.operationId());
+
+		// Convert to response DTO
+		List<ViewStatusGlobalResponseDTO.PolygonStatus> polygonStatuses = globalStatus.getOperationInfos().stream()
+				.map(info -> new ViewStatusGlobalResponseDTO.PolygonStatus(
+						info.getPolygonId(),
+						info.getOperationDetail().getStatus(),
+						info.getOperationDetail().getStartingDate(),
+						info.getOperationDetail().getFinishingDate(),
+						info.getOperationDetail().getLastActivityDate(),
+						info.getOperationDetail().getObservations(),
+						info.getOperationDetail().getOperatorId()))
+				.toList();
+
+		return new ViewStatusGlobalResponseDTO(
+				"Estado global da operação obtido com sucesso.",
+				globalStatus.getOperationCode(),
+				globalStatus.getGlobalStatus(),
+				polygonStatuses);
 	}
 
 	@GET

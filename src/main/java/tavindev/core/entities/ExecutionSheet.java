@@ -167,6 +167,133 @@ public class ExecutionSheet {
 	}
 
 	/**
+	 * Gets the global status of an operation across all polygons
+	 */
+	public GlobalOperationStatus getGlobalOperationStatus(Long operationId) {
+		List<PolygonOperationInfo> operationInfos = new ArrayList<>();
+
+		// Find all instances of this operation across all polygons
+		for (PolygonOperation polygonOperation : polygonsOperations) {
+			for (PolygonOperationDetail operationDetail : polygonOperation.getOperations()) {
+				if (operationDetail.getOperationId().equals(operationId)) {
+					operationInfos.add(new PolygonOperationInfo(polygonOperation.getPolygonId(), operationDetail));
+				}
+			}
+		}
+
+		if (operationInfos.isEmpty()) {
+			throw new IllegalArgumentException("Operação não encontrada em nenhuma parcela");
+		}
+
+		// Calculate global status based on individual statuses
+		String globalStatus = calculateGlobalStatus(operationInfos.stream()
+				.map(info -> info.operationDetail)
+				.toList());
+
+		// Find the operation code from the operations list
+		String operationCode = findOperationCode(operationId);
+
+		return new GlobalOperationStatus(operationCode, globalStatus, operationInfos);
+	}
+
+	/**
+	 * Calculates the global status based on individual operation statuses
+	 */
+	private String calculateGlobalStatus(List<PolygonOperationDetail> operationDetails) {
+		boolean hasUnassigned = false;
+		boolean hasAssigned = false;
+		boolean hasOngoing = false;
+		boolean hasCompleted = false;
+
+		for (PolygonOperationDetail detail : operationDetails) {
+			switch (detail.getStatus()) {
+				case "unassigned":
+					hasUnassigned = true;
+					break;
+				case "assigned":
+					hasAssigned = true;
+					break;
+				case "ongoing":
+					hasOngoing = true;
+					break;
+				case "completed":
+					hasCompleted = true;
+					break;
+			}
+		}
+
+		// Determine global status based on priority
+		if (hasOngoing) {
+			return "ongoing";
+		} else if (hasAssigned) {
+			return "assigned";
+		} else if (hasCompleted && !hasUnassigned) {
+			return "completed";
+		} else if (hasUnassigned) {
+			return "unassigned";
+		} else {
+			return "unknown";
+		}
+	}
+
+	/**
+	 * Finds the operation code for a given operation ID
+	 */
+	private String findOperationCode(Long operationId) {
+		// This would need to be implemented based on how operation codes are stored
+		// For now, return a placeholder
+		return "OP-" + operationId;
+	}
+
+	/**
+	 * Data class for polygon operation information
+	 */
+	public static class PolygonOperationInfo {
+		private final Long polygonId;
+		private final PolygonOperationDetail operationDetail;
+
+		public PolygonOperationInfo(Long polygonId, PolygonOperationDetail operationDetail) {
+			this.polygonId = polygonId;
+			this.operationDetail = operationDetail;
+		}
+
+		public Long getPolygonId() {
+			return polygonId;
+		}
+
+		public PolygonOperationDetail getOperationDetail() {
+			return operationDetail;
+		}
+	}
+
+	/**
+	 * Data class for global operation status
+	 */
+	public static class GlobalOperationStatus {
+		private final String operationCode;
+		private final String globalStatus;
+		private final List<PolygonOperationInfo> operationInfos;
+
+		public GlobalOperationStatus(String operationCode, String globalStatus, List<PolygonOperationInfo> operationInfos) {
+			this.operationCode = operationCode;
+			this.globalStatus = globalStatus;
+			this.operationInfos = operationInfos;
+		}
+
+		public String getOperationCode() {
+			return operationCode;
+		}
+
+		public String getGlobalStatus() {
+			return globalStatus;
+		}
+
+		public List<PolygonOperationInfo> getOperationInfos() {
+			return operationInfos;
+		}
+	}
+
+	/**
 	 * Updates an operation detail in the execution sheet
 	 */
 	private void updateOperationDetail(Long polygonId, Long operationId, PolygonOperationDetail updatedOperationDetail) {

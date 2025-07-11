@@ -140,4 +140,24 @@ public class ExecutionSheetService {
 
 		return operationDetail;
 	}
+
+	/**
+	 * Views the global status of an operation across all polygons
+	 */
+	public ExecutionSheet.GlobalOperationStatus viewGlobalStatus(String tokenId, Long executionSheetId,
+			Long operationId) {
+		// Validate user permissions
+		User currentUser = authUtils.validateAndGetUser(tokenId);
+		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_STATUS_OP_GLOBAL_FE);
+
+		// Get execution sheet
+		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
+
+		if (executionSheet == null) {
+			throw new IllegalArgumentException("Folha de execução não encontrada");
+		}
+
+		// Get global operation status
+		return executionSheet.getGlobalOperationStatus(operationId);
+	}
 }
