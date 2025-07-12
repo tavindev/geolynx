@@ -27,6 +27,8 @@ public class ExecutionSheetRepository {
 		}
 
 		// Extract basic fields
+		Long workSheetId = executionSheetEntity.contains("workSheetId") ? executionSheetEntity.getLong("workSheetId")
+				: null;
 		String startingDate = executionSheetEntity.getString("startingDate");
 		String finishingDate = executionSheetEntity.getString("finishingDate");
 		String lastActivityDate = executionSheetEntity.getString("lastActivityDate");
@@ -110,7 +112,7 @@ public class ExecutionSheetRepository {
 			}
 		}
 
-		return new ExecutionSheet(id, startingDate, finishingDate, lastActivityDate,
+		return new ExecutionSheet(id, workSheetId, startingDate, finishingDate, lastActivityDate,
 				observations, operations, polygonsOperations);
 	}
 
@@ -119,6 +121,9 @@ public class ExecutionSheetRepository {
 		Key executionSheetKey = keyFactory.newKey(executionSheet.getId());
 
 		Entity.Builder entityBuilder = Entity.newBuilder(executionSheetKey);
+
+		// Save work sheet association
+		entityBuilder.set("workSheetId", executionSheet.getWorkSheetId());
 
 		// Save basic fields
 		entityBuilder.set("startingDate", executionSheet.getStartingDate());

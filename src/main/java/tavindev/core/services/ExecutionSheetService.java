@@ -1,6 +1,7 @@
 package tavindev.core.services;
 
 import java.lang.management.OperatingSystemMXBean;
+import java.util.List;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
@@ -11,15 +12,20 @@ import tavindev.core.entities.UserRole;
 import tavindev.core.authorization.PermissionAuthorizationHandler;
 import tavindev.core.utils.AuthUtils;
 import tavindev.infra.repositories.ExecutionSheetRepository;
+import tavindev.infra.repositories.WorkSheetRepository;
 import tavindev.infra.repositories.DatastoreUserRepository;
 import tavindev.core.exceptions.UnauthorizedException;
 import tavindev.core.exceptions.BadRequestException;
 import tavindev.core.exceptions.UserNotFoundException;
 import tavindev.core.exceptions.ExecutionSheetNotFoundException;
+import tavindev.core.entities.WorkSheet;
 
 public class ExecutionSheetService {
 	@Inject
 	private ExecutionSheetRepository executionSheetRepository;
+
+	@Inject
+	private WorkSheetRepository workSheetRepository;
 
 	@Inject
 	private AuthUtils authUtils;
@@ -30,6 +36,12 @@ public class ExecutionSheetService {
 	public void createExecutionSheet(String tokenId, ExecutionSheet executionSheet) {
 		User currentUser = authUtils.validateAndGetUser(tokenId);
 		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.CREATE_FE);
+
+		// Check if the associated work sheet exists
+		boolean workSheetExists = workSheetRepository.exists(executionSheet.getWorkSheetId());
+
+		if (!workSheetExists)
+			throw new BadRequestException("Folha de obra não encontrada");
 
 		executionSheetRepository.save(executionSheet);
 	}

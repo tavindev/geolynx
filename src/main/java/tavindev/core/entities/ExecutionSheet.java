@@ -11,6 +11,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExecutionSheet {
 	private final Long id;
+	private final Long workSheetId; // ID da folha de obra associada
 	private final String startingDate;
 	private final String finishingDate;
 	private String lastActivityDate;
@@ -20,6 +21,7 @@ public class ExecutionSheet {
 
 	@JsonCreator
 	public ExecutionSheet(@JsonProperty("id") Long id,
+			@JsonProperty("work_sheet_id") Long workSheetId,
 			@JsonProperty("starting_date") String startingDate,
 			@JsonProperty("finishing_date") String finishingDate,
 			@JsonProperty("last_activity_date") String lastActivityDate,
@@ -27,17 +29,26 @@ public class ExecutionSheet {
 			@JsonProperty("operations") List<Operation> operations,
 			@JsonProperty("polygons_operations") List<PolygonOperation> polygonsOperations) {
 		this.id = id;
+		this.workSheetId = workSheetId;
 		this.startingDate = startingDate;
 		this.finishingDate = finishingDate;
 		this.lastActivityDate = lastActivityDate;
 		this.observations = observations;
 		this.operations = operations;
 		this.polygonsOperations = polygonsOperations;
+
+		if (workSheetId == null) {
+			throw new IllegalArgumentException("Folha de execução deve estar associada a uma folha de obra");
+		}
 	}
 
 	// Getters
 	public Long getId() {
 		return id;
+	}
+
+	public Long getWorkSheetId() {
+		return workSheetId;
 	}
 
 	public String getStartingDate() {

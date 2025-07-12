@@ -143,6 +143,12 @@
       "additionalProperties": false
     }
   },
-  "required": ["id", "starting_date", "polygons_operations", "operations"],
+  "required": [
+    "id",
+    "work_sheet_id",
+    "starting_date",
+    "polygons_operations",
+    "operations"
+  ],
   "additionalProperties": false
 }
