@@ -17,27 +17,11 @@ public class GeohashService {
 	private CoordinateTransformationService coordinateTransformationService;
 
 	/**
-	 * Calculates geohash for a WorkSheet based on the first point of its features
-	 * Coordinates are always in EPSG:3763 format and will be transformed to WGS84
-	 */
-	public String calculateWorkSheetGeohash(WorkSheet workSheet) {
-		if (workSheet.getFeatures() == null || workSheet.getFeatures().isEmpty()) {
-			return null;
-		}
-
-		// Get the first point from the WorkSheet (always in EPSG:3763)
-		double[] point = workSheet.getFirstPoint();
-
-		// Transform from EPSG:3763 to WGS84
-		double[] transformedPoint = coordinateTransformationService.transformFromEPSG3763ToWGS84(point[1], point[0]);
-		return encode(transformedPoint[1], transformedPoint[0], DEFAULT_PRECISION); // lat, lon
-	}
-
-	/**
 	 * Encodes latitude and longitude to geohash
 	 */
 	public String encode(double lat, double lon) {
-		return encode(lat, lon, DEFAULT_PRECISION);
+		double[] transformedPoint = coordinateTransformationService.transformFromEPSG3763ToWGS84(lat, lon);
+		return encode(transformedPoint[1], transformedPoint[0], DEFAULT_PRECISION);
 	}
 
 	/**

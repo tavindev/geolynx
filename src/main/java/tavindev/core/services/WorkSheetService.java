@@ -27,7 +27,8 @@ public class WorkSheetService {
 
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.IMP_FO);
 
-        workSheet.setGeohash(geohashService.calculateWorkSheetGeohash(workSheet));
+        double[] firstPoint = workSheet.getFirstPoint();
+        workSheet.setGeohash(geohashService.encode(firstPoint[1], firstPoint[0]));
         workSheetRepository.save(workSheet);
 
         return workSheet;
