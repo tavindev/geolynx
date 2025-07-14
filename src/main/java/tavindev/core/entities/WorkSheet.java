@@ -1,6 +1,7 @@
 package tavindev.core.entities;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -12,6 +13,7 @@ public class WorkSheet {
     private final CRS crs;
     private final List<GeoFeature> features;
     private final Metadata metadata;
+    private String geohash;
 
     @JsonCreator
     public WorkSheet(@JsonProperty("type") String type,
@@ -39,6 +41,37 @@ public class WorkSheet {
 
     public Metadata getMetadata() {
         return metadata;
+    }
+
+    public String getGeohash() {
+        return geohash;
+    }
+
+    public void setGeohash(String geohash) {
+        this.geohash = geohash;
+    }
+
+    @JsonIgnore
+    public double[] getFirstPoint() {
+        if (features == null || features.isEmpty()) {
+            return new double[] { 0.0, 0.0 };
+        }
+
+        for (GeoFeature feature : features) {
+            if (feature.getGeometry() != null && feature.getGeometry().getCoordinates() != null) {
+                List<List<List<Double>>> coordinates = feature.getGeometry().getCoordinates();
+
+                for (List<List<Double>> ring : coordinates) {
+                    for (List<Double> point : ring) {
+                        if (point.size() >= 2) {
+                            return new double[] { point.get(1), point.get(0) }; // lat, lng
+                        }
+                    }
+                }
+            }
+        }
+
+        return new double[] { 0.0, 0.0 }; // Default to null island if no valid coordinates
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

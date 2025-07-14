@@ -78,6 +78,9 @@ public class WorkSheetRepository {
             }
         }
 
+        // Extract geohash
+        String geohash = workSheetEntity.contains("geohash") ? workSheetEntity.getString("geohash") : null;
+
         // Extract metadata
         Metadata metadata = null;
         if (workSheetEntity.contains("metadata")) {
@@ -127,7 +130,9 @@ public class WorkSheetRepository {
                     pospCode, pospDescription, operations);
         }
 
-        return new WorkSheet(type, crs, features, metadata);
+        WorkSheet workSheet = new WorkSheet(type, crs, features, metadata);
+        workSheet.setGeohash(geohash);
+        return workSheet;
     }
 
     private List<List<List<Double>>> parseCoordinates3D(String coordinatesString) {
@@ -178,6 +183,11 @@ public class WorkSheetRepository {
 
         // Save type
         entityBuilder.set("type", workSheet.getType());
+
+        // Save geohash
+        if (workSheet.getGeohash() != null) {
+            entityBuilder.set("geohash", workSheet.getGeohash());
+        }
 
         // Save CRS
         if (workSheet.getCrs() != null) {

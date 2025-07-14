@@ -19,11 +19,15 @@ public class WorkSheetService {
     @Inject
     private AuthUtils authUtils;
 
+    @Inject
+    private GeohashService geohashService;
+
     public WorkSheet createOrUpdateWorkSheet(String tokenId, WorkSheet workSheet) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
 
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.IMP_FO);
 
+        workSheet.setGeohash(geohashService.calculateWorkSheetGeohash(workSheet));
         workSheetRepository.save(workSheet);
 
         return workSheet;
