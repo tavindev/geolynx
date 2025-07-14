@@ -21,13 +21,13 @@ public class ExecutionSheet {
 
 	@JsonCreator
 	public ExecutionSheet(@JsonProperty("id") Long id,
-			@JsonProperty("work_sheet_id") Long workSheetId,
-			@JsonProperty("starting_date") String startingDate,
-			@JsonProperty("finishing_date") String finishingDate,
-			@JsonProperty("last_activity_date") String lastActivityDate,
+			@JsonProperty("workSheetId") Long workSheetId,
+			@JsonProperty("startingDate") String startingDate,
+			@JsonProperty("finishingDate") String finishingDate,
+			@JsonProperty("lastActivityDate") String lastActivityDate,
 			@JsonProperty("observations") String observations,
 			@JsonProperty("operations") List<Operation> operations,
-			@JsonProperty("polygons_operations") List<PolygonOperation> polygonsOperations) {
+			@JsonProperty("polygonsOperations") List<PolygonOperation> polygonsOperations) {
 		this.id = id;
 		this.workSheetId = workSheetId;
 		this.startingDate = startingDate;
@@ -389,14 +389,14 @@ public class ExecutionSheet {
 		private Integer estimatedDurationHours;
 
 		@JsonCreator
-		public Operation(@JsonProperty("operation_code") String operationCode,
-				@JsonProperty("area_ha_executed") Double areaHaExecuted,
-				@JsonProperty("area_perc") Double areaPerc,
-				@JsonProperty("starting_date") String startingDate,
-				@JsonProperty("finishing_date") String finishingDate,
+		public Operation(@JsonProperty("operationCode") String operationCode,
+				@JsonProperty("areaHaExecuted") Double areaHaExecuted,
+				@JsonProperty("areaPerc") Double areaPerc,
+				@JsonProperty("startingDate") String startingDate,
+				@JsonProperty("finishingDate") String finishingDate,
 				@JsonProperty("observations") String observations,
-				@JsonProperty("planned_completion_date") String plannedCompletionDate,
-				@JsonProperty("estimated_duration_hours") Integer estimatedDurationHours) {
+				@JsonProperty("plannedCompletionDate") String plannedCompletionDate,
+				@JsonProperty("estimatedDurationHours") Integer estimatedDurationHours) {
 			this.operationCode = operationCode;
 			this.areaHaExecuted = areaHaExecuted;
 			this.areaPerc = areaPerc;
@@ -462,7 +462,7 @@ public class ExecutionSheet {
 		private final List<PolygonOperationDetail> operations;
 
 		@JsonCreator
-		public PolygonOperation(@JsonProperty("polygon_id") Long polygonId,
+		public PolygonOperation(@JsonProperty("polygonId") Long polygonId,
 				@JsonProperty("operations") List<PolygonOperationDetail> operations) {
 			this.polygonId = polygonId;
 			this.operations = operations;
@@ -501,14 +501,14 @@ public class ExecutionSheet {
 		private Long operatorId;
 
 		@JsonCreator
-		public PolygonOperationDetail(@JsonProperty("operation_id") Long operationId,
+		public PolygonOperationDetail(@JsonProperty("operationId") Long operationId,
 				@JsonProperty("status") String status,
-				@JsonProperty("starting_date") String startingDate,
-				@JsonProperty("finishing_date") String finishingDate,
-				@JsonProperty("last_activity_date") String lastActivityDate,
+				@JsonProperty("startingDate") String startingDate,
+				@JsonProperty("finishingDate") String finishingDate,
+				@JsonProperty("lastActivityDate") String lastActivityDate,
 				@JsonProperty("observations") String observations,
 				@JsonProperty("tracks") List<Track> tracks,
-				@JsonProperty("operator_id") Long operatorId) {
+				@JsonProperty("operatorId") Long operatorId) {
 			this.operationId = operationId;
 			this.status = status;
 			this.startingDate = startingDate;

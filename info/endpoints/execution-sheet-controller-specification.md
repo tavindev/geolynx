@@ -27,36 +27,36 @@ All endpoints require authentication via session cookie:
 ```json
 {
   "id": 1,
-  "work_sheet_id": 100,
-  "starting_date": "2024-01-01",
-  "finishing_date": "2024-12-31",
-  "last_activity_date": "2024-01-01",
+  "workSheetId": 100,
+  "startingDate": "2024-01-01",
+  "finishingDate": "2024-12-31",
+  "lastActivityDate": "2024-01-01",
   "observations": "Observações sobre a folha de execução",
   "operations": [
     {
-      "operation_code": "OP001",
-      "area_ha_executed": 5.5,
-      "area_perc": 55.0,
-      "starting_date": "2024-01-01",
-      "finishing_date": "2024-01-15",
+      "operationCode": "OP001",
+      "areaHaExecuted": 5.5,
+      "areaPerc": 55.0,
+      "startingDate": "2024-01-01",
+      "finishingDate": "2024-01-15",
       "observations": "Observações da operação",
-      "planned_completion_date": "2024-01-15",
-      "estimated_duration_hours": 40
+      "plannedCompletionDate": "2024-01-15",
+      "estimatedDurationHours": 40
     }
   ],
-  "polygons_operations": [
+  "polygonsOperations": [
     {
-      "polygon_id": 1,
+      "polygonId": 1,
       "operations": [
         {
-          "operation_id": 1,
+          "operationId": 1,
           "status": "pending",
-          "starting_date": null,
-          "finishing_date": null,
-          "last_activity_date": null,
+          "startingDate": null,
+          "finishingDate": null,
+          "lastActivityDate": null,
           "observations": "",
           "tracks": [],
-          "operator_id": null
+          "operatorId": null
         }
       ]
     }
@@ -377,13 +377,13 @@ All endpoints require authentication via session cookie:
   "message": "Folha de execução exportada com sucesso.",
   "executionSheet": {
     "id": 1,
-    "work_sheet_id": 100,
-    "starting_date": "2024-01-01",
-    "finishing_date": "2024-12-31",
-    "last_activity_date": "2024-01-01",
+    "workSheetId": 100,
+    "startingDate": "2024-01-01",
+    "finishingDate": "2024-12-31",
+    "lastActivityDate": "2024-01-01",
     "observations": "Observações",
     "operations": [...],
-    "polygons_operations": [...]
+    "polygonsOperations": [...]
   }
 }
 ```
@@ -414,13 +414,13 @@ All endpoints require authentication via session cookie:
 ```json
 {
   "id": 1,
-  "work_sheet_id": 100,
-  "starting_date": "2024-01-01",
-  "finishing_date": "2024-12-31",
-  "last_activity_date": "2024-01-01",
+  "workSheetId": 100,
+  "startingDate": "2024-01-01",
+  "finishingDate": "2024-12-31",
+  "lastActivityDate": "2024-01-01",
   "observations": "Observações",
   "operations": [...],
-  "polygons_operations": [...]
+  "polygonsOperations": [...]
 }
 ```
 

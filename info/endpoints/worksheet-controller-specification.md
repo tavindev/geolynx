@@ -38,9 +38,9 @@ All endpoints require authentication via session cookie:
       "type": "Feature",
       "properties": {
         "id": 123,
-        "rural_property_id": "PROP001",
-        "polygon_id": 456,
-        "UI_id": 789,
+        "ruralPropertyId": "PROP001",
+        "polygonId": 456,
+        "uiId": 789,
         "aigp": "AIGP001"
       },
       "geometry": {
@@ -51,22 +51,22 @@ All endpoints require authentication via session cookie:
   ],
   "metadata": {
     "id": 1,
-    "starting_date": "2024-01-01",
-    "finishing_date": "2024-12-31",
-    "issue_date": "2024-01-01",
-    "service_provider_id": 100,
-    "award_date": "2024-01-01",
-    "issuing_user_id": 200,
+    "startingDate": "2024-01-01",
+    "finishingDate": "2024-12-31",
+    "issueDate": "2024-01-01",
+    "serviceProviderId": 100,
+    "awardDate": "2024-01-01",
+    "issuingUserId": 200,
     "aigp": ["AIGP001", "AIGP002"],
-    "posa_code": "POSA001",
-    "posa_description": "Description of POSA",
-    "posp_code": "POSP001",
-    "posp_description": "Description of POSP",
+    "posaCode": "POSA001",
+    "posaDescription": "Description of POSA",
+    "pospCode": "POSP001",
+    "pospDescription": "Description of POSP",
     "operations": [
       {
-        "operation_code": "OP001",
-        "operation_description": "Operation description",
-        "area_ha": 10.5
+        "operationCode": "OP001",
+        "operationDescription": "Operation description",
+        "areaHa": 10.5
       }
     ]
   }
