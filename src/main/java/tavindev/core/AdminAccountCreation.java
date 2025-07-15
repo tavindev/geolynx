@@ -4,6 +4,7 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import tavindev.core.entities.*;
+import tavindev.core.utils.PasswordUtils;
 import tavindev.infra.repositories.DatastoreUserRepository;
 
 import java.time.LocalDate;
@@ -25,7 +26,7 @@ public class AdminAccountCreation implements ServletContextListener {
                 "admin@gmail.com",
                 "admin",
                 "Admin",
-                "admin",
+                PasswordUtils.hashPassword("admin"),
                 UserRole.SYSADMIN,
                 AccountStatus.ATIVADA);
 
