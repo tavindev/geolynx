@@ -22,11 +22,8 @@ public class DatastoreUserRepository {
                 .set("username", user.getUsername())
                 .set("password", user.getPassword())
                 .set("role", user.getRole().name())
-                .set("accountStatus", user.getAccountStatus().name());
-
-        if (user.getProfile() != null) {
-            userEntityBuilder.set("profile", user.getProfile().name());
-        }
+                .set("accountStatus", user.getAccountStatus().name())
+                .set("profile", user.getProfile().name());
 
         if (user.getFullName() != null) {
             userEntityBuilder.set("fullName", user.getFullName());

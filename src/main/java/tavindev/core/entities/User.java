@@ -54,6 +54,7 @@ public class User {
         this.password = password;
         this.role = role;
         this.accountStatus = accountStatus;
+        this.profile = UserProfile.PRIVADO;
     }
 
     public User(
