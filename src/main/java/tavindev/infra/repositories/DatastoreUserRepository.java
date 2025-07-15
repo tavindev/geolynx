@@ -3,7 +3,6 @@ package tavindev.infra.repositories;
 import com.google.cloud.datastore.*;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.*;
-import tavindev.core.utils.PasswordUtils;
 
 import java.util.List;
 import java.time.LocalDate;
@@ -21,58 +20,50 @@ public class DatastoreUserRepository {
         Entity.Builder userEntityBuilder = Entity.newBuilder(userKey)
                 .set("email", user.getEmail())
                 .set("username", user.getUsername())
-                .set("password", PasswordUtils.hashPassword(user.getPersonalInfo().password()))
+                .set("password", user.getPassword())
                 .set("role", user.getRole().name())
-                .set("accountStatus", user.getAccountStatus().name())
-                .set("profile", user.getProfile().name());
+                .set("accountStatus", user.getAccountStatus().name());
 
-        // Handle PersonalInfo fields with null checks
-        PersonalInfo personalInfo = user.getPersonalInfo();
-        if (personalInfo.fullName() != null) {
-            userEntityBuilder.set("fullName", personalInfo.fullName());
-        }
-        if (personalInfo.phone() != null) {
-            userEntityBuilder.set("phone", personalInfo.phone());
-        }
-        if (personalInfo.nationality() != null) {
-            userEntityBuilder.set("nationality", personalInfo.nationality());
-        }
-        if (personalInfo.residence() != null) {
-            userEntityBuilder.set("residence", personalInfo.residence());
-        }
-        if (personalInfo.postalCode() != null) {
-            userEntityBuilder.set("postalCode", personalInfo.postalCode());
-        }
-        if (personalInfo.birthDate() != null) {
-            userEntityBuilder.set("birthDate", personalInfo.birthDate().toString());
+        if (user.getProfile() != null) {
+            userEntityBuilder.set("profile", user.getProfile().name());
         }
 
-        // Handle IdentificationInfo fields with null checks
-        IdentificationInfo identificationInfo = user.getIdentificationInfo();
-        if (identificationInfo != null) {
-            if (identificationInfo.citizenCard() != null) {
-                userEntityBuilder.set("citizenCard", identificationInfo.citizenCard());
-            }
-            if (identificationInfo.taxId() != null) {
-                userEntityBuilder.set("taxId", identificationInfo.taxId());
-            }
-            if (identificationInfo.address() != null) {
-                userEntityBuilder.set("address", identificationInfo.address());
-            }
+        if (user.getFullName() != null) {
+            userEntityBuilder.set("fullName", user.getFullName());
+        }
+        if (user.getPhonePrimary() != null) {
+            userEntityBuilder.set("phone", user.getPhonePrimary());
+        }
+        if (user.getNationality() != null) {
+            userEntityBuilder.set("nationality", user.getNationality());
+        }
+        if (user.getResidence() != null) {
+            userEntityBuilder.set("residence", user.getResidence());
+        }
+        if (user.getPostalCode() != null) {
+            userEntityBuilder.set("postalCode", user.getPostalCode());
+        }
+        if (user.getDateOfBirth() != null) {
+            userEntityBuilder.set("birthDate", user.getDateOfBirth().toString());
         }
 
-        // Handle ProfessionalInfo fields with null checks
-        ProfessionalInfo professionalInfo = user.getProfessionalInfo();
-        if (professionalInfo != null) {
-            if (professionalInfo.employer() != null) {
-                userEntityBuilder.set("employer", professionalInfo.employer());
-            }
-            if (professionalInfo.jobTitle() != null) {
-                userEntityBuilder.set("jobTitle", professionalInfo.jobTitle());
-            }
-            if (professionalInfo.employerTaxId() != null) {
-                userEntityBuilder.set("employerTaxId", professionalInfo.employerTaxId());
-            }
+        if (user.getCitizenCard() != null) {
+            userEntityBuilder.set("citizenCard", user.getCitizenCard());
+        }
+        if (user.getTaxId() != null) {
+            userEntityBuilder.set("taxId", user.getTaxId());
+        }
+
+        if (user.getEmployer() != null) {
+            userEntityBuilder.set("employer", user.getEmployer());
+        }
+
+        if (user.getJobTitle() != null) {
+            userEntityBuilder.set("jobTitle", user.getJobTitle());
+        }
+
+        if (user.getEmployerTaxId() != null) {
+            userEntityBuilder.set("employerTaxId", user.getEmployerTaxId());
         }
 
         datastore.put(userEntityBuilder.build());
@@ -158,37 +149,57 @@ public class DatastoreUserRepository {
         String nationality = entity.contains("nationality") ? entity.getString("nationality") : null;
         String residence = entity.contains("residence") ? entity.getString("residence") : null;
         String postalCode = entity.contains("postalCode") ? entity.getString("postalCode") : null;
-
-        PersonalInfo personalInfo = new PersonalInfo(
-                entity.getString("email"),
-                entity.getString("username"),
-                entity.getString("fullName"),
-                entity.getString("phone"),
-                entity.getString("password"),
-                nationality,
-                residence,
-                entity.getString("address"), // Use existing address field
-                postalCode,
-                birthDateStr != null ? LocalDate.parse(birthDateStr) : null);
-
-        IdentificationInfo identificationInfo = new IdentificationInfo(
-                entity.getString("citizenCard"),
-                entity.getString("taxId"),
-                entity.getString("address"));
-
-        ProfessionalInfo professionalInfo = new ProfessionalInfo(
-                entity.getString("employer"),
-                entity.getString("jobTitle"),
-                entity.getString("employerTaxId"));
+        String dateOfBirth = entity.contains("dateOfBirth") ? entity.getString("dateOfBirth") : null;
+        String citizenCard = entity.contains("citizenCard") ? entity.getString("citizenCard") : null;
+        String citizenCardIssueDate = entity.contains("citizenCardIssueDate") ? entity.getString("citizenCardIssueDate")
+                : null;
+        String citizenCardIssuePlace = entity.contains("citizenCardIssuePlace")
+                ? entity.getString("citizenCardIssuePlace")
+                : null;
+        String citizenCardValidity = entity.contains("citizenCardValidity") ? entity.getString("citizenCardValidity")
+                : null;
+        String taxId = entity.contains("taxId") ? entity.getString("taxId") : null;
+        String employer = entity.contains("employer") ? entity.getString("employer") : null;
+        String jobTitle = entity.contains("jobTitle") ? entity.getString("jobTitle") : null;
+        String employerTaxId = entity.contains("employerTaxId") ? entity.getString("employerTaxId") : null;
+        String profile = entity.contains("profile") ? entity.getString("profile") : null;
+        String accountStatus = entity.contains("accountStatus") ? entity.getString("accountStatus") : null;
+        String role = entity.contains("role") ? entity.getString("role") : null;
+        String status = entity.contains("status") ? entity.getString("status") : null;
+        String phonePrimary = entity.contains("phonePrimary") ? entity.getString("phonePrimary") : null;
+        String phoneSecondary = entity.contains("phoneSecondary") ? entity.getString("phoneSecondary") : null;
+        String fullName = entity.contains("fullName") ? entity.getString("fullName") : null;
+        String email = entity.contains("email") ? entity.getString("email") : null;
+        String username = entity.contains("username") ? entity.getString("username") : null;
+        String password = entity.contains("password") ? entity.getString("password") : null;
+        String address = entity.contains("address") ? entity.getString("address") : null;
 
         return new User(
                 entity.getKey().getName(),
-                personalInfo,
-                identificationInfo,
-                professionalInfo,
-                UserProfile.valueOf(entity.getString("profile")),
-                UserRole.valueOf(entity.getString("role")),
-                AccountStatus.valueOf(entity.getString("accountStatus")));
+                email,
+                username,
+                fullName,
+                password,
+                null, // confirmPassword - not needed for existing users
+                profile,
+                citizenCard,
+                citizenCardIssueDate != null ? LocalDate.parse(citizenCardIssueDate) : null,
+                citizenCardIssuePlace,
+                citizenCardValidity != null ? LocalDate.parse(citizenCardValidity) : null,
+                dateOfBirth != null ? LocalDate.parse(dateOfBirth) : null,
+                nationality,
+                residence,
+                address,
+                taxId,
+                employer,
+                jobTitle,
+                employerTaxId,
+                postalCode,
+                phonePrimary,
+                phoneSecondary,
+                status,
+                role != null ? UserRole.valueOf(role) : null,
+                accountStatus != null ? AccountStatus.valueOf(accountStatus) : null);
     }
 
     public List<User> findRegisteredUsers() {
@@ -197,8 +208,7 @@ public class DatastoreUserRepository {
                 .setFilter(StructuredQuery.CompositeFilter.and(
                         StructuredQuery.PropertyFilter.eq("role", UserRole.RU.name()),
                         StructuredQuery.PropertyFilter.eq("profile", UserProfile.PUBLICO.name()),
-                        StructuredQuery.PropertyFilter.eq("accountStatus", AccountStatus.ATIVADA.name())
-                ))
+                        StructuredQuery.PropertyFilter.eq("accountStatus", AccountStatus.ATIVADA.name())))
                 .build();
 
         List<User> users = new ArrayList<>();
@@ -222,7 +232,6 @@ public class DatastoreUserRepository {
         }
         return users;
     }
-
 
     public List<User> findUsersWithStatus(AccountStatus accountStatus) {
         Query<Entity> query = Query.newEntityQueryBuilder()

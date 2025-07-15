@@ -12,4 +12,4 @@ public class PasswordUtils {
     public static boolean verifyPassword(String plainPassword, String hashedPassword) {
         return BCrypt.checkpw(plainPassword, hashedPassword);
     }
-} 
+}

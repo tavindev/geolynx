@@ -12,90 +12,77 @@ import tavindev.core.exceptions.ValidationException;
 public abstract class BaseUserValidationStrategy implements UserValidationStrategy {
 
 	protected void validateCommonFields(User user) throws ValidationException {
-		PersonalInfo personalInfo = user.getPersonalInfo();
-
-		if (personalInfo == null) {
+		if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
 			throw new ValidationException("Personal information is required");
 		}
 
-		if (personalInfo.username() == null || personalInfo.username().trim().isEmpty()) {
+		if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
 			throw new ValidationException("Username is required");
 		}
 
-		if (personalInfo.email() == null || personalInfo.email().trim().isEmpty()) {
-			throw new ValidationException("Email is required");
-		}
-
-		if (!isValidEmail(personalInfo.email())) {
+		if (!isValidEmail(user.getEmail())) {
 			throw new ValidationException("Invalid email format");
 		}
 
-		if (personalInfo.password() == null || personalInfo.password().trim().isEmpty()) {
+		if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
 			throw new ValidationException("Password is required");
 		}
 	}
 
 	protected void validateFullName(User user) throws ValidationException {
-		PersonalInfo personalInfo = user.getPersonalInfo();
-		if (personalInfo.fullName() == null || personalInfo.fullName().trim().isEmpty()) {
+		if (user.getFullName() == null || user.getFullName().trim().isEmpty()) {
 			throw new ValidationException("Full name is required");
 		}
 	}
 
 	protected void validatePhone(User user) throws ValidationException {
-		PersonalInfo personalInfo = user.getPersonalInfo();
-		if (personalInfo.phone() == null || personalInfo.phone().trim().isEmpty()) {
+		if (user.getPhonePrimary() == null || user.getPhonePrimary().trim().isEmpty()) {
 			throw new ValidationException("Phone number is required");
 		}
 	}
 
 	protected void validatePartner(User user) throws ValidationException {
-		ProfessionalInfo professionalInfo = user.getProfessionalInfo();
-		if (professionalInfo == null || professionalInfo.employer() == null
-				|| professionalInfo.employer().trim().isEmpty()) {
+		if (user.getEmployer() == null || user.getEmployer().trim().isEmpty()) {
 			throw new ValidationException("Partner/employer information is required");
 		}
 	}
 
 	protected void validateCompleteProfile(User user) throws ValidationException {
-		PersonalInfo personalInfo = user.getPersonalInfo();
-		IdentificationInfo identificationInfo = user.getIdentificationInfo();
-
 		// Validate personal info
 		validateFullName(user);
 		validatePhone(user);
 
 		// Validate additional personal info fields
-		if (personalInfo.nationality() == null || personalInfo.nationality().trim().isEmpty()) {
+		if (user.getNationality() == null || user.getNationality().trim().isEmpty()) {
 			throw new ValidationException("Nationality is required");
 		}
 
-		if (personalInfo.residence() == null || personalInfo.residence().trim().isEmpty()) {
+		if (user.getResidence() == null || user.getResidence().trim().isEmpty()) {
 			throw new ValidationException("Country of residence is required");
 		}
 
-		if (personalInfo.address() == null || personalInfo.address().trim().isEmpty()) {
+		if (user.getAddress() == null || user.getAddress().trim().isEmpty()) {
 			throw new ValidationException("Address is required");
 		}
 
-		if (personalInfo.postalCode() == null || personalInfo.postalCode().trim().isEmpty()) {
+		if (user.getPostalCode() == null || user.getPostalCode().trim().isEmpty()) {
 			throw new ValidationException("Postal code is required");
 		}
 
-		if (personalInfo.birthDate() == null) {
+		if (user.getDateOfBirth() == null) {
 			throw new ValidationException("Birth date is required");
 		}
 
 		// Validate identification info
-		if (identificationInfo == null) {
+		if (user.getCitizenCard() == null || user.getCitizenCard().trim().isEmpty()) {
 			throw new ValidationException("Identification information is required");
 		}
 
-		if (identificationInfo.taxId() == null || identificationInfo.taxId().trim().isEmpty()) {
+		if (user.getTaxId() == null || user.getTaxId().trim().isEmpty()) {
 			throw new ValidationException("Tax ID (NIF) is required");
 		}
 
-		if (identificationInfo.citizenCard() == null || identificationInfo.citizenCard().trim().isEmpty()) {
+		if (user.getCitizenCard() == null || user.getCitizenCard().trim().isEmpty()) {
 			throw new ValidationException("Citizen card number is required");
 		}
 	}

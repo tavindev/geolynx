@@ -50,14 +50,10 @@ public class UserController {
     @Inject
     private UserService userService;
 
-    private String orNotDefined(Optional<String> field) {
-        return field.orElse("NOT DEFINED");
-    }
-
     @GET
     public Response getUserInfo(@CookieParam("session") String sessionToken) {
         User user = userService.getUserInfo(sessionToken);
-        UserInfoDTO userInfo = new UserInfoDTO(user.getId(), user.getRole().name(), user.getPersonalInfo().fullName());
+        UserInfoDTO userInfo = new UserInfoDTO(user.getId(), user.getRole().name(), user.getFullName());
         return Response.ok(userInfo).build();
     }
 
@@ -99,11 +95,7 @@ public class UserController {
     public Response listUsers(@CookieParam("session") String sessionToken) {
         List<User> users = userService.listUsers(sessionToken);
 
-        List<UserDTO> userDTOs = users.stream()
-                .map(UserMapper::toDTO)
-                .collect(Collectors.toList());
-
-        return Response.ok(userDTOs).build();
+        return Response.ok(users).build();
     }
 
     @POST
@@ -183,11 +175,7 @@ public class UserController {
     public Response getAccountsForRemoval(@CookieParam("session") String sessionToken) {
         List<User> users = userService.getAccountsForRemoval(sessionToken);
 
-        List<UserDTO> userDTOs = users.stream()
-                .map(UserMapper::toDTO)
-                .collect(Collectors.toList());
-
-        return Response.ok(userDTOs).build();
+        return Response.ok(users).build();
     }
 
     @POST
@@ -229,11 +217,7 @@ public class UserController {
             @CookieParam("session") String sessionToken) {
         List<User> users = userService.listRegisteredUsers(sessionToken);
 
-        List<UserDTO> userDTOs = users.stream()
-                .map(UserMapper::toDTO)
-                .collect(Collectors.toList());
-
-        return Response.ok(userDTOs).build();
+        return Response.ok(users).build();
     }
 
     @GET
@@ -242,11 +226,7 @@ public class UserController {
             @CookieParam("session") String sessionToken) {
         List<User> users = userService.listActiveUsers(sessionToken);
 
-        List<UserDTO> userDTOs = users.stream()
-                .map(UserMapper::toDTO)
-                .collect(Collectors.toList());
-
-        return Response.ok(userDTOs).build();
+        return Response.ok(users).build();
     }
 
     @GET
@@ -255,11 +235,7 @@ public class UserController {
             @CookieParam("session") String sessionToken) {
         List<User> users = userService.listDeactivatedUsers(sessionToken);
 
-        List<UserDTO> userDTOs = users.stream()
-                .map(UserMapper::toDTO)
-                .collect(Collectors.toList());
-
-        return Response.ok(userDTOs).build();
+        return Response.ok(users).build();
     }
 
     @GET
@@ -268,11 +244,7 @@ public class UserController {
             @CookieParam("session") String sessionToken) {
         List<User> users = userService.listToRemoveUsers(sessionToken);
 
-        List<UserDTO> userDTOs = users.stream()
-                .map(UserMapper::toDTO)
-                .collect(Collectors.toList());
-
-        return Response.ok(userDTOs).build();
+        return Response.ok(users).build();
     }
 
     @GET
@@ -281,11 +253,7 @@ public class UserController {
             @CookieParam("session") String sessionToken) {
         List<User> users = userService.listSuspendedUsers(sessionToken);
 
-        List<UserDTO> userDTOs = users.stream()
-                .map(UserMapper::toDTO)
-                .collect(Collectors.toList());
-
-        return Response.ok(userDTOs).build();
+        return Response.ok(users).build();
     }
 
     @GET
@@ -294,11 +262,7 @@ public class UserController {
             @CookieParam("session") String sessionToken) {
         List<User> users = userService.listPublicUsers(sessionToken);
 
-        List<UserDTO> userDTOs = users.stream()
-                .map(UserMapper::toDTO)
-                .collect(Collectors.toList());
-
-        return Response.ok(userDTOs).build();
+        return Response.ok(users).build();
     }
 
     @GET
@@ -307,11 +271,7 @@ public class UserController {
             @CookieParam("session") String sessionToken) {
         List<User> users = userService.listPrivateUsers(sessionToken);
 
-        List<UserDTO> userDTOs = users.stream()
-                .map(UserMapper::toDTO)
-                .collect(Collectors.toList());
-
-        return Response.ok(userDTOs).build();
+        return Response.ok(users).build();
     }
 
     @GET
@@ -321,11 +281,7 @@ public class UserController {
             @PathParam("role") String role) {
         List<User> users = userService.listUsersByRole(sessionToken, UserRole.valueOf(role));
 
-        List<UserDTO> userDTOs = users.stream()
-                .map(UserMapper::toDTO)
-                .collect(Collectors.toList());
-
-        return Response.ok(userDTOs).build();
+        return Response.ok(users).build();
     }
 
 }

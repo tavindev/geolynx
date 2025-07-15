@@ -21,10 +21,6 @@ public class AuthService {
     @Inject
     private AuthTokenRepository authTokenRepository;
 
-    private String orNotDefined(String field) {
-        return field != null ? field : "NOT DEFINED";
-    }
-
     public AuthToken login(@Valid LoginDTO request) {
         User user = userRepository.findByIdentifier(request.email());
 
@@ -63,55 +59,11 @@ public class AuthService {
         return user;
     }
 
-    public User registerUser(@NotNull @Valid RegisterUserDTO registerUserDTO) {
-        User existingUser = findUserByIdentifiers(registerUserDTO.email(), registerUserDTO.username());
+    public User registerUser(User user) {
+        User existingUser = findUserByIdentifiers(user.getEmail(), user.getUsername());
 
         if (existingUser != null)
             throw new UserAlreadyExistsException();
-
-        if (registerUserDTO.isPasswordNotMatch()) {
-            throw new PasswordDoesntMatchException();
-        }
-
-        PersonalInfo personalInfo = new PersonalInfo(
-                registerUserDTO.email(),
-                registerUserDTO.username(),
-                registerUserDTO.fullName(),
-                registerUserDTO.phone(),
-                registerUserDTO.password(),
-                registerUserDTO.nationality(),
-                registerUserDTO.residence(),
-                registerUserDTO.address(),
-                registerUserDTO.postalCode(),
-                registerUserDTO.birthDate());
-
-        IdentificationInfo identificationInfo = new IdentificationInfo(
-                registerUserDTO.citizenCard(),
-                registerUserDTO.taxId(),
-                registerUserDTO.address());
-
-        ProfessionalInfo professionalInfo = new ProfessionalInfo(
-                registerUserDTO.employer(),
-                registerUserDTO.jobTitle(),
-                registerUserDTO.employerTaxId());
-
-        UserRole userRole = UserRole.RU;
-
-        UserProfile userProfile = UserProfile.valueOf(registerUserDTO.profile().toUpperCase());
-
-        User user = new User(
-                personalInfo,
-                identificationInfo,
-                professionalInfo,
-                userProfile,
-                userRole,
-                AccountStatus.DESATIVADA);
-
-        try {
-            user.validateMinimumRequirements();
-        } catch (ValidationException e) {
-            throw new BadRequestException("User validation failed: " + e.getMessage());
-        }
 
         this.userRepository.save(user);
 

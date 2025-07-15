@@ -2,7 +2,6 @@ package tavindev.infra.http.controllers;
 
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -35,10 +34,10 @@ public class AuthController {
     @POST
     @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)
-    public UserDTO registerUser(@Valid @NotNull RegisterUserDTO data) {
-        User user = authService.registerUser(data);
+    public Response registerUser(User user) {
+        authService.registerUser(user);
 
-        return UserMapper.toDTO(user);
+        return Response.ok().build();
     }
 
     @POST
