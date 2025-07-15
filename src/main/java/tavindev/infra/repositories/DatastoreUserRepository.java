@@ -180,7 +180,6 @@ public class DatastoreUserRepository {
                 username,
                 fullName,
                 password,
-                null, // confirmPassword - not needed for existing users
                 profile,
                 citizenCard,
                 citizenCardIssueDate != null ? LocalDate.parse(citizenCardIssueDate) : null,

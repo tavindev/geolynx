@@ -62,7 +62,6 @@ public class User {
             String username,
             String fullName,
             String password,
-            String confirmPassword,
             String profile,
             String citizenCard,
             LocalDate citizenCardIssueDate,
@@ -292,6 +291,80 @@ public class User {
     }
 
     public void setAttributes(Map<String, String> attributes) {
+        if (attributes == null) {
+            return;
+        }
 
+        if (attributes.containsKey("email")) {
+            this.email = attributes.get("email");
+        }
+
+        if (attributes.containsKey("password")) {
+            this.password = PasswordUtils.hashPassword(attributes.get("password"));
+        }
+
+        if (attributes.containsKey("username")) {
+            this.username = attributes.get("username");
+        }
+
+        if (attributes.containsKey("fullName")) {
+            this.fullName = attributes.get("fullName");
+        }
+
+        if (attributes.containsKey("nationality")) {
+            this.nationality = attributes.get("nationality");
+        }
+
+        if (attributes.containsKey("residence")) {
+            this.residence = attributes.get("residence");
+        }
+
+        if (attributes.containsKey("address")) {
+            this.address = attributes.get("address");
+        }
+
+        if (attributes.containsKey("postalCode")) {
+            this.postalCode = attributes.get("postalCode");
+        }
+
+        if (attributes.containsKey("phonePrimary")) {
+            this.phonePrimary = attributes.get("phonePrimary");
+        }
+
+        if (attributes.containsKey("phoneSecondary")) {
+            this.phoneSecondary = attributes.get("phoneSecondary");
+        }
+
+        if (attributes.containsKey("taxId")) {
+            this.taxId = attributes.get("taxId");
+        }
+
+        if (attributes.containsKey("citizenCard")) {
+            this.citizenCard = attributes.get("citizenCard");
+        }
+
+        if (attributes.containsKey("citizenCardIssuePlace")) {
+            this.citizenCardIssuePlace = attributes.get("citizenCardIssuePlace");
+        }
+
+        if (attributes.containsKey("dateOfBirth")) {
+            this.dateOfBirth = LocalDate.parse(attributes.get("dateOfBirth"));
+        }
+
+        if (attributes.containsKey("employer")) {
+            this.employer = attributes.get("employer");
+        }
+
+        if (attributes.containsKey("jobTitle")) {
+            this.jobTitle = attributes.get("jobTitle");
+        }
+
+        if (attributes.containsKey("employerTaxId")) {
+            this.employerTaxId = attributes.get("employerTaxId");
+        }
+
+        if (attributes.containsKey("status")) {
+            this.status = attributes.get("status");
+        }
     }
 }
