@@ -51,7 +51,7 @@ public class UserController {
     public Response getUserInfo(@CookieParam("session") String sessionToken) {
         User user = userService.getUserInfo(sessionToken);
         UserInfoDTO userInfo = new UserInfoDTO(user.getId(), user.getRole().name(), user.getFullName(), user.getEmail(),
-                user.getPhonePrimary(), user.getAddress(), user.getPostalCode(), user.getDateOfBirth().toString(),
+                user.getPhonePrimary(), user.getAddress(), user.getPostalCode(), user.getDateOfBirth(),
                 user.getNationality(), user.getResidence());
 
         return Response.ok(userInfo).build();

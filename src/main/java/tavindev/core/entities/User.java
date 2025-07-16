@@ -243,8 +243,8 @@ public class User {
         return citizenCardValidity;
     }
 
-    public LocalDate getDateOfBirth() {
-        return dateOfBirth;
+    public String getDateOfBirth() {
+        return dateOfBirth != null ? dateOfBirth.toString() : null;
     }
 
     public String getStatus() {
