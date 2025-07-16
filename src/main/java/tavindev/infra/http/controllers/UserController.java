@@ -38,10 +38,7 @@ import tavindev.infra.dto.accountStatus.AccountStatusDTO;
 import tavindev.infra.dto.accountStatus.AccountStatusResponseDTO;
 import tavindev.infra.dto.UserInfoDTO;
 
-import javax.swing.text.html.Option;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Path("/user")
@@ -53,7 +50,10 @@ public class UserController {
     @GET
     public Response getUserInfo(@CookieParam("session") String sessionToken) {
         User user = userService.getUserInfo(sessionToken);
-        UserInfoDTO userInfo = new UserInfoDTO(user.getId(), user.getRole().name(), user.getFullName());
+        UserInfoDTO userInfo = new UserInfoDTO(user.getId(), user.getRole().name(), user.getFullName(), user.getEmail(),
+                user.getPhonePrimary(), user.getAddress(), user.getPostalCode(), user.getDateOfBirth().toString(),
+                user.getNationality(), user.getResidence());
+
         return Response.ok(userInfo).build();
     }
 
