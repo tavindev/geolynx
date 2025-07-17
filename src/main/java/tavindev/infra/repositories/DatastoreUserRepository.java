@@ -29,8 +29,13 @@ public class DatastoreUserRepository {
             userEntityBuilder.set("fullName", user.getFullName());
         }
         if (user.getPhonePrimary() != null) {
-            userEntityBuilder.set("phone", user.getPhonePrimary());
+            userEntityBuilder.set("phonePrimary", user.getPhonePrimary());
         }
+
+        if (user.getPhoneSecondary() != null) {
+            userEntityBuilder.set("phoneSecondary", user.getPhoneSecondary());
+        }
+
         if (user.getNationality() != null) {
             userEntityBuilder.set("nationality", user.getNationality());
         }
