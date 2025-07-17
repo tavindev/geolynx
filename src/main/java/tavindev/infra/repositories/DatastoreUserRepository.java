@@ -147,7 +147,6 @@ public class DatastoreUserRepository {
 
     private User convertToUser(Entity entity) {
         // Use safe getters for fields that might not exist in existing data
-        String birthDateStr = entity.contains("birthDate") ? entity.getString("birthDate") : null;
         String nationality = entity.contains("nationality") ? entity.getString("nationality") : null;
         String residence = entity.contains("residence") ? entity.getString("residence") : null;
         String postalCode = entity.contains("postalCode") ? entity.getString("postalCode") : null;

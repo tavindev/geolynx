@@ -19,7 +19,7 @@
 		<maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
 
 	    <app.deploy.projectId>glass-gasket-463218-j2</app.deploy.projectId>
-		<app.deploy.version>13</app.deploy.version>
+		<app.deploy.version>14</app.deploy.version>
   </properties>
 
 	<dependencyManagement>
