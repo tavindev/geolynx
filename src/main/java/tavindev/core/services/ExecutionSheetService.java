@@ -21,199 +21,214 @@ import tavindev.core.exceptions.ExecutionSheetNotFoundException;
 import tavindev.core.entities.WorkSheet;
 
 public class ExecutionSheetService {
-	@Inject
-	private ExecutionSheetRepository executionSheetRepository;
+    @Inject
+    private ExecutionSheetRepository executionSheetRepository;
 
-	@Inject
-	private WorkSheetRepository workSheetRepository;
+    @Inject
+    private WorkSheetRepository workSheetRepository;
 
-	@Inject
-	private AuthUtils authUtils;
+    @Inject
+    private AuthUtils authUtils;
 
-	@Inject
-	private DatastoreUserRepository userRepository;
+    @Inject
+    private DatastoreUserRepository userRepository;
 
-	public void createExecutionSheet(String tokenId, ExecutionSheet executionSheet) {
-		User currentUser = authUtils.validateAndGetUser(tokenId);
-		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.CREATE_FE);
+    @Inject
+    private NotificationService notificationService;
 
-		// Check if the associated work sheet exists
-		boolean workSheetExists = workSheetRepository.exists(executionSheet.getWorkSheetId());
+    public void createExecutionSheet(String tokenId, ExecutionSheet executionSheet) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.CREATE_FE);
 
-		if (!workSheetExists)
-			throw new BadRequestException("Folha de obra não encontrada");
+        // Check if the associated work sheet exists
+        boolean workSheetExists = workSheetRepository.exists(executionSheet.getWorkSheetId());
 
-		executionSheetRepository.save(executionSheet);
-	}
+        if (!workSheetExists)
+            throw new BadRequestException("Folha de obra não encontrada");
 
-	public ExecutionSheet getExecutionSheet(String tokenId, Long id) {
-		User currentUser = authUtils.validateAndGetUser(tokenId);
-		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_DET_FO);
+        executionSheetRepository.save(executionSheet);
+    }
 
-		ExecutionSheet executionSheet = executionSheetRepository.get(id);
+    public ExecutionSheet getExecutionSheet(String tokenId, Long id) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_DET_FO);
 
-		if (executionSheet == null)
-			throw new ExecutionSheetNotFoundException("Folha de execução não encontrada");
+        ExecutionSheet executionSheet = executionSheetRepository.get(id);
 
-		return executionSheet;
-	}
+        if (executionSheet == null)
+            throw new ExecutionSheetNotFoundException("Folha de execução não encontrada");
 
-	/**
-	 * Assigns an operation in a polygon to an operator
-	 */
-	public void assignOperation(String tokenId, Long executionSheetId, Long polygonId, Long operationId,
-			Long operatorId) {
-		// Validate user permissions
-		User currentUser = authUtils.validateAndGetUser(tokenId);
-		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.ASSIGN_OP_FE);
+        return executionSheet;
+    }
 
-		User operator = userRepository.findById(operatorId.toString());
+    /**
+     * Assigns an operation in a polygon to an operator
+     */
+    public void assignOperation(String tokenId, Long executionSheetId, Long polygonId, Long operationId,
+                                Long operatorId) {
+        // Validate user permissions
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.ASSIGN_OP_FE);
 
-		if (operator == null) {
-			throw new BadRequestException("Operador não encontrado");
+        User operator = userRepository.findById(operatorId.toString());
+
+        if (operator == null) {
+            throw new BadRequestException("Operador não encontrado");
+        }
+
+        if (operator.getRole() != UserRole.PO) {
+            throw new BadRequestException("Apenas operadores (PO) podem ser atribuídos a operações");
+        }
+
+        // Get execution sheet
+        ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
+        if (executionSheet == null) {
+            throw new NotFoundException("Folha de execução não encontrada");
+        }
+
+        // Delegate to domain logic
+        executionSheet.assignOperationToOperator(polygonId, operationId, operatorId);
+
+        // Persist changes
+        executionSheetRepository.save(executionSheet);
+    }
+
+    /**
+     * Starts an activity for an operation in a polygon
+     */
+    public void startActivity(String tokenId, Long executionSheetId, Long polygonId, Long operationId) {
+        // Validate user permissions
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.START_ACT_OP_FE);
+
+        // Get execution sheet
+        ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
+        if (executionSheet == null) {
+            throw new IllegalArgumentException("Folha de execução não encontrada");
+        }
+
+        // Delegate to domain logic
+        executionSheet.startActivity(polygonId, operationId, currentUser.getId());
+
+        // Persist changes
+        executionSheetRepository.save(executionSheet);
+    }
+
+    /**
+     * Stops an activity for an operation in a polygon
+     */
+    public void stopActivity(String tokenId, Long executionSheetId, Long polygonId, Long operationId) {
+        // Validate user permissions
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.STOP_ACT_OP_FE);
+
+        // Get execution sheet
+        ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
+        if (executionSheet == null) {
+            throw new IllegalArgumentException("Folha de execução não encontrada");
+        }
+
+        // Delegate to domain logic
+        executionSheet.stopActivity(polygonId, operationId, currentUser.getId());
+
+        // Persist changes
+        executionSheetRepository.save(executionSheet);
+        if (executionSheet.getGlobalOperationStatus(operationId).getGlobalStatus() == "completed") {
+            List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
+            for (User user : prboUsers) {
+                notificationService.sendNotification(user.getId(), "Todas as operações da Folha de Execução " + executionSheetId + "foram concluídas.");
+            }
+        }
+		else{
+			List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
+			for (User user : prboUsers) {
+				notificationService.sendNotification(user.getId(), "Activity stopped for operation " + operationId + " in polygon " + polygonId);
+			}
 		}
+    }
 
-		if (operator.getRole() != UserRole.PO) {
-			throw new BadRequestException("Apenas operadores (PO) podem ser atribuídos a operações");
-		}
+    /**
+     * Views the state of an operation in a given parcel
+     */
+    public ExecutionSheet.PolygonOperationDetail viewActivity(String tokenId, Long executionSheetId, Long polygonId,
+                                                              Long operationId) {
+        // Validate user permissions
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_ACT_OP_FE);
 
-		// Get execution sheet
-		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
-		if (executionSheet == null) {
-			throw new NotFoundException("Folha de execução não encontrada");
-		}
+        // Get execution sheet
+        ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
+        if (executionSheet == null) {
+            throw new IllegalArgumentException("Folha de execução não encontrada");
+        }
 
-		// Delegate to domain logic
-		executionSheet.assignOperationToOperator(polygonId, operationId, operatorId);
+        // Find the operation detail
+        ExecutionSheet.PolygonOperationDetail operationDetail = executionSheet.findOperationDetail(polygonId, operationId);
+        if (operationDetail == null) {
+            throw new IllegalArgumentException("Operação não encontrada na parcela especificada");
+        }
 
-		// Persist changes
-		executionSheetRepository.save(executionSheet);
-	}
+        return operationDetail;
+    }
 
-	/**
-	 * Starts an activity for an operation in a polygon
-	 */
-	public void startActivity(String tokenId, Long executionSheetId, Long polygonId, Long operationId) {
-		// Validate user permissions
-		User currentUser = authUtils.validateAndGetUser(tokenId);
-		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.START_ACT_OP_FE);
+    /**
+     * Views the global status of an operation across all polygons
+     */
+    public ExecutionSheet.GlobalOperationStatus viewGlobalStatus(String tokenId, Long executionSheetId,
+                                                                 Long operationId) {
+        // Validate user permissions
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_STATUS_OP_GLOBAL_FE);
 
-		// Get execution sheet
-		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
-		if (executionSheet == null) {
-			throw new IllegalArgumentException("Folha de execução não encontrada");
-		}
+        // Get execution sheet
+        ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
 
-		// Delegate to domain logic
-		executionSheet.startActivity(polygonId, operationId, currentUser.getId());
+        if (executionSheet == null) {
+            throw new IllegalArgumentException("Folha de execução não encontrada");
+        }
 
-		// Persist changes
-		executionSheetRepository.save(executionSheet);
-	}
+        // Get global operation status
+        return executionSheet.getGlobalOperationStatus(operationId);
+    }
 
-	/**
-	 * Stops an activity for an operation in a polygon
-	 */
-	public void stopActivity(String tokenId, Long executionSheetId, Long polygonId, Long operationId) {
-		// Validate user permissions
-		User currentUser = authUtils.validateAndGetUser(tokenId);
-		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.STOP_ACT_OP_FE);
+    /**
+     * Edits operation data (planned completion date, estimated duration,
+     * observations)
+     */
+    public void editOperation(String tokenId, Long executionSheetId, Long operationId, String plannedCompletionDate,
+                              Integer estimatedDurationHours, String observations) {
+        // Validate user permissions
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.EDIT_OP_FE);
 
-		// Get execution sheet
-		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
-		if (executionSheet == null) {
-			throw new IllegalArgumentException("Folha de execução não encontrada");
-		}
+        // Get execution sheet
+        ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
+        if (executionSheet == null) {
+            throw new IllegalArgumentException("Folha de execução não encontrada");
+        }
 
-		// Delegate to domain logic
-		executionSheet.stopActivity(polygonId, operationId, currentUser.getId());
+        // Delegate to domain logic
+        executionSheet.editOperation(operationId, plannedCompletionDate, estimatedDurationHours, observations);
 
-		// Persist changes
-		executionSheetRepository.save(executionSheet);
-	}
+        // Persist changes
+        executionSheetRepository.save(executionSheet);
+    }
 
-	/**
-	 * Views the state of an operation in a given parcel
-	 */
-	public ExecutionSheet.PolygonOperationDetail viewActivity(String tokenId, Long executionSheetId, Long polygonId,
-			Long operationId) {
-		// Validate user permissions
-		User currentUser = authUtils.validateAndGetUser(tokenId);
-		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_ACT_OP_FE);
+    /**
+     * Exports execution sheet data for integration with LAND IT
+     */
+    public ExecutionSheet exportExecutionSheet(String tokenId, Long executionSheetId) {
+        // Validate user permissions
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.EXPORT_FE);
 
-		// Get execution sheet
-		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
-		if (executionSheet == null) {
-			throw new IllegalArgumentException("Folha de execução não encontrada");
-		}
+        // Get execution sheet
+        ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
+        if (executionSheet == null) {
+            throw new IllegalArgumentException("Folha de execução não encontrada");
+        }
 
-		// Find the operation detail
-		ExecutionSheet.PolygonOperationDetail operationDetail = executionSheet.findOperationDetail(polygonId, operationId);
-		if (operationDetail == null) {
-			throw new IllegalArgumentException("Operação não encontrada na parcela especificada");
-		}
-
-		return operationDetail;
-	}
-
-	/**
-	 * Views the global status of an operation across all polygons
-	 */
-	public ExecutionSheet.GlobalOperationStatus viewGlobalStatus(String tokenId, Long executionSheetId,
-			Long operationId) {
-		// Validate user permissions
-		User currentUser = authUtils.validateAndGetUser(tokenId);
-		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_STATUS_OP_GLOBAL_FE);
-
-		// Get execution sheet
-		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
-
-		if (executionSheet == null) {
-			throw new IllegalArgumentException("Folha de execução não encontrada");
-		}
-
-		// Get global operation status
-		return executionSheet.getGlobalOperationStatus(operationId);
-	}
-
-	/**
-	 * Edits operation data (planned completion date, estimated duration,
-	 * observations)
-	 */
-	public void editOperation(String tokenId, Long executionSheetId, Long operationId, String plannedCompletionDate,
-			Integer estimatedDurationHours, String observations) {
-		// Validate user permissions
-		User currentUser = authUtils.validateAndGetUser(tokenId);
-		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.EDIT_OP_FE);
-
-		// Get execution sheet
-		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
-		if (executionSheet == null) {
-			throw new IllegalArgumentException("Folha de execução não encontrada");
-		}
-
-		// Delegate to domain logic
-		executionSheet.editOperation(operationId, plannedCompletionDate, estimatedDurationHours, observations);
-
-		// Persist changes
-		executionSheetRepository.save(executionSheet);
-	}
-
-	/**
-	 * Exports execution sheet data for integration with LAND IT
-	 */
-	public ExecutionSheet exportExecutionSheet(String tokenId, Long executionSheetId) {
-		// Validate user permissions
-		User currentUser = authUtils.validateAndGetUser(tokenId);
-		PermissionAuthorizationHandler.checkPermission(currentUser, Permission.EXPORT_FE);
-
-		// Get execution sheet
-		ExecutionSheet executionSheet = executionSheetRepository.get(executionSheetId);
-		if (executionSheet == null) {
-			throw new IllegalArgumentException("Folha de execução não encontrada");
-		}
-
-		// Prepare the execution sheet for export in the format expected by LAND IT
-		return executionSheet.prepareForExport();
-	}
+        // Prepare the execution sheet for export in the format expected by LAND IT
+        return executionSheet.prepareForExport();
+    }
 }
