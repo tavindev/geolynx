@@ -206,31 +206,32 @@ public class DatastoreUserRepository {
         String password = entity.contains(PROPERTY_PASSWORD) ? entity.getString(PROPERTY_PASSWORD) : null;
         String address = entity.contains(PROPERTY_ADDRESS) ? entity.getString(PROPERTY_ADDRESS) : null;
 
-        return new User(
-                entity.getKey().getName(),
-                email,
-                username,
-                fullName,
-                password,
-                profile,
-                citizenCard,
-                citizenCardIssueDate != null ? LocalDate.parse(citizenCardIssueDate) : null,
-                citizenCardIssuePlace,
-                citizenCardValidity != null ? LocalDate.parse(citizenCardValidity) : null,
-                dateOfBirth != null ? LocalDate.parse(dateOfBirth) : null,
-                nationality,
-                residence,
-                address,
-                taxId,
-                employer,
-                jobTitle,
-                employerTaxId,
-                postalCode,
-                phonePrimary,
-                phoneSecondary,
-                status,
-                role != null ? UserRole.valueOf(role) : null,
-                accountStatus != null ? AccountStatus.valueOf(accountStatus) : null);
+        return User.builder()
+                .id(entity.getKey().getName())
+                .email(email)
+                .username(username)
+                .fullName(fullName)
+                .password(password)
+                .profile(profile != null ? UserProfile.valueOf(profile) : UserProfile.PRIVADO)
+                .citizenCard(citizenCard)
+                .citizenCardIssueDate(citizenCardIssueDate != null ? LocalDate.parse(citizenCardIssueDate) : null)
+                .citizenCardIssuePlace(citizenCardIssuePlace)
+                .citizenCardValidity(citizenCardValidity != null ? LocalDate.parse(citizenCardValidity) : null)
+                .dateOfBirth(dateOfBirth != null ? LocalDate.parse(dateOfBirth) : null)
+                .nationality(nationality)
+                .residence(residence)
+                .address(address)
+                .taxId(taxId)
+                .employer(employer)
+                .jobTitle(jobTitle)
+                .employerTaxId(employerTaxId)
+                .postalCode(postalCode)
+                .phonePrimary(phonePrimary)
+                .phoneSecondary(phoneSecondary)
+                .status(status)
+                .role(role != null ? UserRole.valueOf(role) : UserRole.RU)
+                .accountStatus(accountStatus != null ? AccountStatus.valueOf(accountStatus) : AccountStatus.DESATIVADA)
+                .build();
     }
 
     public List<User> findRegisteredUsers() {
