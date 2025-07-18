@@ -48,7 +48,7 @@ export const authService = {
 
 // User management services
 export const userService = {
-  listUsers: () => api.post('/user/all'),
+  listUsers: () => api.get('/user/all'),
   // Removed getUser as it doesn't exist in backend
   changeRole: (data) => api.post('/user/change-role', data),
   changeAccountState: (data) => api.post('/user/change-account-state', data),

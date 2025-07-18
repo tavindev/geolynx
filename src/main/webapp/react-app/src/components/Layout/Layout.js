@@ -81,7 +81,9 @@ const Layout = () => {
     { text: 'Gerir Folhas', icon: <DescriptionIcon />, path: '/dashboard/execution-sheets', roles: ['PRBO', 'PO', 'SDVBO', 'OPERATOR'] },
     { divider: true },
     { text: 'Minha Conta', header: true, roles: [] },
+    { text: 'Meu Perfil', icon: <AccountCircle />, path: '/dashboard/my-profile', roles: [] },
     { text: 'Alterar Password', icon: <LockIcon />, path: '/dashboard/change-password', roles: [] },
+    { text: 'Minhas Fichas', icon: <DescriptionIcon />, path: '/dashboard/my-worksheets', roles: ['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO'] },
     { text: 'Pedir Remoção da Conta', icon: <DeleteSweepIcon />, path: '/dashboard/request-removal', roles: [] },
   ];
 
@@ -190,9 +192,13 @@ const Layout = () => {
                 <Typography variant="caption">Role: {user?.role}</Typography>
               </MenuItem>
               <Divider />
+              <MenuItem onClick={() => { navigate('/dashboard/my-profile'); handleProfileMenuClose(); }}>
+                <ListItemIcon><AccountCircle fontSize="small" /></ListItemIcon>
+                Meu Perfil
+              </MenuItem>
               <MenuItem onClick={() => { navigate('/dashboard/change-password'); handleProfileMenuClose(); }}>
                 <ListItemIcon><Settings fontSize="small" /></ListItemIcon>
-                Configurações
+                Alterar Password
               </MenuItem>
               <MenuItem onClick={handleLogout}>
                 <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>

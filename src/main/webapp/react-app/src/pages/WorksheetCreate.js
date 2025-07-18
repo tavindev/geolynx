@@ -39,7 +39,34 @@ const WorksheetCreate = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await worksheetService.create(formData);
+      // Create a minimal valid GeoJSON structure
+      const worksheetData = {
+        type: "FeatureCollection",
+        crs: {
+          type: "name",
+          properties: {
+            name: "EPSG:4326"
+          }
+        },
+        features: [],
+        metadata: {
+          id: Date.now(), // Generate a temporary ID
+          startingDate: new Date().toISOString().split('T')[0],
+          finishingDate: new Date().toISOString().split('T')[0],
+          issueDate: new Date().toISOString().split('T')[0],
+          serviceProviderId: 1,
+          awardDate: new Date().toISOString().split('T')[0],
+          issuingUserId: 1,
+          aigp: [],
+          posaCode: formData.type,
+          posaDescription: formData.description,
+          pospCode: formData.priority,
+          pospDescription: formData.title,
+          operations: []
+        }
+      };
+      
+      await worksheetService.create(worksheetData);
       enqueueSnackbar('Worksheet created successfully!', { variant: 'success' });
       setFormData({
         title: '',

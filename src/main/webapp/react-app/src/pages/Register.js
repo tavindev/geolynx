@@ -51,7 +51,7 @@ const Register = () => {
       const result = await register({
         ...formData,
         role: 'VU', // Default role for new users
-        profile: 'INDIVIDUAL', // Default profile for new users
+        profile: 'PUBLICO', // Default profile for new users
       });
 
       if (result.success) {

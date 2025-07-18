@@ -38,6 +38,9 @@ import ExecutionSheets from './pages/ExecutionSheets';
 import ExecutionSheetDetail from './pages/ExecutionSheetDetail';
 import AdminDashboard from './pages/AdminDashboard';
 import WorksheetDashboard from './pages/WorksheetDashboard';
+import MyWorksheets from './pages/MyWorksheets';
+import MyProfile from './pages/MyProfile';
+import WorksheetDetail from './pages/WorksheetDetail';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -242,6 +245,22 @@ function App() {
                     }
                   />
                   <Route
+                    path="my-profile"
+                    element={
+                      <PrivateRoute>
+                        <MyProfile />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="my-worksheets"
+                    element={
+                      <PrivateRoute roles={['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO']}>
+                        <MyWorksheets />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
                     path="account-management/:userId"
                     element={
                       <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
@@ -270,6 +289,14 @@ function App() {
                     element={
                       <PrivateRoute roles={['PO', 'ADLU']}>
                         <WorksheetCreate />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="worksheet/:id"
+                    element={
+                      <PrivateRoute roles={['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO']}>
+                        <WorksheetDetail />
                       </PrivateRoute>
                     }
                   />
