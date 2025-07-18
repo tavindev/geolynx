@@ -7,8 +7,10 @@ import tavindev.core.entities.AuthToken;
 import tavindev.core.repositories.AuthTokenRepository;
 import tavindev.core.entities.*;
 import tavindev.core.exceptions.*;
+import tavindev.infra.JWTToken;
 import tavindev.infra.dto.login.LoginDTO;
 import tavindev.infra.repositories.DatastoreUserRepository;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 @Service
 public class AuthService {
@@ -37,7 +39,14 @@ public class AuthService {
     }
 
     public void logout(String token) {
-        AuthToken authToken = authTokenRepository.findById(token);
+        // Decode the token to get the tokenId
+        DecodedJWT decodedJWT = JWTToken.extractJWT(token);
+        if (decodedJWT == null) {
+            throw new AuthTokenNotFoundException();
+        }
+
+        String tokenId = decodedJWT.getClaim("id").asString();
+        AuthToken authToken = authTokenRepository.findById(tokenId);
 
         if (authToken == null || authToken.isExpired()) {
             throw new AuthTokenNotFoundException();
