@@ -2,15 +2,12 @@ package tavindev.core.services;
 
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.AuthToken;
 import tavindev.core.repositories.AuthTokenRepository;
 import tavindev.core.entities.*;
 import tavindev.core.exceptions.*;
 import tavindev.infra.dto.login.LoginDTO;
-import tavindev.infra.dto.logout.LogoutRequestDTO;
-import tavindev.infra.dto.RegisterUserDTO;
 import tavindev.infra.repositories.DatastoreUserRepository;
 
 @Service
@@ -39,8 +36,8 @@ public class AuthService {
         return authToken;
     }
 
-    public void logout(@Valid LogoutRequestDTO request) {
-        AuthToken authToken = authTokenRepository.findById(request.token());
+    public void logout(String token) {
+        AuthToken authToken = authTokenRepository.findById(token);
 
         if (authToken == null || authToken.isExpired()) {
             throw new AuthTokenNotFoundException();

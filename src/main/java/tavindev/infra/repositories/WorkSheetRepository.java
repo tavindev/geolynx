@@ -1,6 +1,8 @@
 package tavindev.infra.repositories;
 
 import com.google.cloud.datastore.*;
+import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
+
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.WorkSheet;
 import tavindev.core.entities.WorkSheet.GeoFeature;
@@ -10,6 +12,7 @@ import tavindev.core.entities.WorkSheet.CRS;
 import tavindev.core.entities.WorkSheet.GeoFeature.FeatureProperties;
 import tavindev.core.entities.WorkSheet.GeoFeature.Geometry;
 import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
+import tavindev.infra.dto.worksheet.WorksheetQueryFilters;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -306,10 +309,25 @@ public class WorkSheetRepository {
         return workSheetEntity != null;
     }
 
-    public List<WorkSheetListResponseDTO> getAll() {
-        Query<Entity> query = Query.newEntityQueryBuilder()
-                .setKind(WORK_SHEET_KIND)
-                .build();
+    public List<WorkSheetListResponseDTO> getAll(WorksheetQueryFilters filter) {
+        EntityQuery.Builder queryBuilder = Query.newEntityQueryBuilder().setKind(WORK_SHEET_KIND);
+
+        // Note: AIGP filtering will be done in memory since it's stored as
+        // comma-separated string
+        if (filter.getStartingDate() != null) {
+            queryBuilder.setFilter(PropertyFilter.eq("metadata.startingDate", filter.getStartingDate()));
+        }
+        if (filter.getFinishingDate() != null) {
+            queryBuilder.setFilter(PropertyFilter.eq("metadata.finishingDate", filter.getFinishingDate()));
+        }
+        if (filter.getIssueDate() != null) {
+            queryBuilder.setFilter(PropertyFilter.eq("metadata.issueDate", filter.getIssueDate()));
+        }
+        if (filter.getServiceProviderId() != null) {
+            queryBuilder.setFilter(PropertyFilter.eq("metadata.serviceProviderId", filter.getServiceProviderId()));
+        }
+
+        Query<Entity> query = queryBuilder.build();
 
         QueryResults<Entity> results = datastore.run(query);
         List<WorkSheetListResponseDTO> workSheets = new ArrayList<>();
@@ -317,8 +335,6 @@ public class WorkSheetRepository {
         while (results.hasNext()) {
             Entity workSheetEntity = results.next();
 
-            // Extract metadata
-            Metadata metadata = null;
             if (workSheetEntity.contains("metadata")) {
                 FullEntity<?> metadataEntity = workSheetEntity.getEntity("metadata");
                 Long workSheetId = metadataEntity.getLong("id");
@@ -334,6 +350,14 @@ public class WorkSheetRepository {
                     String aigpString = metadataEntity.getString("aigp");
                     if (aigpString != null && !aigpString.isEmpty()) {
                         aigp = Arrays.asList(aigpString.split(","));
+                    }
+                }
+
+                // Apply AIGP filter in memory
+                if (filter.getAigp() != null && aigp != null) {
+                    // Check if the AIGP list contains the specified AIGP
+                    if (!aigp.contains(filter.getAigp())) {
+                        continue; // Skip this worksheet if AIGP doesn't match
                     }
                 }
 

@@ -3,6 +3,7 @@ package tavindev.infra.http.controllers;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.CookieParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -69,8 +70,8 @@ public class AuthController {
     @POST
     @Path("/logout")
     @Consumes(MediaType.APPLICATION_JSON)
-    public LogoutResponseDTO logout(@Valid LogoutRequestDTO request) {
-        authService.logout(request);
+    public LogoutResponseDTO logout(@CookieParam("session") String token) {
+        authService.logout(token);
 
         return new LogoutResponseDTO("Logout realizado com sucesso. A sessão foi encerrada.");
     }

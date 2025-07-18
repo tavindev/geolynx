@@ -1,0 +1,62 @@
+package tavindev.infra.dto.worksheet;
+
+import jakarta.ws.rs.QueryParam;
+
+public class WorksheetQueryFilters {
+  @QueryParam("aigp")
+  private String aigp;
+
+  @QueryParam("serviceProviderId")
+  private Long serviceProviderId;
+
+  @QueryParam("startingDate")
+  private String startingDate;
+
+  @QueryParam("finishingDate")
+  private String finishingDate;
+
+  @QueryParam("posaCode")
+  private String posaCode;
+
+  @QueryParam("pospCode")
+  private String pospCode;
+
+  @QueryParam("issuingUserId")
+  private Long issuingUserId;
+
+  @QueryParam("issueDate")
+  private String issueDate;
+
+  // Getters and Setters
+  public String getAigp() {
+    return aigp;
+  }
+
+  public Long getServiceProviderId() {
+    return serviceProviderId;
+  }
+
+  public String getStartingDate() {
+    return startingDate;
+  }
+
+  public String getFinishingDate() {
+    return finishingDate;
+  }
+
+  public String getPosaCode() {
+    return posaCode;
+  }
+
+  public String getPospCode() {
+    return pospCode;
+  }
+
+  public Long getIssuingUserId() {
+    return issuingUserId;
+  }
+
+  public String getIssueDate() {
+    return issueDate;
+  }
+}

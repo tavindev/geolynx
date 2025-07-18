@@ -9,6 +9,7 @@ import tavindev.core.entities.WorkSheet;
 import tavindev.core.services.WorkSheetService;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetResponseDTO;
 import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
+import tavindev.infra.dto.worksheet.WorksheetQueryFilters;
 import java.util.List;
 
 @Service
@@ -44,8 +45,9 @@ public class WorkSheetController {
     @GET
     @Path("/")
     public List<WorkSheetListResponseDTO> getAllWorkSheets(
-            @CookieParam("session") String token) {
-        return workSheetService.getAllWorkSheets(token);
+            @CookieParam("session") String token,
+            @BeanParam WorksheetQueryFilters filter) {
+        return workSheetService.getAllWorkSheets(token, filter);
     }
 
     @GET
@@ -55,4 +57,5 @@ public class WorkSheetController {
             @PathParam("id") Long id) {
         return workSheetService.getWorkSheet(token, id);
     }
+
 }

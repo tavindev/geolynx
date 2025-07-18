@@ -10,6 +10,7 @@ import tavindev.core.entities.Permission;
 import tavindev.core.authorization.PermissionAuthorizationHandler;
 import tavindev.core.utils.AuthUtils;
 import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
+import tavindev.infra.dto.worksheet.WorksheetQueryFilters;
 import tavindev.infra.repositories.WorkSheetRepository;
 
 public class WorkSheetService {
@@ -53,10 +54,10 @@ public class WorkSheetService {
         return workSheetRepository.get(id);
     }
 
-    public List<WorkSheetListResponseDTO> getAllWorkSheets(String tokenId) {
+    public List<WorkSheetListResponseDTO> getAllWorkSheets(String tokenId, WorksheetQueryFilters filter) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_GEN_FO);
 
-        return workSheetRepository.getAll();
+        return workSheetRepository.getAll(filter);
     }
 }
