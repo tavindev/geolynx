@@ -15,4 +15,9 @@ handlers:
     
   - url: /.*
     static_files: src/main/webapp/app/index.html
-    upload: src/main/webapp/app/index.html 
+    upload: src/main/webapp/app/index.html
+
+
+    env_variables:
+      SMTP_USER: 'geolynxpt@gmail.com'
+      SMTP_PASSWORD: 'hhdz bznq tfii cyuz'
