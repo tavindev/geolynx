@@ -29,6 +29,8 @@ import {
   AccountCircle,
   Settings,
   DeleteSweep as DeleteSweepIcon,
+  Description as DescriptionIcon,
+  Dashboard as DashboardIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -63,6 +65,10 @@ const Layout = () => {
     { text: 'Início', icon: <HomeIcon />, path: '/dashboard', roles: [] },
     { text: 'Mapa', icon: <MapIcon />, path: '/dashboard/map', roles: [] },
     { divider: true },
+    { text: 'Dashboards', header: true, roles: ['SYSADMIN', 'SMBO', 'SGVBO', 'PRBO'] },
+    { text: 'Dashboard Admin', icon: <DashboardIcon />, path: '/dashboard/admin', roles: ['SYSADMIN', 'SMBO'] },
+    { text: 'Folhas de Obra', icon: <AssignmentIcon />, path: '/dashboard/worksheets', roles: ['SMBO', 'SGVBO', 'PRBO'] },
+    { divider: true },
     { text: 'Gestão de Utilizadores', header: true, roles: ['SYSADMIN', 'SMBO'] },
     { text: 'Listar Utilizadores', icon: <PeopleIcon />, path: '/dashboard/list-users', roles: ['SYSADMIN', 'SMBO'] },
     { text: 'Pedidos de Remoção', icon: <DeleteSweepIcon />, path: '/dashboard/removal-requests', roles: ['SYSADMIN', 'SMBO'] },
@@ -70,6 +76,9 @@ const Layout = () => {
     { text: 'Folhas de Obra', header: true, roles: ['PO', 'ADLU', 'PRBO'] },
     { text: 'Criar Folha', icon: <AssignmentIcon />, path: '/dashboard/worksheet/create', roles: ['PO', 'ADLU'] },
     { text: 'Atualizar Estado', icon: <AssignmentIcon />, path: '/dashboard/worksheet-update', roles: ['PRBO', 'PO'] },
+    { divider: true },
+    { text: 'Folhas de Execução', header: true, roles: ['PRBO', 'PO', 'SDVBO', 'OPERATOR'] },
+    { text: 'Gerir Folhas', icon: <DescriptionIcon />, path: '/dashboard/execution-sheets', roles: ['PRBO', 'PO', 'SDVBO', 'OPERATOR'] },
     { divider: true },
     { text: 'Minha Conta', header: true, roles: [] },
     { text: 'Alterar Password', icon: <LockIcon />, path: '/dashboard/change-password', roles: [] },
@@ -151,7 +160,7 @@ const Layout = () => {
             Sistema de Gestão Territorial
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="body2">{user?.name || user?.username}</Typography>
+            <Typography variant="body2">{user?.fullName || user?.email || 'Utilizador'}</Typography>
             <IconButton
               size="large"
               edge="end"

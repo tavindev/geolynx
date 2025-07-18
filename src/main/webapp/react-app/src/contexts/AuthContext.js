@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import api from '../services/api';
+import { authService } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -17,25 +17,19 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Since there's no /user/me endpoint and authentication is cookie-based,
-    // we'll check if the user has a session by trying to list users (which requires auth)
-    // This is not ideal but works with the current backend
+    // Check if user is logged in by fetching current user info
     const checkLoggedIn = async () => {
       try {
-        // Try to make an authenticated request
-        await api.post('/user/account-status', { identificador: 'test' });
-        // If it succeeds, user is logged in
-        setIsAuthenticated(true);
-        // We don't have user data from backend, so we'll store it locally
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+        const response = await authService.getCurrentUser();
+        if (response.data) {
+          setUser(response.data);
+          setIsAuthenticated(true);
         }
       } catch (error) {
         // If it fails with 401, user is not logged in
         if (error.response?.status === 401) {
           setIsAuthenticated(false);
-          localStorage.removeItem('user');
+          setUser(null);
         }
       }
       setLoading(false);
@@ -45,13 +39,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      // The login endpoint returns 204 No Content with a session cookie
-      await api.post('/user/login', { email, password });
-
-      // Store minimal user info locally since backend doesn't return it
-      const userData = { username: email };
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
+      // Backend returns 204 No Content with session cookie
+      await authService.login({ email, password });
+      
+      // Fetch user info after successful login
+      const userResponse = await authService.getCurrentUser();
+      setUser(userResponse.data);
       setIsAuthenticated(true);
 
       return { success: true };
@@ -65,7 +58,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      await api.post('/user/register', userData);
+      await authService.register(userData);
       return { success: true };
     } catch (error) {
       return {
@@ -77,25 +70,46 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await api.post('/user/logout', {});
+      await authService.logout();
     } catch (error) {
       console.error('Logout failed', error);
     } finally {
-      localStorage.removeItem('user');
       setUser(null);
       setIsAuthenticated(false);
     }
   };
 
   const hasRole = (requiredRole) => {
-    // Without user data from backend, we can't check roles
-    // This would need to be implemented differently
-    return true; // Allow all for now
+    if (!user || !user.role) return false;
+    return user.role === requiredRole;
+  };
+
+  const hasAnyRole = (roles) => {
+    if (!user || !user.role) return false;
+    return roles.includes(user.role);
   };
 
   const hasPermission = (permission) => {
-    // Without user data from backend, we can't check permissions
-    return true; // Allow all for now
+    // Implement permission checking based on role
+    const rolePermissions = {
+      ADMIN: ['all'],
+      SYSADMIN: ['all'],
+      SMBO: ['manage_worksheets', 'manage_users', 'view_all'],
+      SGVBO: ['view_worksheets', 'generate_reports'],
+      SDVBO: ['edit_operations', 'export_execution_sheets', 'view_analytics'],
+      PRBO: ['create_execution_sheet', 'assign_operations', 'view_global_status'],
+      PO: ['start_activity', 'stop_activity', 'view_assigned_operations'],
+      OPERATOR: ['view_assigned_work', 'update_progress'],
+      PARTNER: ['view_public_data'],
+    };
+
+    if (!user || !user.role) return false;
+    
+    // Admin roles have all permissions
+    if (user.role === 'ADMIN' || user.role === 'SYSADMIN') return true;
+    
+    const permissions = rolePermissions[user.role] || [];
+    return permissions.includes(permission) || permissions.includes('all');
   };
 
   const value = {
@@ -106,8 +120,8 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     hasRole,
+    hasAnyRole,
     hasPermission,
-    mockUsers: [],
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
