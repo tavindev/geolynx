@@ -172,7 +172,7 @@ const AdminDashboard = () => {
                     {stats.activeUsers}
                   </Typography>
                 </Box>
-                <CheckCircle color="success" sx={{ fontSize: 40 }} />
+                <CheckCircleIcon color="success" sx={{ fontSize: 40 }} />
               </Box>
             </CardContent>
           </Card>

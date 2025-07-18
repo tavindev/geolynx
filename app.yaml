@@ -18,6 +18,6 @@ handlers:
     upload: src/main/webapp/app/index.html
 
 
-    env_variables:
-      SMTP_USER: 'geolynxpt@gmail.com'
-      SMTP_PASSWORD: 'hhdz bznq tfii cyuz'
+env_variables:
+  SMTP_USER: 'geolynxpt@gmail.com'
+  SMTP_PASSWORD: 'hhdz bznq tfii cyuz'
