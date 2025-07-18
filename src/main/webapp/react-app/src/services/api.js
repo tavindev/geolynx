@@ -38,11 +38,12 @@ api.interceptors.response.use(
 export const authService = {
   login: (data) =>
     api.post('/user/login', {
-      email: data.identificador,
-      password: data.senha,
+      email: data.email,
+      password: data.password,
     }),
   register: (data) => api.post('/user/register', data),
-  logout: () => api.post('/user/logout', {}), // Added empty object for body
+  logout: () => api.post('/user/logout', {}),
+  getCurrentUser: () => api.get('/user'), // Get current user info
 };
 
 // User management services
@@ -70,6 +71,19 @@ export const worksheetService = {
   delete: (id) => api.delete(`/work-sheet/${id}`),
   getAll: () => api.get('/work-sheet/'),
   get: (id) => api.get(`/work-sheet/${id}`),
+};
+
+// Execution Sheet services
+export const executionSheetService = {
+  create: (data) => api.post('/execution-sheet/', data),
+  assignOperation: (data) => api.post('/execution-sheet/assign-operation', data),
+  startActivity: (data) => api.post('/execution-sheet/start-activity', data),
+  stopActivity: (data) => api.post('/execution-sheet/stop-activity', data),
+  viewActivity: (data) => api.post('/execution-sheet/view-activity', data),
+  viewStatusGlobal: (data) => api.post('/execution-sheet/view-status-global', data),
+  editOperation: (data) => api.post('/execution-sheet/edit-operation', data),
+  export: (data) => api.post('/execution-sheet/export', data),
+  getById: (id) => api.get(`/execution-sheet/${id}`),
 };
 
 // Utils services

@@ -53,7 +53,7 @@ const ChangePassword = () => {
       await userService.changePassword({
         senha_atual: formData.currentPassword,
         nova_senha: formData.newPassword,
-        confirmacao_nova_senha: formData.confirmPassword
+        confirmar_senha: formData.confirmPassword
       });
       enqueueSnackbar('Palavra-passe alterada com sucesso!', { variant: 'success' });
       navigate('/dashboard');

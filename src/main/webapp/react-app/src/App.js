@@ -34,6 +34,10 @@ import NotFound from './pages/NotFound';
 import AccountManagement from './pages/AccountManagement';
 import AccountRemovalRequests from './pages/AccountRemovalRequests';
 import RequestAccountRemoval from './pages/RequestAccountRemoval';
+import ExecutionSheets from './pages/ExecutionSheets';
+import ExecutionSheetDetail from './pages/ExecutionSheetDetail';
+import AdminDashboard from './pages/AdminDashboard';
+import WorksheetDashboard from './pages/WorksheetDashboard';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -190,6 +194,22 @@ function App() {
                 >
                   <Route index element={<Home />} />
                   <Route
+                    path="admin"
+                    element={
+                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                        <AdminDashboard />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="worksheets"
+                    element={
+                      <PrivateRoute roles={['SMBO', 'SGVBO', 'PRBO']}>
+                        <WorksheetDashboard />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
                     path="list-users"
                     element={
                       <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
@@ -258,6 +278,22 @@ function App() {
                     element={
                       <PrivateRoute roles={['PO', 'ADLU']}>
                         <WorksheetUpdate />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="execution-sheets"
+                    element={
+                      <PrivateRoute roles={['PRBO', 'PO', 'SDVBO', 'OPERATOR']}>
+                        <ExecutionSheets />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="execution-sheets/:id"
+                    element={
+                      <PrivateRoute roles={['PRBO', 'PO', 'SDVBO', 'OPERATOR']}>
+                        <ExecutionSheetDetail />
                       </PrivateRoute>
                     }
                   />
