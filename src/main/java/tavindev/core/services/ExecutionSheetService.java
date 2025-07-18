@@ -133,18 +133,19 @@ public class ExecutionSheetService {
 
         // Persist changes
         executionSheetRepository.save(executionSheet);
-        if (executionSheet.getGlobalOperationStatus(operationId).getGlobalStatus() == "completed") {
-            List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
-            for (User user : prboUsers) {
+        List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
+
+        boolean isCompleted = executionSheet.getGlobalOperationStatus(operationId).getGlobalStatus() == "completed";
+
+        for (User user : prboUsers) {
+            if (isCompleted) {
                 notificationService.sendNotification(user.getEmail(),
-                        "Todas as operações da Folha de Execução " + executionSheetId + "foram concluídas.");
+                        "Todas as operações da Folha de Execução " + executionSheetId + " foram concluídas.");
+                continue;
             }
-        } else {
-            List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
-            for (User user : prboUsers) {
-                notificationService.sendNotification(user.getEmail(),
-                        "Activity stopped for operation " + operationId + " in polygon " + polygonId);
-            }
+
+            notificationService.sendNotification(user.getEmail(),
+                    "Atividade " + operationId + " na parcela " + polygonId + " foi pausada.");
         }
     }
 
