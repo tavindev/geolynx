@@ -14,6 +14,6 @@ public record ViewStatusGlobalResponseDTO(
                         String finishingDate,
                         String lastActivityDate,
                         String observations,
-                        Long operatorId) {
+                        String operatorId) {
         }
 }

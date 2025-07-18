@@ -80,14 +80,15 @@ public class ExecutionSheet {
 	/**
 	 * Assigns an operation in a polygon to an operator
 	 */
-	public void assignOperationToOperator(Long polygonId, Long operationId, Long operatorId) {
+	public void assignOperationToOperator(Long polygonId, Long operationId, String operatorId) {
 		PolygonOperationDetail operationDetail = findOperationDetail(polygonId, operationId);
 		if (operationDetail == null) {
 			throw new IllegalArgumentException("Operação não encontrada na parcela especificada");
 		}
 
 		// Update the operation detail with operator assigned
-		updateOperationDetail(polygonId, operationId, operationDetail.withStatus("assigned").withOperatorId(operatorId));
+		updateOperationDetail(polygonId, operationId,
+				operationDetail.withStatus("assigned").withOperatorId(operatorId.toString()));
 	}
 
 	/**
@@ -498,7 +499,7 @@ public class ExecutionSheet {
 		private String lastActivityDate;
 		private String observations;
 		private final List<Track> tracks;
-		private Long operatorId;
+		private String operatorId;
 
 		@JsonCreator
 		public PolygonOperationDetail(@JsonProperty("operationId") Long operationId,
@@ -508,7 +509,7 @@ public class ExecutionSheet {
 				@JsonProperty("lastActivityDate") String lastActivityDate,
 				@JsonProperty("observations") String observations,
 				@JsonProperty("tracks") List<Track> tracks,
-				@JsonProperty("operatorId") Long operatorId) {
+				@JsonProperty("operatorId") String operatorId) {
 			this.operationId = operationId;
 			this.status = status;
 			this.startingDate = startingDate;
@@ -547,7 +548,7 @@ public class ExecutionSheet {
 			return tracks;
 		}
 
-		public Long getOperatorId() {
+		public String getOperatorId() {
 			return operatorId;
 		}
 
@@ -572,7 +573,7 @@ public class ExecutionSheet {
 			return this;
 		}
 
-		public PolygonOperationDetail withOperatorId(Long operatorId) {
+		public PolygonOperationDetail withOperatorId(String operatorId) {
 			this.operatorId = operatorId;
 			return this;
 		}

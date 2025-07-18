@@ -22,6 +22,7 @@ import tavindev.infra.dto.executionsheet.EditOperationDTO;
 import tavindev.infra.dto.executionsheet.EditOperationResponseDTO;
 import tavindev.infra.dto.executionsheet.ExportExecutionSheetDTO;
 import tavindev.infra.dto.executionsheet.ExportExecutionSheetResponseDTO;
+import tavindev.infra.dto.executionsheet.GetExecutionSheetsForOperatorResponseDTO;
 
 @Service
 @Path("/execution-sheet")
@@ -144,6 +145,17 @@ public class ExecutionSheetController {
 			@CookieParam("session") String token,
 			@PathParam("id") Long id) {
 		return executionSheetService.getExecutionSheet(token, id);
+	}
+
+	@GET
+	@Path("/my-assignments")
+	public GetExecutionSheetsForOperatorResponseDTO getExecutionSheetsForOperator(
+			@CookieParam("session") String token) {
+		List<ExecutionSheet> executionSheets = executionSheetService.getExecutionSheetsForOperator(token);
+
+		return new GetExecutionSheetsForOperatorResponseDTO(
+				"Folhas de execução obtidas com sucesso.",
+				executionSheets);
 	}
 
 }

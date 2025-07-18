@@ -85,7 +85,8 @@ public class ExecutionSheetRepository {
 										: null;
 								String podLastActivityDate = polygonOpEntity.getString("lastActivityDate");
 								String podObservations = polygonOpEntity.getString("observations");
-								Long operatorId = polygonOpEntity.contains("operatorId") ? polygonOpEntity.getLong("operatorId") : null;
+								String operatorId = polygonOpEntity.contains("operatorId") ? polygonOpEntity.getString("operatorId")
+										: null;
 
 								// Extract tracks
 								List<Track> tracks = new ArrayList<>();
@@ -218,6 +219,46 @@ public class ExecutionSheetRepository {
 		datastore.put(executionSheetEntity);
 
 		return executionSheet;
+	}
+
+	public List<ExecutionSheet> findByOperatorId(String operatorId) {
+		// Get all execution sheets and filter by operator ID
+		// This is not the most efficient approach but works with the current data
+		// structure
+		Query<Entity> query = Query.newEntityQueryBuilder()
+				.setKind(EXECUTION_SHEET_KIND)
+				.build();
+
+		QueryResults<Entity> results = datastore.run(query);
+		List<ExecutionSheet> executionSheets = new ArrayList<>();
+
+		while (results.hasNext()) {
+			Entity entity = results.next();
+			ExecutionSheet executionSheet = get(entity.getKey().getId());
+			if (executionSheet != null && hasOperatorAssigned(executionSheet, operatorId)) {
+				executionSheets.add(executionSheet);
+			}
+		}
+
+		return executionSheets;
+	}
+
+	private boolean hasOperatorAssigned(ExecutionSheet executionSheet, String operatorId) {
+		if (executionSheet.getPolygonsOperations() == null) {
+			return false;
+		}
+
+		for (PolygonOperation polygonOperation : executionSheet.getPolygonsOperations()) {
+			if (polygonOperation.getOperations() != null) {
+				for (PolygonOperationDetail operationDetail : polygonOperation.getOperations()) {
+					if (operationDetail.getOperatorId() != null &&
+							operationDetail.getOperatorId().toString().equals(operatorId)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	private List<List<Double>> parseCoordinates(String coordinatesString) {

@@ -9,5 +9,5 @@ public record AssignOperationDTO(
 
 		@NotNull(message = "O ID da operação não pode ser nulo") Long operationId,
 
-		@NotNull(message = "O ID do operador não pode ser nulo") Long operatorId) {
+		@NotNull(message = "O ID do operador não pode ser nulo") String operatorId) {
 }

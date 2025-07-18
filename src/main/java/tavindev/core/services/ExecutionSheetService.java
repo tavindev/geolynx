@@ -65,7 +65,7 @@ public class ExecutionSheetService {
      * Assigns an operation in a polygon to an operator
      */
     public void assignOperation(String tokenId, Long executionSheetId, Long polygonId, Long operationId,
-                                Long operatorId) {
+            String operatorId) {
         // Validate user permissions
         User currentUser = authUtils.validateAndGetUser(tokenId);
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.ASSIGN_OP_FE);
@@ -136,22 +136,23 @@ public class ExecutionSheetService {
         if (executionSheet.getGlobalOperationStatus(operationId).getGlobalStatus() == "completed") {
             List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
             for (User user : prboUsers) {
-                notificationService.sendNotification(user.getId(), "Todas as operações da Folha de Execução " + executionSheetId + "foram concluídas.");
+                notificationService.sendNotification(user.getId(),
+                        "Todas as operações da Folha de Execução " + executionSheetId + "foram concluídas.");
+            }
+        } else {
+            List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
+            for (User user : prboUsers) {
+                notificationService.sendNotification(user.getId(),
+                        "Activity stopped for operation " + operationId + " in polygon " + polygonId);
             }
         }
-		else{
-			List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
-			for (User user : prboUsers) {
-				notificationService.sendNotification(user.getId(), "Activity stopped for operation " + operationId + " in polygon " + polygonId);
-			}
-		}
     }
 
     /**
      * Views the state of an operation in a given parcel
      */
     public ExecutionSheet.PolygonOperationDetail viewActivity(String tokenId, Long executionSheetId, Long polygonId,
-                                                              Long operationId) {
+            Long operationId) {
         // Validate user permissions
         User currentUser = authUtils.validateAndGetUser(tokenId);
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_ACT_OP_FE);
@@ -163,7 +164,8 @@ public class ExecutionSheetService {
         }
 
         // Find the operation detail
-        ExecutionSheet.PolygonOperationDetail operationDetail = executionSheet.findOperationDetail(polygonId, operationId);
+        ExecutionSheet.PolygonOperationDetail operationDetail = executionSheet.findOperationDetail(polygonId,
+                operationId);
         if (operationDetail == null) {
             throw new IllegalArgumentException("Operação não encontrada na parcela especificada");
         }
@@ -175,7 +177,7 @@ public class ExecutionSheetService {
      * Views the global status of an operation across all polygons
      */
     public ExecutionSheet.GlobalOperationStatus viewGlobalStatus(String tokenId, Long executionSheetId,
-                                                                 Long operationId) {
+            Long operationId) {
         // Validate user permissions
         User currentUser = authUtils.validateAndGetUser(tokenId);
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_STATUS_OP_GLOBAL_FE);
@@ -196,7 +198,7 @@ public class ExecutionSheetService {
      * observations)
      */
     public void editOperation(String tokenId, Long executionSheetId, Long operationId, String plannedCompletionDate,
-                              Integer estimatedDurationHours, String observations) {
+            Integer estimatedDurationHours, String observations) {
         // Validate user permissions
         User currentUser = authUtils.validateAndGetUser(tokenId);
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.EDIT_OP_FE);
@@ -230,5 +232,17 @@ public class ExecutionSheetService {
 
         // Prepare the execution sheet for export in the format expected by LAND IT
         return executionSheet.prepareForExport();
+    }
+
+    /**
+     * Gets all execution sheets where the current user (operator) is assigned
+     */
+    public List<ExecutionSheet> getExecutionSheetsForOperator(String tokenId) {
+        // Validate user permissions
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.BE_ASSIGNED);
+
+        // Get execution sheets where this operator is assigned
+        return executionSheetRepository.findByOperatorId(currentUser.getId());
     }
 }
