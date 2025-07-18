@@ -247,7 +247,10 @@ public class WorkSheetRepository {
             FullEntity.Builder<IncompleteKey> metadataBuilder = FullEntity.newBuilder();
 
             metadataBuilder.set("id", metadata.getId());
-            metadataBuilder.set("startingDate", metadata.getStartingDate());
+
+            if (metadata.getStartingDate() != null)
+                metadataBuilder.set("startingDate", metadata.getStartingDate());
+
             metadataBuilder.set("finishingDate", metadata.getFinishingDate());
             metadataBuilder.set("issueDate", metadata.getIssueDate());
             metadataBuilder.set("serviceProviderId", metadata.getServiceProviderId());
