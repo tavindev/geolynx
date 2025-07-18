@@ -136,13 +136,13 @@ public class ExecutionSheetService {
         if (executionSheet.getGlobalOperationStatus(operationId).getGlobalStatus() == "completed") {
             List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
             for (User user : prboUsers) {
-                notificationService.sendNotification(user.getId(),
+                notificationService.sendNotification(user.getEmail(),
                         "Todas as operações da Folha de Execução " + executionSheetId + "foram concluídas.");
             }
         } else {
             List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
             for (User user : prboUsers) {
-                notificationService.sendNotification(user.getId(),
+                notificationService.sendNotification(user.getEmail(),
                         "Activity stopped for operation " + operationId + " in polygon " + polygonId);
             }
         }
