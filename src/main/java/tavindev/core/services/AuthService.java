@@ -7,6 +7,7 @@ import tavindev.core.entities.AuthToken;
 import tavindev.core.repositories.AuthTokenRepository;
 import tavindev.core.entities.*;
 import tavindev.core.exceptions.*;
+import tavindev.core.exceptions.AccountSuspendedException;
 import tavindev.infra.JWTToken;
 import tavindev.infra.dto.login.LoginDTO;
 import tavindev.infra.repositories.DatastoreUserRepository;
@@ -29,6 +30,21 @@ public class AuthService {
 
         if (user.isPasswordInvalid(request.password())) {
             throw new InvalidCredentialsException();
+        }
+
+        // Check if account is suspended
+        if (user.getAccountStatus() == AccountStatus.SUSPENSA) {
+            throw new AccountSuspendedException();
+        }
+
+        // Check if account is deactivated
+        if (user.getAccountStatus() == AccountStatus.DESATIVADA) {
+            throw new AccountSuspendedException();
+        }
+
+        // Check if account is marked for removal
+        if (user.getAccountStatus() == AccountStatus.A_REMOVER) {
+            throw new AccountSuspendedException();
         }
 
         AuthToken authToken = new AuthToken(user.getId(), user.getUsername(), user.getRole());

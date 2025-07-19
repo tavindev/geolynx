@@ -92,4 +92,36 @@ public class AnimalRepository {
 
     return animals;
   }
+
+  public List<Animal> findByLocation(Double lat, Double lng, Double radiusKm) {
+    // Get all animals (for now, we'll filter by distance in memory)
+    // In a production system, you'd want to use geospatial queries
+    Query<Entity> query = Query.newEntityQueryBuilder()
+        .setKind(ANIMAL_KIND)
+        .build();
+
+    QueryResults<Entity> results = datastore.run(query);
+    List<Animal> animals = new ArrayList<>();
+
+    while (results.hasNext()) {
+      Entity animalEntity = results.next();
+
+      String id = animalEntity.getKey().getName();
+      String name = animalEntity.getString("name");
+      String description = animalEntity.getString("description");
+      String image = animalEntity.contains("image") ? animalEntity.getString("image") : null;
+      Long latitude = animalEntity.getLong("latitude");
+      Long longitude = animalEntity.getLong("longitude");
+      String geohash = animalEntity.contains("geohash") ? animalEntity.getString("geohash") : null;
+      String userId = animalEntity.getString("userId");
+      Timestamp createdAt = animalEntity.getTimestamp("createdAt");
+
+      Animal animal = new Animal(id, name, description, image, latitude, longitude, geohash,
+          createdAt.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime(), userId);
+
+      animals.add(animal);
+    }
+
+    return animals;
+  }
 }

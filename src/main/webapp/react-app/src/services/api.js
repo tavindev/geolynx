@@ -88,6 +88,11 @@ export const executionSheetService = {
   getById: (id) => api.get(`/execution-sheet/${id}`),
 };
 
+// Region services
+export const regionService = {
+  getRegionData: (lat, lng) => api.get(`/region/?lat=${lat}&lng=${lng}`),
+};
+
 // Utils services
 export const utilsService = {
   hello: () => api.get('/utils/hello'),

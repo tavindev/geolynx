@@ -15,6 +15,7 @@ import tavindev.core.entities.Animal;
 import tavindev.core.entities.HistoricalCuriosity;
 import tavindev.core.services.AnimalService;
 import tavindev.core.services.HistoricalCuriosityService;
+import tavindev.core.services.GeohashService;
 
 import org.jvnet.hk2.annotations.Service;
 
@@ -28,20 +29,27 @@ public class RegionController {
   @Inject
   private HistoricalCuriosityService historicalCuriosityService;
 
+  @Inject
+  private GeohashService geohashService;
+
   @GET
   @Path("/")
-  public Response getRegionData(@QueryParam("geohash") String geohash) {
-    if (geohash == null || geohash.isEmpty()) {
+  public Response getRegionData(@QueryParam("lat") Double lat, @QueryParam("lng") Double lng) {
+    if (lat == null || lng == null) {
       return Response.status(Response.Status.BAD_REQUEST)
-          .entity("Geohash parameter is required")
+          .entity("Latitude and longitude parameters are required")
           .build();
     }
 
+    // Calculate geohash from coordinates (using precision 6 for ~5km accuracy)
+    String geohash = geohashService.encode(lat, lng, 6);
+    
     List<Animal> animals = animalService.findByGeohash(geohash);
     List<HistoricalCuriosity> historicalCuriosities = historicalCuriosityService.findByGeohash(geohash);
 
     Map<String, Object> regionData = new HashMap<>();
-    regionData.put("geohash", geohash);
+    regionData.put("latitude", lat);
+    regionData.put("longitude", lng);
     regionData.put("animals", animals);
     regionData.put("historicalCuriosities", historicalCuriosities);
 

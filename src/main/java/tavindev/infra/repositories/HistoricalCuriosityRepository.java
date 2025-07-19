@@ -123,4 +123,33 @@ public class HistoricalCuriosityRepository {
 
 		return curiosities;
 	}
+
+	public List<HistoricalCuriosity> findByLocation(Double lat, Double lng, Double radiusKm) {
+		// Get all historical curiosities (for now, we'll filter by distance in memory)
+		// In a production system, you'd want to use geospatial queries
+		Query<Entity> query = Query.newEntityQueryBuilder()
+				.setKind(HISTORICAL_CURIOSITY_KIND)
+				.build();
+
+		QueryResults<Entity> results = datastore.run(query);
+		List<HistoricalCuriosity> curiosities = new ArrayList<>();
+
+		while (results.hasNext()) {
+			Entity curiosityEntity = results.next();
+
+			String id = curiosityEntity.getKey().getName();
+			String description = curiosityEntity.getString("description");
+			Long latitude = curiosityEntity.getLong("latitude");
+			Long longitude = curiosityEntity.getLong("longitude");
+			String geohash = curiosityEntity.contains("geohash") ? curiosityEntity.getString("geohash") : null;
+			Timestamp createdAt = curiosityEntity.getTimestamp("createdAt");
+
+			HistoricalCuriosity curiosity = new HistoricalCuriosity(id, description, latitude, longitude, geohash,
+					createdAt.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime());
+
+			curiosities.add(curiosity);
+		}
+
+		return curiosities;
+	}
 }

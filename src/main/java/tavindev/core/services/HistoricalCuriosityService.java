@@ -1,5 +1,6 @@
 package tavindev.core.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import tavindev.core.entities.HistoricalCuriosity;
@@ -27,4 +28,5 @@ public class HistoricalCuriosityService {
 	public List<HistoricalCuriosity> findByGeohash(String geohash) {
 		return historicalCuriosityRepository.findByGeohash(geohash);
 	}
+
 }

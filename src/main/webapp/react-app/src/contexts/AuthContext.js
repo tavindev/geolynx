@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Backend returns 204 No Content with session cookie
       await authService.login({ email, password });
-      
+
       // Fetch user info after successful login
       const userResponse = await authService.getCurrentUser();
       setUser(userResponse.data);
@@ -49,9 +49,18 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
+      let errorMessage = 'Credenciais inválidas';
+
+      // Check for specific error messages from backend
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Conta suspensa. Não é possível fazer login.';
+      }
+
       return {
         success: false,
-        error: error.response?.data?.message || 'Credenciais inválidas',
+        error: errorMessage,
       };
     }
   };
@@ -97,17 +106,21 @@ export const AuthProvider = ({ children }) => {
       SMBO: ['manage_worksheets', 'manage_users', 'view_all'],
       SGVBO: ['view_worksheets', 'generate_reports'],
       SDVBO: ['edit_operations', 'export_execution_sheets', 'view_analytics'],
-      PRBO: ['create_execution_sheet', 'assign_operations', 'view_global_status'],
+      PRBO: [
+        'create_execution_sheet',
+        'assign_operations',
+        'view_global_status',
+      ],
       PO: ['start_activity', 'stop_activity', 'view_assigned_operations'],
       OPERATOR: ['view_assigned_work', 'update_progress'],
       PARTNER: ['view_public_data'],
     };
 
     if (!user || !user.role) return false;
-    
+
     // Admin roles have all permissions
     if (user.role === 'ADMIN' || user.role === 'SYSADMIN') return true;
-    
+
     const permissions = rolePermissions[user.role] || [];
     return permissions.includes(permission) || permissions.includes('all');
   };
