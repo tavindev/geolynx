@@ -13,8 +13,8 @@ public class Animal {
   private String name;
   private String description;
   private String image;
-  private Long latitude;
-  private Long longitude;
+  private Double latitude;
+  private Double longitude;
   private String geohash;
   private LocalDateTime createdAt;
   private String userId;
@@ -24,8 +24,8 @@ public class Animal {
       @JsonProperty("name") String name,
       @JsonProperty("description") String description,
       @JsonProperty("image") String image,
-      @JsonProperty("lat") Long latitude,
-      @JsonProperty("long") Long longitude,
+      @JsonProperty("lat") Double latitude,
+      @JsonProperty("long") Double longitude,
       @JsonProperty("userId") String userId) {
     this.id = UUID.randomUUID().toString();
     this.name = name;
@@ -37,8 +37,8 @@ public class Animal {
     this.createdAt = LocalDateTime.now();
   }
 
-  public Animal(String id, String name, String description, String image, Long latitude,
-      Long longitude, String geohash, LocalDateTime createdAt, String userId) {
+  public Animal(String id, String name, String description, String image, Double latitude,
+      Double longitude, String geohash, LocalDateTime createdAt, String userId) {
     this.id = id;
     this.name = name;
     this.description = description;
@@ -70,11 +70,11 @@ public class Animal {
     return image;
   }
 
-  public Long getLatitude() {
+  public Double getLatitude() {
     return latitude;
   }
 
-  public Long getLongitude() {
+  public Double getLongitude() {
     return longitude;
   }
 

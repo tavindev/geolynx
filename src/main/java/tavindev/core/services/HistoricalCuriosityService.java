@@ -4,7 +4,6 @@ import java.util.List;
 
 import tavindev.core.entities.HistoricalCuriosity;
 import tavindev.infra.repositories.HistoricalCuriosityRepository;
-import ch.hsr.geohash.GeoHash;
 
 import org.jvnet.hk2.annotations.Service;
 
@@ -15,11 +14,13 @@ public class HistoricalCuriosityService {
 	@Inject
 	private HistoricalCuriosityRepository historicalCuriosityRepository;
 
+	@Inject
+	private GeoHashService geoHashService;
+
 	public void create(HistoricalCuriosity historicalCuriosity) {
-		double lat = historicalCuriosity.getLatitude();
-		double lon = historicalCuriosity.getLongitude();
-		GeoHash geoHash = GeoHash.withCharacterPrecision(lat, lon, 6);
-		historicalCuriosity.setGeohash(geoHash.toBase32());
+		String geohash = geoHashService.calculateGeohash(historicalCuriosity.getLatitude(),
+				historicalCuriosity.getLongitude());
+		historicalCuriosity.setGeohash(geohash);
 
 		historicalCuriosityRepository.save(historicalCuriosity);
 	}

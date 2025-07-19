@@ -48,8 +48,8 @@ const CreateAnimalModal = ({ open, onClose, coordinates, user, onSuccess }) => {
         name: formData.name,
         description: formData.description,
         image: formData.image,
-        lat: Math.round(coordinates.lat), // Convert to microdegrees as Long
-        long: Math.round(coordinates.lng), // Convert to microdegrees as Long
+        lat: coordinates.lat, // Convert to microdegrees as Long
+        long: coordinates.lng, // Convert to microdegrees as Long
         userId: user.id,
       };
 

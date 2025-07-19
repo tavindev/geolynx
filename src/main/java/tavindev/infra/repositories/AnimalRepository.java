@@ -54,8 +54,8 @@ public class AnimalRepository {
     String name = animalEntity.getString("name");
     String description = animalEntity.getString("description");
     String image = animalEntity.contains("image") ? animalEntity.getString("image") : null;
-    Long latitude = animalEntity.getLong("latitude");
-    Long longitude = animalEntity.getLong("longitude");
+    Double latitude = animalEntity.getDouble("latitude");
+    Double longitude = animalEntity.getDouble("longitude");
     String geohash = animalEntity.contains("geohash") ? animalEntity.getString("geohash") : null;
     String userId = animalEntity.getString("userId");
     Timestamp createdAt = animalEntity.getTimestamp("createdAt");
@@ -67,7 +67,8 @@ public class AnimalRepository {
   public List<Animal> findByGeohash(String geohash) {
     Query<Entity> query = Query.newEntityQueryBuilder()
         .setKind(ANIMAL_KIND)
-        .setFilter(StructuredQuery.PropertyFilter.eq("geohash", geohash))
+        .setFilter(StructuredQuery.PropertyFilter.ge("geohash", geohash))
+        .setFilter(StructuredQuery.PropertyFilter.lt("geohash", geohash + "\ufffd"))
         .build();
 
     QueryResults<Entity> results = datastore.run(query);
@@ -80,12 +81,13 @@ public class AnimalRepository {
       String name = animalEntity.getString("name");
       String description = animalEntity.getString("description");
       String image = animalEntity.contains("image") ? animalEntity.getString("image") : null;
-      Long latitude = animalEntity.getLong("latitude");
-      Long longitude = animalEntity.getLong("longitude");
+      Double latitude = animalEntity.getDouble("latitude");
+      Double longitude = animalEntity.getDouble("longitude");
+      String storedGeohash = animalEntity.contains("geohash") ? animalEntity.getString("geohash") : null;
       String userId = animalEntity.getString("userId");
       Timestamp createdAt = animalEntity.getTimestamp("createdAt");
 
-      Animal animal = new Animal(id, name, description, image, latitude, longitude, geohash,
+      Animal animal = new Animal(id, name, description, image, latitude, longitude, storedGeohash,
           createdAt.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime(), userId);
 
       animals.add(animal);
@@ -111,8 +113,38 @@ public class AnimalRepository {
       String name = animalEntity.getString("name");
       String description = animalEntity.getString("description");
       String image = animalEntity.contains("image") ? animalEntity.getString("image") : null;
-      Long latitude = animalEntity.getLong("latitude");
-      Long longitude = animalEntity.getLong("longitude");
+      Double latitude = animalEntity.getDouble("latitude");
+      Double longitude = animalEntity.getDouble("longitude");
+      String geohash = animalEntity.contains("geohash") ? animalEntity.getString("geohash") : null;
+      String userId = animalEntity.getString("userId");
+      Timestamp createdAt = animalEntity.getTimestamp("createdAt");
+
+      Animal animal = new Animal(id, name, description, image, latitude, longitude, geohash,
+          createdAt.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime(), userId);
+
+      animals.add(animal);
+    }
+
+    return animals;
+  }
+
+  public List<Animal> getAll() {
+    Query<Entity> query = Query.newEntityQueryBuilder()
+        .setKind(ANIMAL_KIND)
+        .build();
+
+    QueryResults<Entity> results = datastore.run(query);
+    List<Animal> animals = new ArrayList<>();
+
+    while (results.hasNext()) {
+      Entity animalEntity = results.next();
+
+      String id = animalEntity.getKey().getName();
+      String name = animalEntity.getString("name");
+      String description = animalEntity.getString("description");
+      String image = animalEntity.contains("image") ? animalEntity.getString("image") : null;
+      Double latitude = animalEntity.getDouble("latitude");
+      Double longitude = animalEntity.getDouble("longitude");
       String geohash = animalEntity.contains("geohash") ? animalEntity.getString("geohash") : null;
       String userId = animalEntity.getString("userId");
       Timestamp createdAt = animalEntity.getTimestamp("createdAt");
