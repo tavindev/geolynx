@@ -38,7 +38,11 @@ const AccountManagement = () => {
   const [accountStatus, setAccountStatus] = useState(null);
 
   // Query to get account status
-  const { data: statusData, isLoading: statusLoading, refetch: refetchStatus } = useQuery(
+  const {
+    data: statusData,
+    isLoading: statusLoading,
+    refetch: refetchStatus,
+  } = useQuery(
     ['accountStatus', userId],
     () => userService.getAccountStatus({ identificador: userId }),
     {
@@ -48,7 +52,7 @@ const AccountManagement = () => {
       },
       onError: (error) => {
         enqueueSnackbar('Failed to fetch account status', { variant: 'error' });
-      }
+      },
     }
   );
 
@@ -57,13 +61,18 @@ const AccountManagement = () => {
     (data) => userService.activateAccount(data),
     {
       onSuccess: () => {
-        enqueueSnackbar('Account activated successfully', { variant: 'success' });
+        enqueueSnackbar('Account activated successfully', {
+          variant: 'success',
+        });
         refetchStatus();
         setOpenDialog(false);
       },
       onError: (error) => {
-        enqueueSnackbar(error.response?.data?.message || 'Failed to activate account', { variant: 'error' });
-      }
+        enqueueSnackbar(
+          error.response?.data?.message || 'Failed to activate account',
+          { variant: 'error' }
+        );
+      },
     }
   );
 
@@ -71,13 +80,18 @@ const AccountManagement = () => {
     (data) => userService.deactivateAccount(data),
     {
       onSuccess: () => {
-        enqueueSnackbar('Account deactivated successfully', { variant: 'success' });
+        enqueueSnackbar('Account deactivated successfully', {
+          variant: 'success',
+        });
         refetchStatus();
         setOpenDialog(false);
       },
       onError: (error) => {
-        enqueueSnackbar(error.response?.data?.message || 'Failed to deactivate account', { variant: 'error' });
-      }
+        enqueueSnackbar(
+          error.response?.data?.message || 'Failed to deactivate account',
+          { variant: 'error' }
+        );
+      },
     }
   );
 
@@ -85,13 +99,18 @@ const AccountManagement = () => {
     (data) => userService.suspendAccount(data),
     {
       onSuccess: () => {
-        enqueueSnackbar('Account suspended successfully', { variant: 'success' });
+        enqueueSnackbar('Account suspended successfully', {
+          variant: 'success',
+        });
         refetchStatus();
         setOpenDialog(false);
       },
       onError: (error) => {
-        enqueueSnackbar(error.response?.data?.message || 'Failed to suspend account', { variant: 'error' });
-      }
+        enqueueSnackbar(
+          error.response?.data?.message || 'Failed to suspend account',
+          { variant: 'error' }
+        );
+      },
     }
   );
 
@@ -99,13 +118,18 @@ const AccountManagement = () => {
     (data) => userService.requestAccountRemoval(data),
     {
       onSuccess: () => {
-        enqueueSnackbar('Account removal requested successfully', { variant: 'success' });
+        enqueueSnackbar('Account removal requested successfully', {
+          variant: 'success',
+        });
         refetchStatus();
         setOpenDialog(false);
       },
       onError: (error) => {
-        enqueueSnackbar(error.response?.data?.message || 'Failed to request account removal', { variant: 'error' });
-      }
+        enqueueSnackbar(
+          error.response?.data?.message || 'Failed to request account removal',
+          { variant: 'error' }
+        );
+      },
     }
   );
 
@@ -137,17 +161,27 @@ const AccountManagement = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE':
+      case 'ATIVADA':
         return 'success';
-      case 'INACTIVE':
+      case 'DESATIVADA':
         return 'default';
-      case 'SUSPENDED':
+      case 'SUSPENSA':
         return 'warning';
-      case 'PENDING_REMOVAL':
+      case 'A_REMOVER':
         return 'error';
       default:
         return 'default';
     }
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      ATIVADA: 'Ativa',
+      DESATIVADA: 'Desativada',
+      SUSPENSA: 'Suspensa',
+      A_REMOVER: 'Remoção Pendente'
+    };
+    return labels[status] || status;
   };
 
   const getDialogContent = () => {
@@ -155,25 +189,29 @@ const AccountManagement = () => {
       case 'activate':
         return {
           title: 'Activate Account',
-          content: 'Are you sure you want to activate this account? The user will be able to access the system.',
+          content:
+            'Are you sure you want to activate this account? The user will be able to access the system.',
           icon: <PauseIcon color="success" />,
         };
       case 'deactivate':
         return {
           title: 'Deactivate Account',
-          content: 'Are you sure you want to deactivate this account? The user will not be able to use it while deactivated.',
+          content:
+            'Are you sure you want to deactivate this account? The user will not be able to use it while deactivated.',
           icon: <ShieldIcon color="error" />,
         };
       case 'suspend':
         return {
           title: 'Suspend Account',
-          content: 'Are you sure you want to suspend this account? The account cannot be used while suspended.',
+          content:
+            'Are you sure you want to suspend this account? The account cannot be used while suspended.',
           icon: <PauseIcon color="warning" />,
         };
       case 'requestRemoval':
         return {
           title: 'Request Account Removal',
-          content: 'Are you sure you want to request the removal of this account? This action will mark the account for deletion.',
+          content:
+            'Are you sure you want to request the removal of this account? This action will mark the account for deletion.',
           icon: <DeleteIcon color="error" />,
         };
       default:
@@ -184,7 +222,12 @@ const AccountManagement = () => {
   if (statusLoading) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="50vh"
+        >
           <CircularProgress />
         </Box>
       </Container>
@@ -192,8 +235,11 @@ const AccountManagement = () => {
   }
 
   const dialogContent = getDialogContent();
-  const isProcessing = activateMutation.isLoading || deactivateMutation.isLoading ||
-                      suspendMutation.isLoading || requestRemovalMutation.isLoading;
+  const isProcessing =
+    activateMutation.isLoading ||
+    deactivateMutation.isLoading ||
+    suspendMutation.isLoading ||
+    requestRemovalMutation.isLoading;
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -216,7 +262,7 @@ const AccountManagement = () => {
               Current Status
             </Typography>
             <Chip
-              label={accountStatus}
+              label={getStatusLabel(accountStatus)}
               color={getStatusColor(accountStatus)}
               size="large"
               sx={{ fontWeight: 'medium' }}
@@ -228,110 +274,127 @@ const AccountManagement = () => {
           Available Actions
         </Typography>
 
+        {accountStatus === 'A_REMOVER' ? (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            This account is marked for removal. No further actions can be taken.
+          </Alert>
+        ) : null}
+
         <Grid container spacing={3}>
           {/* Activate Account */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <PauseIcon color="success" sx={{ mr: 1 }} />
-                  <Typography variant="h6">Activate Account</Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Activate a registered account to allow the user to access the system.
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={() => handleAction('activate')}
-                  disabled={accountStatus === 'ACTIVE' || isProcessing}
-                  startIcon={<PauseIcon />}
-                >
-                  Activate
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
+          {accountStatus !== 'ATIVADA' && (
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <PauseIcon color="success" sx={{ mr: 1 }} />
+                    <Typography variant="h6">Activate Account</Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Activate a registered account to allow the user to access the
+                    system.
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={() => handleAction('activate')}
+                    disabled={isProcessing}
+                    startIcon={<PauseIcon />}
+                  >
+                    Activate
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          )}
 
           {/* Deactivate Account */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <ShieldIcon color="error" sx={{ mr: 1 }} />
-                  <Typography variant="h6">Deactivate Account</Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Deactivate the account to prevent access while keeping it in the system.
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={() => handleAction('deactivate')}
-                  disabled={accountStatus === 'INACTIVE' || isProcessing}
-                  startIcon={<ShieldIcon />}
-                >
-                  Deactivate
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
+          {accountStatus !== 'DESATIVADA' && accountStatus !== 'A_REMOVER' && (
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <ShieldIcon color="error" sx={{ mr: 1 }} />
+                    <Typography variant="h6">Deactivate Account</Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Deactivate the account to prevent access while keeping it in
+                    the system.
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={() => handleAction('deactivate')}
+                    disabled={isProcessing}
+                    startIcon={<ShieldIcon />}
+                  >
+                    Deactivate
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          )}
 
           {/* Suspend Account */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <PauseIcon color="warning" sx={{ mr: 1 }} />
-                  <Typography variant="h6">Suspend Account</Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Temporarily suspend the account. It cannot be used while suspended.
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  variant="contained"
-                  color="warning"
-                  onClick={() => handleAction('suspend')}
-                  disabled={accountStatus === 'SUSPENDED' || isProcessing}
-                  startIcon={<PauseIcon />}
-                >
-                  Suspend
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
+          {accountStatus !== 'SUSPENSA' && accountStatus !== 'A_REMOVER' && (
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <PauseIcon color="warning" sx={{ mr: 1 }} />
+                    <Typography variant="h6">Suspend Account</Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Temporarily suspend the account. It cannot be used while
+                    suspended.
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button
+                    variant="contained"
+                    color="warning"
+                    onClick={() => handleAction('suspend')}
+                    disabled={isProcessing}
+                    startIcon={<PauseIcon />}
+                  >
+                    Suspend
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          )}
 
           {/* Request Removal */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <DeleteIcon color="error" sx={{ mr: 1 }} />
-                  <Typography variant="h6">Request Account Removal</Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Request the removal of this account from the system.
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={() => handleAction('requestRemoval')}
-                  disabled={accountStatus === 'PENDING_REMOVAL' || isProcessing}
-                  startIcon={<DeleteIcon />}
-                >
-                  Request Removal
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
+          {accountStatus !== 'A_REMOVER' && (
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <DeleteIcon color="error" sx={{ mr: 1 }} />
+                    <Typography variant="h6">Request Account Removal</Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Request the removal of this account from the system.
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={() => handleAction('requestRemoval')}
+                    disabled={isProcessing}
+                    startIcon={<DeleteIcon />}
+                  >
+                    Request Removal
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          )}
         </Grid>
 
         <Box mt={4}>
@@ -354,13 +417,13 @@ const AccountManagement = () => {
         <DialogTitle>
           <Box display="flex" alignItems="center">
             {dialogContent.icon}
-            <Typography variant="h6" sx={{ ml: 1 }}>{dialogContent.title}</Typography>
+            <Typography variant="h6" sx={{ ml: 1 }}>
+              {dialogContent.title}
+            </Typography>
           </Box>
         </DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            {dialogContent.content}
-          </DialogContentText>
+          <DialogContentText>{dialogContent.content}</DialogContentText>
           <Alert severity="warning" sx={{ mt: 2 }}>
             <Typography variant="body2">
               This action will affect the user's ability to access the system.

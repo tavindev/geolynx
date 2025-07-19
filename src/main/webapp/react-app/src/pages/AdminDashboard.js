@@ -34,12 +34,10 @@ import {
   Description as DescriptionIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { userService, worksheetService } from '../services/api';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -59,32 +57,31 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch all users
       const usersResponse = await userService.listUsers();
       const allUsers = usersResponse.data || [];
-      
+
       // Fetch removal requests
       const removalResponse = await userService.getAccountsForRemoval();
       const removalList = removalResponse.data || [];
-      
+
       // Fetch worksheets
       const worksheetsResponse = await worksheetService.getAll();
       const allWorksheets = worksheetsResponse.data || [];
-      
+
       // Calculate stats
       setStats({
         totalUsers: allUsers.length,
-        activeUsers: allUsers.filter(u => u.status === 'ACTIVE').length,
+        activeUsers: allUsers.filter((u) => u.status === 'ACTIVE').length,
         pendingRemoval: removalList.length,
-        suspendedUsers: allUsers.filter(u => u.status === 'SUSPENDED').length,
+        suspendedUsers: allUsers.filter((u) => u.status === 'SUSPENDED').length,
         totalWorksheets: allWorksheets.length,
       });
-      
+
       // Get recent users (last 5)
       setRecentUsers(allUsers.slice(0, 5));
       setRemovalRequests(removalList.slice(0, 3));
-      
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       setError('Erro ao carregar dados do dashboard');
@@ -106,11 +103,10 @@ const AdminDashboard = () => {
 
   const getStatusLabel = (status) => {
     const labels = {
-      ACTIVE: 'Ativo',
-      INACTIVE: 'Inativo',
-      SUSPENDED: 'Suspenso',
-      PENDING_REMOVAL: 'Remoção Pendente',
-      DEACTIVATED: 'Desativado',
+      ATIVADA: 'Ativo',
+      SUSPENSA: 'Suspenso',
+      DESATIVADA: 'Desativado',
+      A_REMOVER: 'Remoção Pendente',
     };
     return labels[status] || status;
   };
@@ -128,90 +124,120 @@ const AdminDashboard = () => {
       <Typography variant="h4" gutterBottom>
         Dashboard Administrativo
       </Typography>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
-      
+
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+              >
                 <Box>
-                  <Typography color="textSecondary" gutterBottom variant="body2">
+                  <Typography
+                    color="textSecondary"
+                    gutterBottom
+                    variant="body2"
+                  >
                     Total de Utilizadores
                   </Typography>
-                  <Typography variant="h4">
-                    {stats.totalUsers}
-                  </Typography>
+                  <Typography variant="h4">{stats.totalUsers}</Typography>
                 </Box>
                 <PeopleIcon color="primary" sx={{ fontSize: 40 }} />
               </Box>
             </CardContent>
             <CardActions>
-              <Button size="small" onClick={() => navigate('/dashboard/list-users')}>
+              <Button
+                size="small"
+                onClick={() => navigate('/dashboard/list-users')}
+              >
                 Ver Todos
               </Button>
             </CardActions>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+              >
                 <Box>
-                  <Typography color="textSecondary" gutterBottom variant="body2">
+                  <Typography
+                    color="textSecondary"
+                    gutterBottom
+                    variant="body2"
+                  >
                     Utilizadores Ativos
                   </Typography>
-                  <Typography variant="h4">
-                    {stats.activeUsers}
-                  </Typography>
+                  <Typography variant="h4">{stats.activeUsers}</Typography>
                 </Box>
                 <CheckCircleIcon color="success" sx={{ fontSize: 40 }} />
               </Box>
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+              >
                 <Box>
-                  <Typography color="textSecondary" gutterBottom variant="body2">
+                  <Typography
+                    color="textSecondary"
+                    gutterBottom
+                    variant="body2"
+                  >
                     Pedidos de Remoção
                   </Typography>
-                  <Typography variant="h4">
-                    {stats.pendingRemoval}
-                  </Typography>
+                  <Typography variant="h4">{stats.pendingRemoval}</Typography>
                 </Box>
                 <WarningIcon color="error" sx={{ fontSize: 40 }} />
               </Box>
             </CardContent>
             <CardActions>
-              <Button size="small" onClick={() => navigate('/dashboard/removal-requests')}>
+              <Button
+                size="small"
+                onClick={() => navigate('/dashboard/removal-requests')}
+              >
                 Gerir
               </Button>
             </CardActions>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+              >
                 <Box>
-                  <Typography color="textSecondary" gutterBottom variant="body2">
+                  <Typography
+                    color="textSecondary"
+                    gutterBottom
+                    variant="body2"
+                  >
                     Folhas de Obra
                   </Typography>
-                  <Typography variant="h4">
-                    {stats.totalWorksheets}
-                  </Typography>
+                  <Typography variant="h4">{stats.totalWorksheets}</Typography>
                 </Box>
                 <DescriptionIcon color="secondary" sx={{ fontSize: 40 }} />
               </Box>
@@ -222,10 +248,15 @@ const AdminDashboard = () => {
 
       {/* Recent Users Table */}
       <Paper sx={{ mb: 4 }}>
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">
-            Utilizadores Recentes
-          </Typography>
+        <Box
+          sx={{
+            p: 2,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Typography variant="h6">Utilizadores Recentes</Typography>
           <Button onClick={() => navigate('/dashboard/list-users')}>
             Ver Todos
           </Button>
@@ -244,31 +275,37 @@ const AdminDashboard = () => {
             <TableBody>
               {recentUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>{user.personalInfo?.fullName || user.username}</TableCell>
+                  <TableCell>
+                    {user.personalInfo?.fullName || user.username}
+                  </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <Chip label={user.role} size="small" />
                   </TableCell>
                   <TableCell>
-                    <Chip 
-                      label={getStatusLabel(user.status)} 
-                      color={getStatusColor(user.status)}
+                    <Chip
+                      label={getStatusLabel(user.accountStatus)}
+                      color={getStatusColor(user.accountStatus)}
                       size="small"
                     />
                   </TableCell>
                   <TableCell align="center">
                     <Tooltip title="Gerir Conta">
-                      <IconButton 
+                      <IconButton
                         size="small"
-                        onClick={() => navigate(`/dashboard/account-management/${user.id}`)}
+                        onClick={() =>
+                          navigate(`/dashboard/account-management/${user.id}`)
+                        }
                       >
                         <SettingsIcon />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Editar Atributos">
-                      <IconButton 
+                      <IconButton
                         size="small"
-                        onClick={() => navigate(`/dashboard/change-attributes/${user.id}`)}
+                        onClick={() =>
+                          navigate(`/dashboard/change-attributes/${user.id}`)
+                        }
                       >
                         <EditIcon />
                       </IconButton>
@@ -284,10 +321,15 @@ const AdminDashboard = () => {
       {/* Removal Requests */}
       {removalRequests.length > 0 && (
         <Paper>
-          <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">
-              Pedidos de Remoção Pendentes
-            </Typography>
+          <Box
+            sx={{
+              p: 2,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <Typography variant="h6">Pedidos de Remoção Pendentes</Typography>
             <Button onClick={() => navigate('/dashboard/removal-requests')}>
               Ver Todos
             </Button>
@@ -305,7 +347,9 @@ const AdminDashboard = () => {
               <TableBody>
                 {removalRequests.map((request) => (
                   <TableRow key={request.id}>
-                    <TableCell>{request.personalInfo?.fullName || request.username}</TableCell>
+                    <TableCell>
+                      {request.personalInfo?.fullName || request.username}
+                    </TableCell>
                     <TableCell>{request.email}</TableCell>
                     <TableCell>{request.role}</TableCell>
                     <TableCell align="center">
