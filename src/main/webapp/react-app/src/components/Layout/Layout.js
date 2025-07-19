@@ -150,6 +150,8 @@ const Layout = () => {
 
   const filterMenuItems = (items) => {
     return items.filter((item) => {
+      if (user.role === 'SYSADMIN') return true;
+
       if (item.roles && item.roles.length > 0) {
         return item.roles.some((role) => user?.role === role);
       }

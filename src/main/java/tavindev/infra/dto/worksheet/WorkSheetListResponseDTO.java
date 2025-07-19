@@ -10,6 +10,8 @@ public record WorkSheetListResponseDTO(
 		String issueDate,
 		String awardDate,
 		Long serviceProviderId,
+		String posaCode,
+		String posaDescription,
 		List<OperationDTO> operations,
 		List<FeatureDTO> features) {
 	public record OperationDTO(
@@ -17,12 +19,12 @@ public record WorkSheetListResponseDTO(
 			String operationDescription,
 			double areaHa) {
 	}
-	
+
 	public record FeatureDTO(
 			String type,
 			GeometryDTO geometry) {
 	}
-	
+
 	public record GeometryDTO(
 			String type,
 			List<List<List<Double>>> coordinates) {

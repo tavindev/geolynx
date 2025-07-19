@@ -134,9 +134,30 @@ const WorkSheets = () => {
     navigate(`/dashboard/worksheet/${worksheet.id}`);
   };
 
+  const calculateTotalArea = (worksheet) => {
+    if (!worksheet.operations) return '0';
+
+    const totalArea = worksheet.operations.reduce((sum, operation) => {
+      return sum + (operation.areaHa || 0);
+    }, 0);
+
+    return totalArea.toFixed(2);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
+
+    // Handle different date formats
+    let date;
+    if (dateString.includes('T')) {
+      date = new Date(dateString);
+    } else if (dateString.includes('-')) {
+      date = new Date(dateString + 'T00:00:00');
+    } else {
+      date = new Date(dateString);
+    }
+
+    if (isNaN(date.getTime())) return '-';
     return date.toLocaleDateString('pt-PT');
   };
 
@@ -180,31 +201,33 @@ const WorkSheets = () => {
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
-                <TableCell>Nome</TableCell>
-                <TableCell>Tipo</TableCell>
-                <TableCell>Estado</TableCell>
-                <TableCell>Data de Criação</TableCell>
+                <TableCell>Data de Emissão</TableCell>
+                <TableCell>Data de Início</TableCell>
+                <TableCell>Data de Fim</TableCell>
+                <TableCell>Código POSA</TableCell>
+                <TableCell>Descrição POSA</TableCell>
                 <TableCell>Nº de Features</TableCell>
+                <TableCell>Área Total (ha)</TableCell>
                 <TableCell align="right">Ações</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {worksheets.map((worksheet) => (
-                <TableRow key={worksheet.id} hover>
-                  <TableCell>{worksheet.id}</TableCell>
-                  <TableCell>{worksheet.name || 'Sem nome'}</TableCell>
-                  <TableCell>{worksheet.type || '-'}</TableCell>
+                <TableRow key={worksheet.id || Math.random()} hover>
+                  <TableCell>{worksheet.id || '-'}</TableCell>
+                  <TableCell>{formatDate(worksheet.issueDate)}</TableCell>
+                  <TableCell>{formatDate(worksheet.startingDate)}</TableCell>
+                  <TableCell>{formatDate(worksheet.finishingDate)}</TableCell>
                   <TableCell>
                     <Chip
-                      label={worksheet.status || 'Ativo'}
+                      label={worksheet.posaCode || 'N/A'}
                       size="small"
-                      color={
-                        worksheet.status === 'active' ? 'success' : 'default'
-                      }
+                      variant="outlined"
                     />
                   </TableCell>
-                  <TableCell>{formatDate(worksheet.createdAt)}</TableCell>
-                  <TableCell>{worksheet.featuresCount || 0}</TableCell>
+                  <TableCell>{worksheet.posaDescription || '-'}</TableCell>
+                  <TableCell>{worksheet.features?.length || 0}</TableCell>
+                  <TableCell>{calculateTotalArea(worksheet)}</TableCell>
                   <TableCell align="right">
                     <Tooltip title="Ver detalhes">
                       <IconButton
@@ -214,7 +237,7 @@ const WorkSheets = () => {
                         <VisibilityIcon />
                       </IconButton>
                     </Tooltip>
-                    {worksheet.geometry && (
+                    {worksheet.features && worksheet.features.length > 0 && (
                       <Tooltip title="Ver no mapa">
                         <IconButton
                           onClick={() =>
@@ -256,8 +279,8 @@ const WorkSheets = () => {
         <DialogTitle>Confirmar Remoção</DialogTitle>
         <DialogContent>
           <Typography>
-            Tem certeza que deseja remover a folha de obra "
-            {selectedWorksheet?.name || 'Sem nome'}"?
+            Tem certeza que deseja remover a folha de obra com ID "
+            {selectedWorksheet?.id || 'Desconhecido'}"?
           </Typography>
         </DialogContent>
         <DialogActions>

@@ -147,9 +147,9 @@ public class WorkSheet {
             @JsonCreator
             public FeatureProperties(
                     @JsonProperty("id") Long id,
-                    @JsonProperty("ruralPropertyId") String ruralPropertyId,
-                    @JsonProperty("polygonId") Long polygonId,
-                    @JsonProperty("uiId") Long uiId,
+                    @JsonProperty("rural_property_id") String ruralPropertyId,
+                    @JsonProperty("polygon_id") Long polygonId,
+                    @JsonProperty("ui_id") Long uiId,
                     @JsonProperty("aigp") String aigp) {
                 this.id = id;
                 this.ruralPropertyId = ruralPropertyId;
@@ -219,17 +219,17 @@ public class WorkSheet {
 
         @JsonCreator
         public Metadata(@JsonProperty("id") Long id,
-                @JsonProperty("startingDate") String startingDate,
-                @JsonProperty("finishingDate") String finishingDate,
-                @JsonProperty("issueDate") String issueDate,
-                @JsonProperty("serviceProviderId") Long serviceProviderId,
-                @JsonProperty("awardDate") String awardDate,
-                @JsonProperty("issuingUserId") Long issuingUserId,
+                @JsonProperty("starting_date") String startingDate,
+                @JsonProperty("finishing_date") String finishingDate,
+                @JsonProperty("issue_date") String issueDate,
+                @JsonProperty("service_provider_id") Long serviceProviderId,
+                @JsonProperty("award_date") String awardDate,
+                @JsonProperty("issuing_user_id") Long issuingUserId,
                 @JsonProperty("aigp") List<String> aigp,
-                @JsonProperty("posaCode") String posaCode,
-                @JsonProperty("posaDescription") String posaDescription,
-                @JsonProperty("pospCode") String pospCode,
-                @JsonProperty("pospDescription") String pospDescription,
+                @JsonProperty("posa_code") String posaCode,
+                @JsonProperty("posa_description") String posaDescription,
+                @JsonProperty("posp_code") String pospCode,
+                @JsonProperty("posp_description") String pospDescription,
                 @JsonProperty("operations") List<Operation> operations) {
             this.id = id;
             this.startingDate = startingDate;
@@ -307,9 +307,9 @@ public class WorkSheet {
         private final double areaHa;
 
         @JsonCreator
-        public Operation(@JsonProperty("operationCode") String operationCode,
-                @JsonProperty("operationDescription") String operationDescription,
-                @JsonProperty("areaHa") double areaHa) {
+        public Operation(@JsonProperty("operation_code") String operationCode,
+                @JsonProperty("operation_description") String operationDescription,
+                @JsonProperty("area_ha") double areaHa) {
             this.operationCode = operationCode;
             this.operationDescription = operationDescription;
             this.areaHa = areaHa;

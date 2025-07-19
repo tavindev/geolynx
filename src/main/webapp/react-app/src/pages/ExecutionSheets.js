@@ -122,7 +122,14 @@ const ExecutionSheets = () => {
 
   return (
     <Container sx={{ mt: 4 }}>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <Typography variant="h4" component="h1">
           Folhas de Execução
         </Typography>
@@ -147,8 +154,8 @@ const ExecutionSheets = () => {
       {executionSheets.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body1" color="textSecondary">
-            Nenhuma folha de execução encontrada. 
-            {worksheets.length > 0 
+            Nenhuma folha de execução encontrada.
+            {worksheets.length > 0
               ? ' Crie uma nova folha de execução a partir de uma folha de obra.'
               : ' Primeiro, crie uma folha de obra.'}
           </Typography>
@@ -186,7 +193,9 @@ const ExecutionSheets = () => {
                     <Tooltip title="Ver Detalhes">
                       <IconButton
                         size="small"
-                        onClick={() => navigate(`/execution-sheets/${sheet.id}`)}
+                        onClick={() =>
+                          navigate(`/execution-sheets/${sheet.id}`)
+                        }
                       >
                         <ViewIcon />
                       </IconButton>
@@ -195,7 +204,9 @@ const ExecutionSheets = () => {
                       <Tooltip title="Atribuir Operações">
                         <IconButton
                           size="small"
-                          onClick={() => navigate(`/execution-sheets/${sheet.id}/assign`)}
+                          onClick={() =>
+                            navigate(`/execution-sheets/${sheet.id}/assign`)
+                          }
                         >
                           <AssignIcon />
                         </IconButton>
@@ -220,7 +231,12 @@ const ExecutionSheets = () => {
       )}
 
       {/* Create Execution Sheet Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Criar Nova Folha de Execução</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2 }}>
@@ -239,8 +255,14 @@ const ExecutionSheets = () => {
                     p: 2,
                     mb: 1,
                     cursor: 'pointer',
-                    border: selectedWorksheet?.id === worksheet.id ? '2px solid' : '1px solid',
-                    borderColor: selectedWorksheet?.id === worksheet.id ? 'primary.main' : 'grey.300',
+                    border:
+                      selectedWorksheet?.id === worksheet.id
+                        ? '2px solid'
+                        : '1px solid',
+                    borderColor:
+                      selectedWorksheet?.id === worksheet.id
+                        ? 'primary.main'
+                        : 'grey.300',
                     '&:hover': {
                       borderColor: 'primary.main',
                       bgcolor: 'action.hover',
@@ -250,7 +272,8 @@ const ExecutionSheets = () => {
                 >
                   <Typography variant="subtitle1">{worksheet.name}</Typography>
                   <Typography variant="body2" color="textSecondary">
-                    Código: {worksheet.code} | Data: {worksheet.date}
+                    ID: {worksheet.id} | Código: {worksheet.posaCode} | Data:
+                    {worksheet.issueDate}
                   </Typography>
                 </Paper>
               ))}
@@ -275,7 +298,9 @@ const ExecutionSheets = () => {
 
 const handleExport = async (id) => {
   try {
-    const response = await executionSheetService.export({ executionSheetId: id });
+    const response = await executionSheetService.export({
+      executionSheetId: id,
+    });
     // Handle export - could download as file or show in new window
     console.log('Exported:', response.data);
   } catch (err) {

@@ -251,7 +251,9 @@ public class WorkSheetRepository {
             if (metadata.getStartingDate() != null)
                 metadataBuilder.set("startingDate", metadata.getStartingDate());
 
-            metadataBuilder.set("finishingDate", metadata.getFinishingDate());
+            if (metadata.getFinishingDate() != null)
+                metadataBuilder.set("finishingDate", metadata.getFinishingDate());
+
             metadataBuilder.set("issueDate", metadata.getIssueDate());
             metadataBuilder.set("serviceProviderId", metadata.getServiceProviderId());
             metadataBuilder.set("awardDate", metadata.getAwardDate());
@@ -346,6 +348,8 @@ public class WorkSheetRepository {
                 String issueDate = metadataEntity.getString("issueDate");
                 Long serviceProviderId = metadataEntity.getLong("serviceProviderId");
                 String awardDate = metadataEntity.getString("awardDate");
+                String posaCode = metadataEntity.getString("posaCode");
+                String posaDescription = metadataEntity.getString("posaDescription");
 
                 // Extract AIGP list
                 List<String> aigp = null;
@@ -380,7 +384,7 @@ public class WorkSheetRepository {
                         }
                     }
                 }
-                
+
                 // Extract features to get coordinates
                 List<WorkSheetListResponseDTO.FeatureDTO> features = new ArrayList<>();
                 if (workSheetEntity.contains("features")) {
@@ -391,17 +395,18 @@ public class WorkSheetRepository {
                         if (firstFeatureValue instanceof EntityValue) {
                             FullEntity<?> featureEntity = ((EntityValue) firstFeatureValue).get();
                             String featureType = featureEntity.getString("type");
-                            
+
                             // Extract geometry
                             if (featureEntity.contains("geometry")) {
                                 FullEntity<?> geometryEntity = featureEntity.getEntity("geometry");
                                 String geometryType = geometryEntity.getString("type");
-                                List<List<List<Double>>> coordinates = parseCoordinates3D(geometryEntity.getString("coordinates"));
-                                
-                                WorkSheetListResponseDTO.GeometryDTO geometry = 
-                                    new WorkSheetListResponseDTO.GeometryDTO(geometryType, coordinates);
-                                WorkSheetListResponseDTO.FeatureDTO feature = 
-                                    new WorkSheetListResponseDTO.FeatureDTO(featureType, geometry);
+                                List<List<List<Double>>> coordinates = parseCoordinates3D(
+                                        geometryEntity.getString("coordinates"));
+
+                                WorkSheetListResponseDTO.GeometryDTO geometry = new WorkSheetListResponseDTO.GeometryDTO(
+                                        geometryType, coordinates);
+                                WorkSheetListResponseDTO.FeatureDTO feature = new WorkSheetListResponseDTO.FeatureDTO(
+                                        featureType, geometry);
                                 features.add(feature);
                             }
                         }
@@ -410,7 +415,7 @@ public class WorkSheetRepository {
 
                 WorkSheetListResponseDTO workSheet = new WorkSheetListResponseDTO(
                         workSheetId, aigp, startingDate, finishingDate, issueDate, awardDate, serviceProviderId,
-                        operations, features);
+                        posaCode, posaDescription, operations, features);
 
                 workSheets.add(workSheet);
             }
