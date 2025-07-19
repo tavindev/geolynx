@@ -29,6 +29,7 @@ import {
   Grid,
   CircularProgress,
   Alert,
+  Button,
 } from '@mui/material';
 import {
   Layers as LayersIcon,
@@ -40,6 +41,7 @@ import {
   HistoryEdu as HistoryIcon,
   Description as WorksheetIcon,
   Engineering as OperationIcon,
+  Assignment as ExecutionSheetIcon,
 } from '@mui/icons-material';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -48,6 +50,7 @@ import { regionService, worksheetService } from '../services/api';
 import RegionSidebar from '../components/RegionSidebar';
 import CreateAnimalModal from '../components/CreateAnimalModal';
 import CreateCuriosityModal from '../components/CreateCuriosityModal';
+import CreateExecutionSheetModal from '../components/CreateExecutionSheetModal';
 import proj4 from 'proj4';
 
 // Fix for default markers in React-Leaflet
@@ -117,7 +120,7 @@ function MapEventHandler({ onMoveEnd }) {
 }
 
 // Map controls component
-function MapControls({ user, onCreateAnimal, onCreateCuriosity }) {
+function MapControls({ user, onCreateAnimal, onCreateCuriosity, onCreateExecutionSheet }) {
   const map = useMap();
 
   const handleZoomIn = () => {
@@ -154,7 +157,7 @@ function MapControls({ user, onCreateAnimal, onCreateCuriosity }) {
               size="small"
               color="success"
               onClick={onCreateAnimal}
-              title="Add Animal"
+              title="Adicionar Animal"
             >
               <PetsIcon />
             </Fab>
@@ -162,9 +165,17 @@ function MapControls({ user, onCreateAnimal, onCreateCuriosity }) {
               size="small"
               color="info"
               onClick={onCreateCuriosity}
-              title="Add Historical Curiosity"
+              title="Adicionar Curiosidade Histórica"
             >
               <HistoryIcon />
+            </Fab>
+            <Fab
+              size="small"
+              color="warning"
+              onClick={onCreateExecutionSheet}
+              title="Criar Folha de Execução"
+            >
+              <ExecutionSheetIcon />
             </Fab>
           </>
         )}
@@ -189,6 +200,9 @@ const Map = () => {
   const [currentCoordinates, setCurrentCoordinates] = useState(null);
   const [createAnimalOpen, setCreateAnimalOpen] = useState(false);
   const [createCuriosityOpen, setCreateCuriosityOpen] = useState(false);
+  const [createExecutionSheetOpen, setCreateExecutionSheetOpen] = useState(false);
+  const [selectedPolygonForExecution, setSelectedPolygonForExecution] = useState(null);
+  const [selectedWorksheetForExecution, setSelectedWorksheetForExecution] = useState(null);
   const mapRef = useRef(null);
   const debounceTimeoutRef = useRef(null);
 
@@ -290,6 +304,20 @@ const Map = () => {
     if (currentCoordinates) {
       handleMapMoveEnd(currentCoordinates.lat, currentCoordinates.lng);
     }
+    // Refresh worksheets to show any new execution sheets
+    loadWorksheets();
+  };
+
+  const handleAreaClick = (areaData) => {
+    if (areaData.createExecutionSheet) {
+      // Open execution sheet modal with preselected data
+      setSelectedPolygonForExecution(areaData.polygon);
+      setSelectedWorksheetForExecution(areaData.worksheetInfo);
+      setCreateExecutionSheetOpen(true);
+    } else {
+      // Regular area selection
+      setSelectedArea(areaData);
+    }
   };
 
   // Get detailed worksheet data
@@ -343,6 +371,7 @@ const Map = () => {
                   user={user}
                   onCreateAnimal={() => setCreateAnimalOpen(true)}
                   onCreateCuriosity={() => setCreateCuriosityOpen(true)}
+                  onCreateExecutionSheet={() => setCreateExecutionSheetOpen(true)}
                 />
 
                 {/* Worksheets Layer */}
@@ -354,7 +383,7 @@ const Map = () => {
                       <WorksheetPolygons 
                         worksheetId={worksheet.id} 
                         worksheetInfo={worksheet}
-                        onAreaClick={setSelectedArea}
+                        onAreaClick={handleAreaClick}
                       />
                     </React.Fragment>
                   ))}
@@ -571,6 +600,10 @@ const Map = () => {
                 <Typography variant="caption">Folhas de Obra</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ExecutionSheetIcon fontSize="small" color="warning" />
+                <Typography variant="caption">Folhas de Execução</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <PetsIcon fontSize="small" color="success" />
                 <Typography variant="caption">Animais</Typography>
               </Box>
@@ -600,6 +633,21 @@ const Map = () => {
         user={user}
         onSuccess={handleCreationSuccess}
       />
+
+      {/* Create Execution Sheet Modal */}
+      <CreateExecutionSheetModal
+        open={createExecutionSheetOpen}
+        onClose={() => {
+          setCreateExecutionSheetOpen(false);
+          setSelectedPolygonForExecution(null);
+          setSelectedWorksheetForExecution(null);
+        }}
+        coordinates={currentCoordinates}
+        user={user}
+        onSuccess={handleCreationSuccess}
+        preselectedPolygon={selectedPolygonForExecution}
+        preselectedWorksheet={selectedWorksheetForExecution}
+      />
     </Container>
   );
 };
@@ -608,6 +656,7 @@ const Map = () => {
 const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
   const [worksheet, setWorksheet] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadWorksheet = async () => {
@@ -649,8 +698,10 @@ const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
             eventHandlers={{
               click: () => onAreaClick({
                 worksheetId: worksheetId,
-                ...worksheetInfo,
+                worksheetInfo: worksheetInfo,
+                worksheet: worksheet,
                 feature: feature.properties,
+                polygon: feature,
               }),
             }}
           >
@@ -667,6 +718,30 @@ const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
                   <Typography variant="body2">
                     <strong>UI:</strong> {feature.properties.UI_id}
                   </Typography>
+                )}
+                {user && (
+                  <Box sx={{ mt: 2 }}>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="warning"
+                      startIcon={<ExecutionSheetIcon />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAreaClick({
+                          worksheetId: worksheetId,
+                          worksheetInfo: worksheetInfo,
+                          worksheet: worksheet,
+                          feature: feature.properties,
+                          polygon: feature,
+                          createExecutionSheet: true,
+                        });
+                      }}
+                      fullWidth
+                    >
+                      Criar Folha de Execução
+                    </Button>
+                  </Box>
                 )}
               </Box>
             </Popup>
