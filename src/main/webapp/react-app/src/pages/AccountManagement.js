@@ -116,7 +116,7 @@ const AccountManagement = () => {
 
   const confirmAction = () => {
     const data = { identificador: userId };
-    
+
     switch (dialogAction) {
       case 'activate':
         activateMutation.mutate(data);
@@ -192,7 +192,7 @@ const AccountManagement = () => {
   }
 
   const dialogContent = getDialogContent();
-  const isProcessing = activateMutation.isLoading || deactivateMutation.isLoading || 
+  const isProcessing = activateMutation.isLoading || deactivateMutation.isLoading ||
                       suspendMutation.isLoading || requestRemovalMutation.isLoading;
 
   return (
@@ -215,8 +215,8 @@ const AccountManagement = () => {
             <Typography variant="h6" gutterBottom>
               Current Status
             </Typography>
-            <Chip 
-              label={accountStatus} 
+            <Chip
+              label={accountStatus}
               color={getStatusColor(accountStatus)}
               size="large"
               sx={{ fontWeight: 'medium' }}
@@ -242,8 +242,8 @@ const AccountManagement = () => {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   color="success"
                   onClick={() => handleAction('activate')}
                   disabled={accountStatus === 'ACTIVE' || isProcessing}
@@ -268,8 +268,8 @@ const AccountManagement = () => {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   color="error"
                   onClick={() => handleAction('deactivate')}
                   disabled={accountStatus === 'INACTIVE' || isProcessing}
@@ -294,8 +294,8 @@ const AccountManagement = () => {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   color="warning"
                   onClick={() => handleAction('suspend')}
                   disabled={accountStatus === 'SUSPENDED' || isProcessing}
@@ -320,8 +320,8 @@ const AccountManagement = () => {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   color="error"
                   onClick={() => handleAction('requestRemoval')}
                   disabled={accountStatus === 'PENDING_REMOVAL' || isProcessing}
@@ -335,8 +335,8 @@ const AccountManagement = () => {
         </Grid>
 
         <Box mt={4}>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             onClick={() => navigate('/dashboard/list-users')}
           >
             Back to User List
@@ -371,9 +371,9 @@ const AccountManagement = () => {
           <Button onClick={() => setOpenDialog(false)} disabled={isProcessing}>
             Cancel
           </Button>
-          <Button 
-            onClick={confirmAction} 
-            variant="contained" 
+          <Button
+            onClick={confirmAction}
+            variant="contained"
             color="primary"
             disabled={isProcessing}
             startIcon={isProcessing && <CircularProgress size={20} />}

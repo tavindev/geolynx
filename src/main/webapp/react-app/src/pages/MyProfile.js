@@ -58,10 +58,11 @@ const MyProfile = () => {
     try {
       // Update user attributes
       await userService.changeAttributes({
-        identificador: user.username,
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
+        identificador: user.username, // Add the user identifier
+              atributos: {
+                fullName: formData.fullName,
+                email: formData.email,
+                phone: formData.phone,
       });
 
       // Update profile if changed
