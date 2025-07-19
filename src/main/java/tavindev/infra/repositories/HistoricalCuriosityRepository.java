@@ -5,6 +5,7 @@ import com.google.cloud.Timestamp;
 import org.jvnet.hk2.annotations.Service;
 import tavindev.core.entities.HistoricalCuriosity;
 
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,14 +24,16 @@ public class HistoricalCuriosityRepository {
 			return null;
 		}
 
+		String title = curiosityEntity.contains("title") ? curiosityEntity.getString("title") : null;
 		String description = curiosityEntity.getString("description");
-		Long latitude = curiosityEntity.getLong("latitude");
-		Long longitude = curiosityEntity.getLong("longitude");
+		Double latitude = curiosityEntity.getDouble("latitude");
+		Double longitude = curiosityEntity.getDouble("longitude");
 		String geohash = curiosityEntity.contains("geohash") ? curiosityEntity.getString("geohash") : null;
-		Timestamp createdAt = curiosityEntity.getTimestamp("createdAt");
+		String userId = curiosityEntity.contains("userId") ? curiosityEntity.getString("userId") : null;
+		String createdAt = curiosityEntity.getString("createdAt");
 
-		HistoricalCuriosity curiosity = new HistoricalCuriosity(id, description, latitude, longitude, geohash,
-				createdAt.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime());
+		HistoricalCuriosity curiosity = new HistoricalCuriosity(id, title, description, latitude, longitude, geohash,
+				LocalDateTime.parse(createdAt), userId);
 		return curiosity;
 	}
 
@@ -40,14 +43,20 @@ public class HistoricalCuriosityRepository {
 
 		Entity.Builder entityBuilder = Entity.newBuilder(curiosityKey);
 
+		if (curiosity.getTitle() != null) {
+			entityBuilder.set("title", curiosity.getTitle());
+		}
 		entityBuilder.set("description", curiosity.getDescription());
 		entityBuilder.set("latitude", curiosity.getLatitude());
 		entityBuilder.set("longitude", curiosity.getLongitude());
-		entityBuilder.set("createdAt",
-				Timestamp.of(java.util.Date.from(curiosity.getCreatedAt().atZone(ZoneOffset.UTC).toInstant())));
+		entityBuilder.set("createdAt", curiosity.getCreatedAt());
 
 		if (curiosity.getGeohash() != null) {
 			entityBuilder.set("geohash", curiosity.getGeohash());
+		}
+
+		if (curiosity.getUserId() != null) {
+			entityBuilder.set("userId", curiosity.getUserId());
 		}
 
 		Entity curiosityEntity = entityBuilder.build();
@@ -83,14 +92,16 @@ public class HistoricalCuriosityRepository {
 			Entity curiosityEntity = results.next();
 
 			String id = curiosityEntity.getKey().getName();
+			String title = curiosityEntity.contains("title") ? curiosityEntity.getString("title") : null;
 			String description = curiosityEntity.getString("description");
-			Long latitude = curiosityEntity.getLong("latitude");
-			Long longitude = curiosityEntity.getLong("longitude");
-			Timestamp createdAt = curiosityEntity.getTimestamp("createdAt");
+			Double latitude = curiosityEntity.getDouble("latitude");
+			Double longitude = curiosityEntity.getDouble("longitude");
+			String createdAt = curiosityEntity.getString("createdAt");
 			String geohash = curiosityEntity.contains("geohash") ? curiosityEntity.getString("geohash") : null;
+			String userId = curiosityEntity.contains("userId") ? curiosityEntity.getString("userId") : null;
 
-			HistoricalCuriosity curiosity = new HistoricalCuriosity(id, description, latitude, longitude, geohash,
-					createdAt.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime());
+			HistoricalCuriosity curiosity = new HistoricalCuriosity(id, title, description, latitude, longitude, geohash,
+					LocalDateTime.parse(createdAt), userId);
 
 			curiosities.add(curiosity);
 		}
@@ -111,13 +122,16 @@ public class HistoricalCuriosityRepository {
 			Entity curiosityEntity = results.next();
 
 			String id = curiosityEntity.getKey().getName();
+			String title = curiosityEntity.contains("title") ? curiosityEntity.getString("title") : null;
 			String description = curiosityEntity.getString("description");
-			Long latitude = curiosityEntity.getLong("latitude");
-			Long longitude = curiosityEntity.getLong("longitude");
-			Timestamp createdAt = curiosityEntity.getTimestamp("createdAt");
+			Double latitude = curiosityEntity.getDouble("latitude");
+			Double longitude = curiosityEntity.getDouble("longitude");
+			String storedGeohash = curiosityEntity.contains("geohash") ? curiosityEntity.getString("geohash") : null;
+			String userId = curiosityEntity.contains("userId") ? curiosityEntity.getString("userId") : null;
+			String createdAt = curiosityEntity.getString("createdAt");
 
-			HistoricalCuriosity curiosity = new HistoricalCuriosity(id, description, latitude, longitude, geohash,
-					createdAt.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime());
+			HistoricalCuriosity curiosity = new HistoricalCuriosity(id, title, description, latitude, longitude,
+					storedGeohash, LocalDateTime.parse(createdAt), userId);
 
 			curiosities.add(curiosity);
 		}
@@ -139,14 +153,16 @@ public class HistoricalCuriosityRepository {
 			Entity curiosityEntity = results.next();
 
 			String id = curiosityEntity.getKey().getName();
+			String title = curiosityEntity.contains("title") ? curiosityEntity.getString("title") : null;
 			String description = curiosityEntity.getString("description");
-			Long latitude = curiosityEntity.getLong("latitude");
-			Long longitude = curiosityEntity.getLong("longitude");
+			Double latitude = curiosityEntity.getDouble("latitude");
+			Double longitude = curiosityEntity.getDouble("longitude");
 			String geohash = curiosityEntity.contains("geohash") ? curiosityEntity.getString("geohash") : null;
-			Timestamp createdAt = curiosityEntity.getTimestamp("createdAt");
+			String userId = curiosityEntity.contains("userId") ? curiosityEntity.getString("userId") : null;
+			String createdAt = curiosityEntity.getString("createdAt");
 
-			HistoricalCuriosity curiosity = new HistoricalCuriosity(id, description, latitude, longitude, geohash,
-					createdAt.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime());
+			HistoricalCuriosity curiosity = new HistoricalCuriosity(id, title, description, latitude, longitude, geohash,
+					LocalDateTime.parse(createdAt), userId);
 
 			curiosities.add(curiosity);
 		}

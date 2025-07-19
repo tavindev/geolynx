@@ -3,11 +3,13 @@ package tavindev.infra.http.controllers;
 import java.util.List;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.CookieParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jvnet.hk2.annotations.Service;
@@ -27,8 +29,9 @@ public class HistoricalCuriositiesController {
 	@POST
 	@Path("/")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response createHistoricalCuriosity(HistoricalCuriosity historicalCuriosity) {
-		historicalCuriosityService.create(historicalCuriosity);
+	public Response createHistoricalCuriosity(HistoricalCuriosity historicalCuriosity,
+			@CookieParam("session") String token) {
+		historicalCuriosityService.create(historicalCuriosity, token);
 
 		return Response.ok().build();
 	}

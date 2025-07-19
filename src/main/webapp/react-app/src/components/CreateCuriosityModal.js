@@ -12,8 +12,15 @@ import {
 } from '@mui/material';
 import { historicalCuriosityService } from '../services/api';
 
-const CreateCuriosityModal = ({ open, onClose, coordinates, user, onSuccess }) => {
+const CreateCuriosityModal = ({
+  open,
+  onClose,
+  coordinates,
+  user,
+  onSuccess,
+}) => {
   const [formData, setFormData] = useState({
+    title: '',
     description: '',
   });
   const [loading, setLoading] = useState(false);
@@ -21,17 +28,19 @@ const CreateCuriosityModal = ({ open, onClose, coordinates, user, onSuccess }) =
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!coordinates) {
-      setError('No coordinates available. Please move the map to set a location.');
+      setError(
+        'No coordinates available. Please move the map to set a location.'
+      );
       return;
     }
 
@@ -41,18 +50,20 @@ const CreateCuriosityModal = ({ open, onClose, coordinates, user, onSuccess }) =
     try {
       // Convert coordinates to the format expected by the backend
       const curiosityData = {
+        title: formData.title,
         description: formData.description,
-        lat: Math.round(coordinates.lat * 1000000), // Convert to microdegrees as Long
-        long: Math.round(coordinates.lng * 1000000), // Convert to microdegrees as Long
+        lat: coordinates.lat, // Convert to microdegrees as Long
+        long: coordinates.lng, // Convert to microdegrees as Long
       };
 
       await historicalCuriosityService.create(curiosityData);
-      
+
       // Reset form
       setFormData({
+        title: '',
         description: '',
       });
-      
+
       onSuccess?.();
       onClose();
     } catch (error) {
@@ -66,6 +77,7 @@ const CreateCuriosityModal = ({ open, onClose, coordinates, user, onSuccess }) =
   const handleClose = () => {
     if (!loading) {
       setFormData({
+        title: '',
         description: '',
       });
       setError(null);
@@ -84,16 +96,28 @@ const CreateCuriosityModal = ({ open, onClose, coordinates, user, onSuccess }) =
                 {error}
               </Alert>
             )}
-            
+
             {coordinates && (
               <Alert severity="info">
-                Location: {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                Location: {coordinates.lat.toFixed(6)},{' '}
+                {coordinates.lng.toFixed(6)}
               </Alert>
             )}
 
             <TextField
+              name="title"
+              label="Title"
+              value={formData.title}
+              onChange={handleChange}
+              required
+              fullWidth
+              disabled={loading}
+              helperText="Short title for the historical curiosity"
+            />
+
+            <TextField
               name="description"
-              label="Historical Curiosity Description"
+              label="Description"
               value={formData.description}
               onChange={handleChange}
               required
@@ -109,9 +133,9 @@ const CreateCuriosityModal = ({ open, onClose, coordinates, user, onSuccess }) =
           <Button onClick={handleClose} disabled={loading}>
             Cancel
           </Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
+          <Button
+            type="submit"
+            variant="contained"
             disabled={loading || !coordinates}
             startIcon={loading && <CircularProgress size={20} />}
           >

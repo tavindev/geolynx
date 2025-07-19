@@ -3,6 +3,8 @@ package tavindev.core.services;
 import java.util.List;
 
 import tavindev.core.entities.HistoricalCuriosity;
+import tavindev.core.entities.User;
+import tavindev.core.utils.AuthUtils;
 import tavindev.infra.repositories.HistoricalCuriosityRepository;
 
 import org.jvnet.hk2.annotations.Service;
@@ -17,10 +19,17 @@ public class HistoricalCuriosityService {
 	@Inject
 	private GeoHashService geoHashService;
 
-	public void create(HistoricalCuriosity historicalCuriosity) {
+	@Inject
+	private AuthUtils authUtils;
+
+	public void create(HistoricalCuriosity historicalCuriosity, String tokenId) {
+		User currentUser = authUtils.validateAndGetUser(tokenId);
+		String userId = currentUser.getId();
+
 		String geohash = geoHashService.calculateGeohash(historicalCuriosity.getLatitude(),
 				historicalCuriosity.getLongitude());
 		historicalCuriosity.setGeohash(geohash);
+		historicalCuriosity.setUserId(userId);
 
 		historicalCuriosityRepository.save(historicalCuriosity);
 	}
