@@ -15,12 +15,17 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import {
+  ArrowBack as ArrowBackIcon,
+  Add as AddIcon,
+} from '@mui/icons-material';
 import { worksheetService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const WorksheetDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
   const [worksheet, setWorksheet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -50,7 +55,12 @@ const WorksheetDetail = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
         <CircularProgress />
       </Box>
     );
@@ -67,13 +77,30 @@ const WorksheetDetail = () => {
   return (
     <Container maxWidth="lg">
       <Box sx={{ mb: 4, mt: 2 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(-1)}
-          sx={{ mb: 2 }}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            mb: 2,
+          }}
         >
-          Voltar
-        </Button>
+          <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>
+            Voltar
+          </Button>
+          {hasPermission('create_execution_sheet') && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() =>
+                navigate(`/dashboard/execution-sheets/create?worksheetId=${id}`)
+              }
+            >
+              Criar Folha de Execução
+            </Button>
+          )}
+        </Box>
         <Typography variant="h4" gutterBottom>
           Detalhes da Ficha de Obra
         </Typography>
@@ -110,7 +137,8 @@ const WorksheetDetail = () => {
                 AIGP
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {worksheet.metadata.aigp && worksheet.metadata.aigp.length > 0 ? (
+                {worksheet.metadata.aigp &&
+                worksheet.metadata.aigp.length > 0 ? (
                   worksheet.metadata.aigp.map((code, index) => (
                     <Chip key={index} label={code} size="small" />
                   ))
@@ -171,24 +199,25 @@ const WorksheetDetail = () => {
               </Typography>
             </Grid>
 
-            {worksheet.metadata.operations && worksheet.metadata.operations.length > 0 && (
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                  Operações
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-                <List>
-                  {worksheet.metadata.operations.map((operation, index) => (
-                    <ListItem key={index} divider>
-                      <ListItemText
-                        primary={`${operation.operationCode} - ${operation.operationDescription}`}
-                        secondary={`Área: ${operation.areaHa} ha`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Grid>
-            )}
+            {worksheet.metadata.operations &&
+              worksheet.metadata.operations.length > 0 && (
+                <Grid item xs={12}>
+                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                    Operações
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+                  <List>
+                    {worksheet.metadata.operations.map((operation, index) => (
+                      <ListItem key={index} divider>
+                        <ListItemText
+                          primary={`${operation.operationCode} - ${operation.operationDescription}`}
+                          secondary={`Área: ${operation.areaHa} ha`}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Grid>
+              )}
 
             {worksheet.features && worksheet.features.length > 0 && (
               <Grid item xs={12}>

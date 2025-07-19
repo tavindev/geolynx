@@ -14,10 +14,6 @@ import {
   Tooltip,
   Box,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Alert,
   CircularProgress,
 } from '@mui/material';
@@ -39,8 +35,7 @@ const ExecutionSheets = () => {
   const [worksheets, setWorksheets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedWorksheet, setSelectedWorksheet] = useState(null);
+
   const navigate = useNavigate();
   const { user, hasPermission } = useAuth();
 
@@ -64,31 +59,6 @@ const ExecutionSheets = () => {
       console.error(err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCreateExecutionSheet = async () => {
-    if (!selectedWorksheet) return;
-
-    try {
-      const newExecutionSheet = {
-        workSheetId: selectedWorksheet.id,
-        startingDate: new Date().toISOString().split('T')[0],
-        finishingDate: null,
-        lastActivityDate: new Date().toISOString().split('T')[0],
-        observations: '',
-        operations: [],
-        polygonsOperations: [],
-      };
-
-      await executionSheetService.create(newExecutionSheet);
-      setOpenDialog(false);
-      setSelectedWorksheet(null);
-      fetchData();
-      setError(null);
-    } catch (err) {
-      setError('Erro ao criar folha de execução');
-      console.error(err);
     }
   };
 
@@ -138,7 +108,7 @@ const ExecutionSheets = () => {
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
-            onClick={() => setOpenDialog(true)}
+            onClick={() => navigate('/dashboard/execution-sheets/create')}
           >
             Nova Folha de Execução
           </Button>
@@ -229,69 +199,6 @@ const ExecutionSheets = () => {
           </Table>
         </TableContainer>
       )}
-
-      {/* Create Execution Sheet Dialog */}
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Criar Nova Folha de Execução</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Selecione uma folha de obra para criar uma folha de execução:
-          </Typography>
-          {worksheets.length === 0 ? (
-            <Alert severity="info">
-              Nenhuma folha de obra disponível. Crie uma folha de obra primeiro.
-            </Alert>
-          ) : (
-            <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-              {worksheets.map((worksheet) => (
-                <Paper
-                  key={worksheet.id}
-                  sx={{
-                    p: 2,
-                    mb: 1,
-                    cursor: 'pointer',
-                    border:
-                      selectedWorksheet?.id === worksheet.id
-                        ? '2px solid'
-                        : '1px solid',
-                    borderColor:
-                      selectedWorksheet?.id === worksheet.id
-                        ? 'primary.main'
-                        : 'grey.300',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'action.hover',
-                    },
-                  }}
-                  onClick={() => setSelectedWorksheet(worksheet)}
-                >
-                  <Typography variant="subtitle1">{worksheet.name}</Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    ID: {worksheet.id} | Código: {worksheet.posaCode} | Data:
-                    {worksheet.issueDate}
-                  </Typography>
-                </Paper>
-              ))}
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancelar</Button>
-          <Button
-            onClick={handleCreateExecutionSheet}
-            variant="contained"
-            color="primary"
-            disabled={!selectedWorksheet}
-          >
-            Criar
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Container>
   );
 };
