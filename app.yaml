@@ -19,5 +19,5 @@ handlers:
 
 
 env_variables:
-  SMTP_USER: 'geolynxpt@gmail.com'
-  SMTP_PASSWORD: 'hhdz bznq tfii cyuz'
+    SMTP_USER: 'geolynxpt@gmail.com'
+    SMTP_PASSWORD: 'hhdz bznq tfii cyuz'
