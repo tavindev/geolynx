@@ -153,14 +153,24 @@ function MapControls({ user, onCreateAnimal, onCreateCuriosity }) {
         <Fab size="small" color="secondary" onClick={handleLocate}>
           <MyLocationIcon />
         </Fab>
-        
+
         {user && (
           <>
             <Divider sx={{ my: 1, bgcolor: 'white' }} />
-            <Fab size="small" color="success" onClick={onCreateAnimal} title="Add Animal">
+            <Fab
+              size="small"
+              color="success"
+              onClick={onCreateAnimal}
+              title="Add Animal"
+            >
               <PetsIcon />
             </Fab>
-            <Fab size="small" color="info" onClick={onCreateCuriosity} title="Add Historical Curiosity">
+            <Fab
+              size="small"
+              color="info"
+              onClick={onCreateCuriosity}
+              title="Add Historical Curiosity"
+            >
               <HistoryIcon />
             </Fab>
           </>
@@ -234,7 +244,7 @@ const Map = () => {
       } finally {
         setRegionLoading(false);
       }
-    }, 1000);
+    }, 500);
   }, []);
 
   // Cleanup debounce timeout on unmount
@@ -289,7 +299,7 @@ const Map = () => {
                 />
 
                 <MapEventHandler onMoveEnd={handleMapMoveEnd} />
-                <MapControls 
+                <MapControls
                   user={user}
                   onCreateAnimal={() => setCreateAnimalOpen(true)}
                   onCreateCuriosity={() => setCreateCuriosityOpen(true)}
