@@ -94,6 +94,24 @@ public class DatastoreUserRepository {
             userEntityBuilder.set(PROPERTY_EMPLOYER_TAX_ID, user.getEmployerTaxId());
         }
 
+        if (user.getAddress() != null) {
+            userEntityBuilder.set(PROPERTY_ADDRESS, user.getAddress());
+        }
+
+        if (user.getCitizenCardIssueDate() != null) {
+            userEntityBuilder.set(PROPERTY_CITIZEN_CARD_ISSUE_DATE, user.getCitizenCardIssueDate().toString());
+        }
+        if (user.getCitizenCardIssuePlace() != null) {
+            userEntityBuilder.set(PROPERTY_CITIZEN_CARD_ISSUE_PLACE, user.getCitizenCardIssuePlace());
+        }
+        if (user.getCitizenCardValidity() != null) {
+            userEntityBuilder.set(PROPERTY_CITIZEN_CARD_VALIDITY, user.getCitizenCardValidity().toString());
+        }
+
+        if (user.getStatus() != null) {
+            userEntityBuilder.set(PROPERTY_STATUS, user.getStatus());
+        }
+
         datastore.put(userEntityBuilder.build());
     }
 

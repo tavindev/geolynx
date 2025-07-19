@@ -133,20 +133,6 @@ public class ExecutionSheetService {
 
         // Persist changes
         executionSheetRepository.save(executionSheet);
-        List<User> prboUsers = userRepository.findAllRoleUsers(UserRole.PRBO);
-
-        boolean isCompleted = executionSheet.getGlobalOperationStatus(operationId).getGlobalStatus() == "completed";
-
-        for (User user : prboUsers) {
-            if (isCompleted) {
-                notificationService.sendNotification(user.getEmail(),
-                        "Todas as operações da Folha de Execução " + executionSheetId + " foram concluídas.");
-                continue;
-            }
-
-            notificationService.sendNotification(user.getEmail(),
-                    "Atividade " + operationId + " na parcela " + polygonId + " foi pausada.");
-        }
     }
 
     /**
