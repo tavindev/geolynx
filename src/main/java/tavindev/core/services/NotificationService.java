@@ -8,8 +8,8 @@ public class NotificationService {
     // This service will handle notifications for users
     // It can include methods to send notifications, fetch user notifications, etc.
 
-    private final String fromEmail = System.getenv("SMTP_USER");
-    private final String password = System.getenv("SMTP_PASSWORD");// Use environment variables or secure vaults in production
+    private final String fromEmail = "geolinxpt@gmail.com";
+    private final String password = "hhdz bznq tfii cyuz"; // Use environment variables or secure vaults in production
     private final Properties properties;
 
     public NotificationService() {
@@ -49,6 +49,5 @@ public class NotificationService {
         } catch (MessagingException e) {
             e.printStackTrace();
         }
-
     }
 }
