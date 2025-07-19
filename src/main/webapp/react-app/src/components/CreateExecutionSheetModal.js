@@ -29,14 +29,14 @@ import {
 } from '@mui/icons-material';
 import { executionSheetService, worksheetService } from '../services/api';
 
-const CreateExecutionSheetModal = ({ 
-  open, 
-  onClose, 
-  coordinates, 
-  user, 
+const CreateExecutionSheetModal = ({
+  open,
+  onClose,
+  coordinates,
+  user,
   onSuccess,
   preselectedPolygon = null,
-  preselectedWorksheet = null 
+  preselectedWorksheet = null,
 }) => {
   const [formData, setFormData] = useState({
     workSheetId: preselectedWorksheet?.id || '',
@@ -57,7 +57,8 @@ const CreateExecutionSheetModal = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [worksheets, setWorksheets] = useState([]);
-  const [selectedWorksheet, setSelectedWorksheet] = useState(preselectedWorksheet);
+  const [selectedWorksheet, setSelectedWorksheet] =
+    useState(preselectedWorksheet);
 
   useEffect(() => {
     if (open) {
@@ -67,7 +68,7 @@ const CreateExecutionSheetModal = ({
 
   useEffect(() => {
     if (preselectedWorksheet) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         workSheetId: preselectedWorksheet.id,
       }));
@@ -79,7 +80,9 @@ const CreateExecutionSheetModal = ({
     if (preselectedPolygon && formData.operations.length > 0) {
       // Auto-add polygon operations when we have both polygon and operations
       const polygonOps = {
-        polygonId: preselectedPolygon.properties.polygon_id || preselectedPolygon.properties.id,
+        polygonId:
+          preselectedPolygon.properties.polygon_id ||
+          preselectedPolygon.properties.id,
         operations: formData.operations.map((op, idx) => ({
           operationId: idx + 1,
           status: 'pending',
@@ -91,7 +94,7 @@ const CreateExecutionSheetModal = ({
           operatorId: null,
         })),
       };
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         polygonsOperations: [polygonOps],
       }));
@@ -119,7 +122,7 @@ const CreateExecutionSheetModal = ({
     }));
 
     if (name === 'workSheetId') {
-      const worksheet = worksheets.find(w => w.id.toString() === value);
+      const worksheet = worksheets.find((w) => w.id.toString() === value);
       setSelectedWorksheet(worksheet);
     }
   };
@@ -141,7 +144,7 @@ const CreateExecutionSheetModal = ({
         finishingDate: formData.finishingDate,
         plannedCompletionDate: formData.finishingDate,
       };
-      
+
       setFormData((prev) => ({
         ...prev,
         operations: [...prev.operations, newOperation],
@@ -186,22 +189,27 @@ const CreateExecutionSheetModal = ({
         ...formData,
         lastActivityDate: formData.startingDate,
         // Ensure polygonsOperations are properly set
-        polygonsOperations: formData.polygonsOperations.length > 0 
-          ? formData.polygonsOperations 
-          : preselectedPolygon 
-            ? [{
-                polygonId: preselectedPolygon.properties.polygon_id || preselectedPolygon.properties.id,
-                operations: formData.operations.map((op, idx) => ({
-                  operationId: idx + 1,
-                  status: 'pending',
-                  startingDate: null,
-                  finishingDate: null,
-                  lastActivityDate: null,
-                  observations: '',
-                  tracks: [],
-                  operatorId: null,
-                })),
-              }]
+        polygonsOperations:
+          formData.polygonsOperations.length > 0
+            ? formData.polygonsOperations
+            : preselectedPolygon
+            ? [
+                {
+                  polygonId:
+                    preselectedPolygon.properties.polygon_id ||
+                    preselectedPolygon.properties.id,
+                  operations: formData.operations.map((op, idx) => ({
+                    operationId: idx + 1,
+                    status: 'pending',
+                    startingDate: null,
+                    finishingDate: null,
+                    lastActivityDate: null,
+                    observations: '',
+                    tracks: [],
+                    operatorId: null,
+                  })),
+                },
+              ]
             : [],
       };
 
@@ -227,7 +235,10 @@ const CreateExecutionSheetModal = ({
       onClose();
     } catch (error) {
       console.error('Error creating execution sheet:', error);
-      setError(error.response?.data?.message || 'Falha ao criar folha de execução. Por favor, tente novamente.');
+      setError(
+        error.response?.data?.message ||
+          'Falha ao criar folha de execução. Por favor, tente novamente.'
+      );
     } finally {
       setLoading(false);
     }
@@ -273,14 +284,18 @@ const CreateExecutionSheetModal = ({
 
             {coordinates && (
               <Alert severity="info">
-                Localização: {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                Localização: {coordinates.lat.toFixed(6)},{' '}
+                {coordinates.lng.toFixed(6)}
               </Alert>
             )}
 
             {preselectedPolygon && (
               <Alert severity="info">
-                Polígono selecionado: ID {preselectedPolygon.properties.polygon_id || preselectedPolygon.properties.id}
-                {preselectedPolygon.properties.aigp && ` - AIGP: ${preselectedPolygon.properties.aigp}`}
+                Polígono selecionado: ID{' '}
+                {preselectedPolygon.properties.polygon_id ||
+                  preselectedPolygon.properties.id}
+                {preselectedPolygon.properties.aigp &&
+                  ` - AIGP: ${preselectedPolygon.properties.aigp}`}
               </Alert>
             )}
 
@@ -372,7 +387,7 @@ const CreateExecutionSheetModal = ({
                     onChange={handleOperationChange}
                     fullWidth
                     disabled={loading}
-                    inputProps={{ step: "0.01" }}
+                    inputProps={{ step: '0.01' }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -387,12 +402,22 @@ const CreateExecutionSheetModal = ({
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      height: '100%',
+                    }}
+                  >
                     <Button
                       variant="contained"
                       startIcon={<AddIcon />}
                       onClick={addOperation}
-                      disabled={!operationForm.operationCode || !operationForm.areaHaExecuted || loading}
+                      disabled={
+                        !operationForm.operationCode ||
+                        !operationForm.areaHaExecuted ||
+                        loading
+                      }
                       fullWidth
                     >
                       Adicionar
@@ -409,8 +434,8 @@ const CreateExecutionSheetModal = ({
                   <ListItem
                     key={index}
                     secondaryAction={
-                      <IconButton 
-                        edge="end" 
+                      <IconButton
+                        edge="end"
                         onClick={() => removeOperation(index)}
                         disabled={loading}
                       >
@@ -420,7 +445,11 @@ const CreateExecutionSheetModal = ({
                   >
                     <ListItemText
                       primary={`${operation.operationCode} - ${operation.areaHaExecuted} ha`}
-                      secondary={operation.estimatedDurationHours ? `${operation.estimatedDurationHours} horas` : null}
+                      secondary={
+                        operation.estimatedDurationHours
+                          ? `${operation.estimatedDurationHours} horas`
+                          : null
+                      }
                     />
                   </ListItem>
                 ))}
@@ -428,7 +457,11 @@ const CreateExecutionSheetModal = ({
             )}
 
             {formData.operations.length === 0 && (
-              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontStyle: 'italic' }}
+              >
                 Nenhuma operação adicionada
               </Typography>
             )}
@@ -441,7 +474,11 @@ const CreateExecutionSheetModal = ({
           <Button
             type="submit"
             variant="contained"
-            disabled={loading || !formData.workSheetId || formData.operations.length === 0}
+            disabled={
+              loading ||
+              !formData.workSheetId ||
+              formData.operations.length === 0
+            }
             startIcon={loading && <CircularProgress size={20} />}
           >
             {loading ? 'Criando...' : 'Criar Folha de Execução'}

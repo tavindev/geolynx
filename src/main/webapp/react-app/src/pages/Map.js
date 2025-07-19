@@ -67,12 +67,15 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 // Define projection for EPSG:3763 (Portuguese grid system)
-proj4.defs("EPSG:3763", "+proj=tmerc +lat_0=39.66825833333333 +lon_0=-8.133108333333334 +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+proj4.defs(
+  'EPSG:3763',
+  '+proj=tmerc +lat_0=39.66825833333333 +lon_0=-8.133108333333334 +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+);
 
 // Convert EPSG:3763 to EPSG:4326 (WGS84)
 const convertCoordinates = (coordinates) => {
-  return coordinates.map(ring => 
-    ring.map(coord => {
+  return coordinates.map((ring) =>
+    ring.map((coord) => {
       const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [coord[0], coord[1]]);
       return [lat, lng]; // Leaflet expects [lat, lng]
     })
@@ -120,7 +123,12 @@ function MapEventHandler({ onMoveEnd }) {
 }
 
 // Map controls component
-function MapControls({ user, onCreateAnimal, onCreateCuriosity, onCreateExecutionSheet }) {
+function MapControls({
+  user,
+  onCreateAnimal,
+  onCreateCuriosity,
+  onCreateExecutionSheet,
+}) {
   const map = useMap();
 
   const handleZoomIn = () => {
@@ -169,14 +177,6 @@ function MapControls({ user, onCreateAnimal, onCreateCuriosity, onCreateExecutio
             >
               <HistoryIcon />
             </Fab>
-            <Fab
-              size="small"
-              color="warning"
-              onClick={onCreateExecutionSheet}
-              title="Criar Folha de Execução"
-            >
-              <ExecutionSheetIcon />
-            </Fab>
           </>
         )}
       </Box>
@@ -190,7 +190,8 @@ const Map = () => {
   const [worksheetsLoading, setWorksheetsLoading] = useState(true);
   const [selectedWorksheets, setSelectedWorksheets] = useState([]);
   const [showAnimals, setShowAnimals] = useState(true);
-  const [showHistoricalCuriosities, setShowHistoricalCuriosities] = useState(true);
+  const [showHistoricalCuriosities, setShowHistoricalCuriosities] =
+    useState(true);
   const [showWorksheets, setShowWorksheets] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedArea, setSelectedArea] = useState(null);
@@ -200,9 +201,10 @@ const Map = () => {
   const [currentCoordinates, setCurrentCoordinates] = useState(null);
   const [createAnimalOpen, setCreateAnimalOpen] = useState(false);
   const [createCuriosityOpen, setCreateCuriosityOpen] = useState(false);
-  const [createExecutionSheetOpen, setCreateExecutionSheetOpen] = useState(false);
-  const [selectedPolygonForExecution, setSelectedPolygonForExecution] = useState(null);
-  const [selectedWorksheetForExecution, setSelectedWorksheetForExecution] = useState(null);
+  const [selectedPolygonForExecution, setSelectedPolygonForExecution] =
+    useState(null);
+  const [selectedWorksheetForExecution, setSelectedWorksheetForExecution] =
+    useState(null);
   const mapRef = useRef(null);
   const debounceTimeoutRef = useRef(null);
 
@@ -219,15 +221,15 @@ const Map = () => {
     try {
       const response = await worksheetService.getAll();
       console.log('Worksheets response:', response); // Debug log
-      
+
       // Handle different response formats
       const worksheetData = response.data || response;
-      
+
       // Ensure we have an array
       if (Array.isArray(worksheetData)) {
         setWorksheets(worksheetData);
         // Select all worksheets by default
-        setSelectedWorksheets(worksheetData.map(ws => ws.id));
+        setSelectedWorksheets(worksheetData.map((ws) => ws.id));
       } else {
         console.error('Worksheets response is not an array:', worksheetData);
         setWorksheets([]);
@@ -244,7 +246,14 @@ const Map = () => {
 
   const getPolygonColor = (aigp) => {
     // Generate color based on AIGP name for consistency
-    const colors = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c'];
+    const colors = [
+      '#2ecc71',
+      '#3498db',
+      '#f39c12',
+      '#e74c3c',
+      '#9b59b6',
+      '#1abc9c',
+    ];
     let hash = 0;
     for (let i = 0; i < aigp.length; i++) {
       hash = aigp.charCodeAt(i) + ((hash << 5) - hash);
@@ -278,7 +287,7 @@ const Map = () => {
 
       try {
         const response = await regionService.getRegionData(lat, lng);
-        
+
         // The backend already returns coordinates as Double values, not microdegrees
         setRegionData(response.data);
       } catch (error) {
@@ -313,7 +322,6 @@ const Map = () => {
       // Open execution sheet modal with preselected data
       setSelectedPolygonForExecution(areaData.polygon);
       setSelectedWorksheetForExecution(areaData.worksheetInfo);
-      setCreateExecutionSheetOpen(true);
     } else {
       // Regular area selection
       setSelectedArea(areaData);
@@ -371,68 +379,85 @@ const Map = () => {
                   user={user}
                   onCreateAnimal={() => setCreateAnimalOpen(true)}
                   onCreateCuriosity={() => setCreateCuriosityOpen(true)}
-                  onCreateExecutionSheet={() => setCreateExecutionSheetOpen(true)}
+                  onCreateExecutionSheet={() => {}}
                 />
 
                 {/* Worksheets Layer */}
-                {showWorksheets && !worksheetsLoading && worksheets && worksheets.length > 0 && worksheets
-                  .filter((worksheet) => selectedWorksheets.includes(worksheet.id))
-                  .map((worksheet) => (
-                    <React.Fragment key={worksheet.id}>
-                      {/* We need to fetch full worksheet data to get the geometry */}
-                      <WorksheetPolygons 
-                        worksheetId={worksheet.id} 
-                        worksheetInfo={worksheet}
-                        onAreaClick={handleAreaClick}
-                      />
-                    </React.Fragment>
-                  ))}
+                {showWorksheets &&
+                  !worksheetsLoading &&
+                  worksheets &&
+                  worksheets.length > 0 &&
+                  worksheets
+                    .filter((worksheet) =>
+                      selectedWorksheets.includes(worksheet.id)
+                    )
+                    .map((worksheet) => (
+                      <React.Fragment key={worksheet.id}>
+                        {/* We need to fetch full worksheet data to get the geometry */}
+                        <WorksheetPolygons
+                          worksheetId={worksheet.id}
+                          worksheetInfo={worksheet}
+                          onAreaClick={handleAreaClick}
+                        />
+                      </React.Fragment>
+                    ))}
 
                 {/* Animals Layer */}
-                {showAnimals && regionData?.animals?.map((animal, index) => (
-                  <Marker
-                    key={`animal-${index}`}
-                    position={[animal.latitude, animal.longitude]}
-                    icon={animalIcon}
-                  >
-                    <Popup>
-                      <Box sx={{ minWidth: 200 }}>
-                        <Typography variant="h6">{animal.name}</Typography>
-                        <Typography variant="body2">
-                          {animal.description}
-                        </Typography>
-                        {animal.image && (
-                          <img 
-                            src={animal.image} 
-                            alt={animal.name} 
-                            style={{ width: '100%', marginTop: 8, borderRadius: 4 }}
-                          />
-                        )}
-                      </Box>
-                    </Popup>
-                  </Marker>
-                ))}
+                {showAnimals &&
+                  regionData?.animals?.map((animal, index) => (
+                    <Marker
+                      key={`animal-${index}`}
+                      position={[animal.latitude, animal.longitude]}
+                      icon={animalIcon}
+                    >
+                      <Popup>
+                        <Box sx={{ minWidth: 200 }}>
+                          <Typography variant="h6">{animal.name}</Typography>
+                          <Typography variant="body2">
+                            {animal.description}
+                          </Typography>
+                          {animal.image && (
+                            <img
+                              src={animal.image}
+                              alt={animal.name}
+                              style={{
+                                width: '100%',
+                                marginTop: 8,
+                                borderRadius: 4,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </Popup>
+                    </Marker>
+                  ))}
 
                 {/* Historical Curiosities Layer */}
-                {showHistoricalCuriosities && regionData?.historicalCuriosities?.map((curiosity, index) => (
-                  <Marker
-                    key={`history-${index}`}
-                    position={[curiosity.latitude, curiosity.longitude]}
-                    icon={historyIcon}
-                  >
-                    <Popup>
-                      <Box sx={{ minWidth: 200 }}>
-                        <Typography variant="h6">{curiosity.title || 'Curiosidade Histórica'}</Typography>
-                        <Typography variant="body2">
-                          {curiosity.description}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Adicionado em: {new Date(curiosity.createdAt).toLocaleDateString('pt-BR')}
-                        </Typography>
-                      </Box>
-                    </Popup>
-                  </Marker>
-                ))}
+                {showHistoricalCuriosities &&
+                  regionData?.historicalCuriosities?.map((curiosity, index) => (
+                    <Marker
+                      key={`history-${index}`}
+                      position={[curiosity.latitude, curiosity.longitude]}
+                      icon={historyIcon}
+                    >
+                      <Popup>
+                        <Box sx={{ minWidth: 200 }}>
+                          <Typography variant="h6">
+                            {curiosity.title || 'Curiosidade Histórica'}
+                          </Typography>
+                          <Typography variant="body2">
+                            {curiosity.description}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Adicionado em:{' '}
+                            {new Date(curiosity.createdAt).toLocaleDateString(
+                              'pt-BR'
+                            )}
+                          </Typography>
+                        </Box>
+                      </Popup>
+                    </Marker>
+                  ))}
               </MapContainer>
 
               {/* Floating Action Button for Layers */}
@@ -479,20 +504,27 @@ const Map = () => {
                     <strong>AIGP:</strong> {selectedArea.aigp.join(', ')}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Período:</strong> {selectedArea.startingDate} até {selectedArea.finishingDate}
+                    <strong>Período:</strong> {selectedArea.startingDate} até{' '}
+                    {selectedArea.finishingDate}
                   </Typography>
-                  {selectedArea.operations && selectedArea.operations.length > 0 && (
-                    <>
-                      <Typography variant="body2" sx={{ mt: 1 }}>
-                        <strong>Operações:</strong>
-                      </Typography>
-                      {selectedArea.operations.map((op, idx) => (
-                        <Typography key={idx} variant="caption" component="div" sx={{ ml: 1 }}>
-                          • {op.operationDescription} ({op.areaHa} ha)
+                  {selectedArea.operations &&
+                    selectedArea.operations.length > 0 && (
+                      <>
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                          <strong>Operações:</strong>
                         </Typography>
-                      ))}
-                    </>
-                  )}
+                        {selectedArea.operations.map((op, idx) => (
+                          <Typography
+                            key={idx}
+                            variant="caption"
+                            component="div"
+                            sx={{ ml: 1 }}
+                          >
+                            • {op.operationDescription} ({op.areaHa} ha)
+                          </Typography>
+                        ))}
+                      </>
+                    )}
                 </Paper>
               )}
             </Box>
@@ -541,10 +573,14 @@ const Map = () => {
                     secondary={
                       <Box>
                         <Typography variant="caption" component="div">
-                          AIGP: {worksheet.aigp ? worksheet.aigp.join(', ') : 'N/A'}
+                          AIGP:{' '}
+                          {worksheet.aigp ? worksheet.aigp.join(', ') : 'N/A'}
                         </Typography>
                         <Typography variant="caption" component="div">
-                          {worksheet.operations ? worksheet.operations.length : 0} operações
+                          {worksheet.operations
+                            ? worksheet.operations.length
+                            : 0}{' '}
+                          operações
                         </Typography>
                       </Box>
                     }
@@ -600,16 +636,14 @@ const Map = () => {
                 <Typography variant="caption">Folhas de Obra</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ExecutionSheetIcon fontSize="small" color="warning" />
-                <Typography variant="caption">Folhas de Execução</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <PetsIcon fontSize="small" color="success" />
                 <Typography variant="caption">Animais</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <HistoryIcon fontSize="small" color="info" />
-                <Typography variant="caption">Curiosidades Históricas</Typography>
+                <Typography variant="caption">
+                  Curiosidades Históricas
+                </Typography>
               </Box>
             </Box>
           </Box>
@@ -632,21 +666,6 @@ const Map = () => {
         coordinates={currentCoordinates}
         user={user}
         onSuccess={handleCreationSuccess}
-      />
-
-      {/* Create Execution Sheet Modal */}
-      <CreateExecutionSheetModal
-        open={createExecutionSheetOpen}
-        onClose={() => {
-          setCreateExecutionSheetOpen(false);
-          setSelectedPolygonForExecution(null);
-          setSelectedWorksheetForExecution(null);
-        }}
-        coordinates={currentCoordinates}
-        user={user}
-        onSuccess={handleCreationSuccess}
-        preselectedPolygon={selectedPolygonForExecution}
-        preselectedWorksheet={selectedWorksheetForExecution}
       />
     </Container>
   );
@@ -684,7 +703,9 @@ const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
       {worksheet.features.map((feature, index) => {
         if (feature.geometry.type !== 'Polygon') return null;
 
-        const convertedCoords = convertCoordinates(feature.geometry.coordinates);
+        const convertedCoords = convertCoordinates(
+          feature.geometry.coordinates
+        );
 
         return (
           <Polygon
@@ -696,23 +717,27 @@ const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
               weight: 2,
             }}
             eventHandlers={{
-              click: () => onAreaClick({
-                worksheetId: worksheetId,
-                worksheetInfo: worksheetInfo,
-                worksheet: worksheet,
-                feature: feature.properties,
-                polygon: feature,
-              }),
+              click: () =>
+                onAreaClick({
+                  worksheetId: worksheetId,
+                  worksheetInfo: worksheetInfo,
+                  worksheet: worksheet,
+                  feature: feature.properties,
+                  polygon: feature,
+                }),
             }}
           >
             <Popup>
               <Box sx={{ minWidth: 200 }}>
-                <Typography variant="h6">Polígono {feature.properties.polygon_id}</Typography>
+                <Typography variant="h6">
+                  Polígono {feature.properties.polygon_id}
+                </Typography>
                 <Typography variant="body2">
                   <strong>AIGP:</strong> {feature.properties.aigp}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Propriedade Rural:</strong> {feature.properties.rural_property_id}
+                  <strong>Propriedade Rural:</strong>{' '}
+                  {feature.properties.rural_property_id}
                 </Typography>
                 {feature.properties.UI_id && (
                   <Typography variant="body2">
@@ -754,7 +779,14 @@ const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
 
 // Helper function for color generation
 const getPolygonColor = (aigp) => {
-  const colors = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c'];
+  const colors = [
+    '#2ecc71',
+    '#3498db',
+    '#f39c12',
+    '#e74c3c',
+    '#9b59b6',
+    '#1abc9c',
+  ];
   let hash = 0;
   for (let i = 0; i < aigp.length; i++) {
     hash = aigp.charCodeAt(i) + ((hash << 5) - hash);
