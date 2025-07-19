@@ -79,14 +79,18 @@ public class UserService {
 
     public void removeAccount(String tokenId, String identifier) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
+        User targetUser;
 
-        // Check if user has permission to remove accounts (SYSADMIN and SYSBO only)
-        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.REMOVE_ACCOUNT);
+        if (!currentUser.getEmail().equals(identifier) && !currentUser.getUsername().equals(identifier)) {
+            // Check if user has permission to remove accounts (SYSADMIN and SYSBO only)
+            PermissionAuthorizationHandler.checkPermission(currentUser, Permission.REMOVE_ACCOUNT);
+            targetUser = userRepository.findByIdentifier(identifier);
 
-        User targetUser = userRepository.findByIdentifier(identifier);
-
-        if (targetUser == null) {
-            throw new UserNotFoundException(identifier);
+            if (targetUser == null) {
+                throw new UserNotFoundException(identifier);
+            }
+        } else {
+            targetUser = currentUser;
         }
 
         userRepository.delete(targetUser);
