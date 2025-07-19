@@ -65,35 +65,93 @@ const Layout = () => {
     { text: 'Início', icon: <HomeIcon />, path: '/dashboard', roles: [] },
     { text: 'Mapa', icon: <MapIcon />, path: '/dashboard/map', roles: [] },
     { divider: true },
-    { text: 'Dashboards', header: true, roles: ['SYSADMIN', 'SMBO', 'SGVBO', 'PRBO'] },
-    { text: 'Dashboard Admin', icon: <DashboardIcon />, path: '/dashboard/admin', roles: ['SYSADMIN', 'SMBO'] },
-    { text: 'Folhas de Obra', icon: <AssignmentIcon />, path: '/dashboard/worksheets', roles: ['SMBO', 'SGVBO', 'PRBO'] },
+    {
+      text: 'Dashboards',
+      header: true,
+      roles: ['SYSADMIN', 'SMBO', 'SGVBO', 'PRBO'],
+    },
+    {
+      text: 'Dashboard Admin',
+      icon: <DashboardIcon />,
+      path: '/dashboard/admin',
+      roles: ['SYSADMIN', 'SMBO'],
+    },
+    {
+      text: 'Folhas de Obra',
+      icon: <AssignmentIcon />,
+      path: '/dashboard/worksheets',
+      roles: ['SMBO', 'SGVBO', 'PRBO'],
+    },
     { divider: true },
-    { text: 'Gestão de Utilizadores', header: true, roles: ['SYSADMIN', 'SMBO'] },
-    { text: 'Listar Utilizadores', icon: <PeopleIcon />, path: '/dashboard/list-users', roles: ['SYSADMIN', 'SMBO'] },
-    { text: 'Pedidos de Remoção', icon: <DeleteSweepIcon />, path: '/dashboard/removal-requests', roles: ['SYSADMIN', 'SMBO'] },
+    {
+      text: 'Gestão de Utilizadores',
+      header: true,
+      roles: ['SYSADMIN', 'SMBO'],
+    },
+    {
+      text: 'Listar Utilizadores',
+      icon: <PeopleIcon />,
+      path: '/dashboard/list-users',
+      roles: ['SYSADMIN', 'SMBO'],
+    },
+    {
+      text: 'Pedidos de Remoção',
+      icon: <DeleteSweepIcon />,
+      path: '/dashboard/removal-requests',
+      roles: ['SYSADMIN', 'SMBO'],
+    },
     { divider: true },
     { text: 'Gestão de Folhas', header: true, roles: ['SYSADMIN', 'SMBO'] },
-    { text: 'Gerir Folhas de Obra', icon: <AssignmentIcon />, path: '/dashboard/manage-worksheets', roles: ['SYSADMIN', 'SMBO'] },
+    {
+      text: 'Gerir Folhas de Obra',
+      icon: <AssignmentIcon />,
+      path: '/dashboard/manage-worksheets',
+      roles: ['SYSADMIN', 'SMBO'],
+    },
     { divider: true },
-    { text: 'Folhas de Obra', header: true, roles: ['PO', 'ADLU', 'PRBO'] },
-    { text: 'Criar Folha', icon: <AssignmentIcon />, path: '/dashboard/worksheet/create', roles: ['PO', 'ADLU'] },
-    { text: 'Atualizar Estado', icon: <AssignmentIcon />, path: '/dashboard/worksheet-update', roles: ['PRBO', 'PO'] },
-    { divider: true },
-    { text: 'Folhas de Execução', header: true, roles: ['PRBO', 'PO', 'SDVBO', 'OPERATOR'] },
-    { text: 'Gerir Folhas', icon: <DescriptionIcon />, path: '/dashboard/execution-sheets', roles: ['PRBO', 'PO', 'SDVBO', 'OPERATOR'] },
+    {
+      text: 'Folhas de Execução',
+      header: true,
+      roles: ['PRBO', 'PO', 'SDVBO', 'OPERATOR'],
+    },
+    {
+      text: 'Gerir Folhas',
+      icon: <DescriptionIcon />,
+      path: '/dashboard/execution-sheets',
+      roles: ['PRBO', 'PO', 'SDVBO', 'OPERATOR'],
+    },
     { divider: true },
     { text: 'Minha Conta', header: true, roles: [] },
-    { text: 'Meu Perfil', icon: <AccountCircle />, path: '/dashboard/my-profile', roles: [] },
-    { text: 'Alterar Password', icon: <LockIcon />, path: '/dashboard/change-password', roles: [] },
-    { text: 'Minhas Fichas', icon: <DescriptionIcon />, path: '/dashboard/my-worksheets', roles: ['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO'] },
-    { text: 'Pedir Remoção da Conta', icon: <DeleteSweepIcon />, path: '/dashboard/request-removal', roles: [] },
+    {
+      text: 'Meu Perfil',
+      icon: <AccountCircle />,
+      path: '/dashboard/my-profile',
+      roles: [],
+    },
+    {
+      text: 'Alterar Password',
+      icon: <LockIcon />,
+      path: '/dashboard/change-password',
+      roles: [],
+    },
+    {
+      text: 'Minhas Fichas',
+      icon: <DescriptionIcon />,
+      path: '/dashboard/my-worksheets',
+      roles: ['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO'],
+    },
+    {
+      text: 'Pedir Remoção da Conta',
+      icon: <DeleteSweepIcon />,
+      path: '/dashboard/request-removal',
+      roles: [],
+    },
   ];
 
   const filterMenuItems = (items) => {
-    return items.filter(item => {
+    return items.filter((item) => {
       if (item.roles && item.roles.length > 0) {
-        return item.roles.some(role => user?.role === role);
+        return item.roles.some((role) => user?.role === role);
       }
       return true;
     });
@@ -102,7 +160,12 @@ const Layout = () => {
   const drawer = (
     <Box>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold' }}>
+        <Typography
+          variant="h6"
+          noWrap
+          component="div"
+          sx={{ fontWeight: 'bold' }}
+        >
           GeoLynx
         </Typography>
       </Toolbar>
@@ -148,7 +211,7 @@ const Layout = () => {
           backgroundColor: 'white',
           color: theme.palette.text.primary,
           boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-          borderBottom: '1px solid #e0e0e0'
+          borderBottom: '1px solid #e0e0e0',
         }}
       >
         <Toolbar>
@@ -165,7 +228,9 @@ const Layout = () => {
             Sistema de Gestão Territorial
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="body2">{user?.fullName || user?.email || 'Utilizador'}</Typography>
+            <Typography variant="body2">
+              {user?.fullName || user?.email || 'Utilizador'}
+            </Typography>
             <IconButton
               size="large"
               edge="end"
@@ -195,16 +260,32 @@ const Layout = () => {
                 <Typography variant="caption">Role: {user?.role}</Typography>
               </MenuItem>
               <Divider />
-              <MenuItem onClick={() => { navigate('/dashboard/my-profile'); handleProfileMenuClose(); }}>
-                <ListItemIcon><AccountCircle fontSize="small" /></ListItemIcon>
+              <MenuItem
+                onClick={() => {
+                  navigate('/dashboard/my-profile');
+                  handleProfileMenuClose();
+                }}
+              >
+                <ListItemIcon>
+                  <AccountCircle fontSize="small" />
+                </ListItemIcon>
                 Meu Perfil
               </MenuItem>
-              <MenuItem onClick={() => { navigate('/dashboard/change-password'); handleProfileMenuClose(); }}>
-                <ListItemIcon><Settings fontSize="small" /></ListItemIcon>
+              <MenuItem
+                onClick={() => {
+                  navigate('/dashboard/change-password');
+                  handleProfileMenuClose();
+                }}
+              >
+                <ListItemIcon>
+                  <Settings fontSize="small" />
+                </ListItemIcon>
                 Alterar Password
               </MenuItem>
               <MenuItem onClick={handleLogout}>
-                <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
                 Sair
               </MenuItem>
             </Menu>
@@ -224,7 +305,10 @@ const Layout = () => {
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+            },
           }}
         >
           {drawer}
@@ -233,7 +317,10 @@ const Layout = () => {
           variant="permanent"
           sx={{
             display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+            },
           }}
           open
         >
@@ -249,7 +336,7 @@ const Layout = () => {
           mt: '64px', // Standard AppBar height
           overflow: 'auto',
           backgroundColor: theme.palette.background.default,
-          height: 'calc(100vh - 64px)'
+          height: 'calc(100vh - 64px)',
         }}
       >
         <Outlet />

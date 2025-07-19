@@ -264,7 +264,9 @@ function App() {
                   <Route
                     path="my-worksheets"
                     element={
-                      <PrivateRoute roles={['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO']}>
+                      <PrivateRoute
+                        roles={['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO']}
+                      >
                         <MyWorksheets />
                       </PrivateRoute>
                     }
@@ -294,17 +296,11 @@ function App() {
                     }
                   />
                   <Route
-                    path="worksheet/create"
-                    element={
-                      <PrivateRoute roles={['PO', 'ADLU']}>
-                        <WorksheetCreate />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
                     path="worksheet/:id"
                     element={
-                      <PrivateRoute roles={['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO']}>
+                      <PrivateRoute
+                        roles={['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO']}
+                      >
                         <WorksheetDetail />
                       </PrivateRoute>
                     }
