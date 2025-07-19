@@ -93,6 +93,18 @@ export const regionService = {
   getRegionData: (lat, lng) => api.get(`/region/?lat=${lat}&lng=${lng}`),
 };
 
+// Animal services
+export const animalService = {
+  create: (data) => api.post('/animal/', data),
+  getNearby: (geohash) => api.get(`/animal/nearby?geohash=${geohash}`),
+};
+
+// Historical Curiosities services
+export const historicalCuriosityService = {
+  create: (data) => api.post('/historical-curiosities/', data),
+  getNearby: (geohash) => api.get(`/historical-curiosities/nearby?geohash=${geohash}`),
+};
+
 // Utils services
 export const utilsService = {
   hello: () => api.get('/utils/hello'),

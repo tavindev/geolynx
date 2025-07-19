@@ -7,11 +7,13 @@ import jakarta.ws.rs.NotFoundException;
 import tavindev.core.entities.User;
 import tavindev.core.entities.WorkSheet;
 import tavindev.core.entities.Permission;
+import ch.hsr.geohash.GeoHash;
 import tavindev.core.authorization.PermissionAuthorizationHandler;
 import tavindev.core.utils.AuthUtils;
 import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
 import tavindev.infra.dto.worksheet.WorksheetQueryFilters;
 import tavindev.infra.repositories.WorkSheetRepository;
+import ch.hsr.geohash.GeoHash;
 
 public class WorkSheetService {
     @Inject
@@ -20,16 +22,13 @@ public class WorkSheetService {
     @Inject
     private AuthUtils authUtils;
 
-    @Inject
-    private GeohashService geohashService;
-
     public WorkSheet createOrUpdateWorkSheet(String tokenId, WorkSheet workSheet) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
 
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.IMP_FO);
 
         double[] firstPoint = workSheet.getFirstPoint();
-        workSheet.setGeohash(geohashService.encode(firstPoint[1], firstPoint[0]));
+        workSheet.setGeohash(GeoHash.withCharacterPrecision(firstPoint[0], firstPoint[1], 6).toBase32());
         workSheetRepository.save(workSheet);
 
         return workSheet;

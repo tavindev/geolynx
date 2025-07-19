@@ -31,12 +31,17 @@ import {
   MyLocation as MyLocationIcon,
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
+  Add as AddIcon,
+  Pets as PetsIcon,
+  HistoryEdu as HistoryIcon,
 } from '@mui/icons-material';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useAuth } from '../contexts/AuthContext';
 import { regionService } from '../services/api';
 import RegionSidebar from '../components/RegionSidebar';
+import CreateAnimalModal from '../components/CreateAnimalModal';
+import CreateCuriosityModal from '../components/CreateCuriosityModal';
 
 // Fix for default markers in React-Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -119,7 +124,7 @@ function MapEventHandler({ onMoveEnd }) {
 }
 
 // Map controls component
-function MapControls() {
+function MapControls({ user, onCreateAnimal, onCreateCuriosity }) {
   const map = useMap();
 
   const handleZoomIn = () => {
@@ -148,6 +153,18 @@ function MapControls() {
         <Fab size="small" color="secondary" onClick={handleLocate}>
           <MyLocationIcon />
         </Fab>
+        
+        {user && (
+          <>
+            <Divider sx={{ my: 1, bgcolor: 'white' }} />
+            <Fab size="small" color="success" onClick={onCreateAnimal} title="Add Animal">
+              <PetsIcon />
+            </Fab>
+            <Fab size="small" color="info" onClick={onCreateCuriosity} title="Add Historical Curiosity">
+              <HistoryIcon />
+            </Fab>
+          </>
+        )}
       </Box>
     </Box>
   );
@@ -163,6 +180,8 @@ const Map = () => {
   const [regionLoading, setRegionLoading] = useState(false);
   const [regionError, setRegionError] = useState(null);
   const [currentCoordinates, setCurrentCoordinates] = useState(null);
+  const [createAnimalOpen, setCreateAnimalOpen] = useState(false);
+  const [createCuriosityOpen, setCreateCuriosityOpen] = useState(false);
   const mapRef = useRef(null);
   const debounceTimeoutRef = useRef(null);
 
@@ -227,6 +246,13 @@ const Map = () => {
     };
   }, []);
 
+  const handleCreationSuccess = () => {
+    // Refresh region data if coordinates are available
+    if (currentCoordinates) {
+      handleMapMoveEnd(currentCoordinates.lat, currentCoordinates.lng);
+    }
+  };
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mb: 4, mt: 2 }}>
@@ -263,7 +289,11 @@ const Map = () => {
                 />
 
                 <MapEventHandler onMoveEnd={handleMapMoveEnd} />
-                <MapControls />
+                <MapControls 
+                  user={user}
+                  onCreateAnimal={() => setCreateAnimalOpen(true)}
+                  onCreateCuriosity={() => setCreateCuriosityOpen(true)}
+                />
 
                 {mockAIGPs
                   .filter((aigp) => selectedAIGPs.includes(aigp.id))
@@ -460,6 +490,24 @@ const Map = () => {
           </Box>
         </Box>
       </Drawer>
+
+      {/* Create Animal Modal */}
+      <CreateAnimalModal
+        open={createAnimalOpen}
+        onClose={() => setCreateAnimalOpen(false)}
+        coordinates={currentCoordinates}
+        user={user}
+        onSuccess={handleCreationSuccess}
+      />
+
+      {/* Create Historical Curiosity Modal */}
+      <CreateCuriosityModal
+        open={createCuriosityOpen}
+        onClose={() => setCreateCuriosityOpen(false)}
+        coordinates={currentCoordinates}
+        user={user}
+        onSuccess={handleCreationSuccess}
+      />
     </Container>
   );
 };

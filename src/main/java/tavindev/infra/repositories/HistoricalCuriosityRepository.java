@@ -43,7 +43,8 @@ public class HistoricalCuriosityRepository {
 		entityBuilder.set("description", curiosity.getDescription());
 		entityBuilder.set("latitude", curiosity.getLatitude());
 		entityBuilder.set("longitude", curiosity.getLongitude());
-		entityBuilder.set("createdAt", Timestamp.of(java.sql.Timestamp.valueOf(curiosity.getCreatedAt())));
+		entityBuilder.set("createdAt",
+				Timestamp.of(java.util.Date.from(curiosity.getCreatedAt().atZone(ZoneOffset.UTC).toInstant())));
 
 		if (curiosity.getGeohash() != null) {
 			entityBuilder.set("geohash", curiosity.getGeohash());

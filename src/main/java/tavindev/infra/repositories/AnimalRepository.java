@@ -20,7 +20,7 @@ public class AnimalRepository {
     Key animalKey = keyFactory.newKey(animal.getId());
 
     Entity.Builder entityBuilder = Entity.newBuilder(animalKey);
-    
+
     entityBuilder.set("name", animal.getName());
     entityBuilder.set("description", animal.getDescription());
     if (animal.getImage() != null) {
@@ -28,16 +28,17 @@ public class AnimalRepository {
     }
     entityBuilder.set("latitude", animal.getLatitude());
     entityBuilder.set("longitude", animal.getLongitude());
-    entityBuilder.set("createdAt", Timestamp.of(java.sql.Timestamp.valueOf(animal.getCreatedAt())));
+    entityBuilder.set("createdAt",
+        Timestamp.of(java.util.Date.from(animal.getCreatedAt().atZone(ZoneOffset.UTC).toInstant())));
     entityBuilder.set("userId", animal.getUserId());
-    
+
     if (animal.getGeohash() != null) {
       entityBuilder.set("geohash", animal.getGeohash());
     }
 
     Entity animalEntity = entityBuilder.build();
     datastore.put(animalEntity);
-    
+
     return animal;
   }
 

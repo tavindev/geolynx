@@ -62,8 +62,8 @@ public class HistoricalCuriosity {
 		return geohash;
 	}
 
-	public String getCreatedAt() {
-		return createdAt.toString();
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
 	}
 
 }

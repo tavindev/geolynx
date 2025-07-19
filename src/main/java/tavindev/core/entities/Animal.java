@@ -37,7 +37,7 @@ public class Animal {
     this.createdAt = LocalDateTime.now();
   }
 
-  public Animal(String id, String name, String description, String image, Long latitude, 
+  public Animal(String id, String name, String description, String image, Long latitude,
       Long longitude, String geohash, LocalDateTime createdAt, String userId) {
     this.id = id;
     this.name = name;
@@ -82,8 +82,8 @@ public class Animal {
     return geohash;
   }
 
-  public String getCreatedAt() {
-    return createdAt.toString();
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
   }
 
   public String getUserId() {

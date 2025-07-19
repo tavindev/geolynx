@@ -15,7 +15,7 @@ import tavindev.core.entities.Animal;
 import tavindev.core.entities.HistoricalCuriosity;
 import tavindev.core.services.AnimalService;
 import tavindev.core.services.HistoricalCuriosityService;
-import tavindev.core.services.GeohashService;
+import ch.hsr.geohash.GeoHash;
 
 import org.jvnet.hk2.annotations.Service;
 
@@ -29,9 +29,6 @@ public class RegionController {
   @Inject
   private HistoricalCuriosityService historicalCuriosityService;
 
-  @Inject
-  private GeohashService geohashService;
-
   @GET
   @Path("/")
   public Response getRegionData(@QueryParam("lat") Double lat, @QueryParam("lng") Double lng) {
@@ -42,8 +39,8 @@ public class RegionController {
     }
 
     // Calculate geohash from coordinates (using precision 6 for ~5km accuracy)
-    String geohash = geohashService.encode(lat, lng, 6);
-    
+    String geohash = GeoHash.withCharacterPrecision(lat, lng, 6).toBase32();
+
     List<Animal> animals = animalService.findByGeohash(geohash);
     List<HistoricalCuriosity> historicalCuriosities = historicalCuriosityService.findByGeohash(geohash);
 

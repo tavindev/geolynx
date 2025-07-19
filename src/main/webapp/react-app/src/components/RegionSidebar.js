@@ -7,6 +7,8 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  ListItemAvatar,
+  Avatar,
   Chip,
   Divider,
   CircularProgress,
@@ -133,13 +135,35 @@ const RegionSidebar = ({ regionData, loading, error, coordinates }) => {
         {animals.length > 0 ? (
           <List dense>
             {animals.map((animal, index) => (
-              <ListItem key={index} sx={{ pl: 0 }}>
-                <ListItemIcon>
-                  <AnimalIcon fontSize="small" />
-                </ListItemIcon>
+              <ListItem key={index} sx={{ pl: 0, alignItems: 'flex-start' }}>
+                <ListItemAvatar>
+                  <Avatar
+                    src={animal.image}
+                    alt={animal.name}
+                    sx={{ width: 48, height: 48 }}
+                  >
+                    <AnimalIcon />
+                  </Avatar>
+                </ListItemAvatar>
                 <ListItemText
-                  primary={animal.name || animal.species}
-                  secondary={animal.description || animal.commonName}
+                  primary={animal.name}
+                  secondary={
+                    <Box>
+                      <Typography variant="body2" component="span">
+                        {animal.description}
+                      </Typography>
+                      {animal.userId && (
+                        <Typography 
+                          variant="caption" 
+                          component="div" 
+                          color="text.secondary"
+                          sx={{ mt: 0.5 }}
+                        >
+                          Adicionado por usuário: {animal.userId}
+                        </Typography>
+                      )}
+                    </Box>
+                  }
                 />
               </ListItem>
             ))}
