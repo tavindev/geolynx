@@ -204,11 +204,25 @@ const Map = () => {
     setWorksheetsLoading(true);
     try {
       const response = await worksheetService.getAll();
-      setWorksheets(response);
-      // Select all worksheets by default
-      setSelectedWorksheets(response.map(ws => ws.id));
+      console.log('Worksheets response:', response); // Debug log
+      
+      // Handle different response formats
+      const worksheetData = response.data || response;
+      
+      // Ensure we have an array
+      if (Array.isArray(worksheetData)) {
+        setWorksheets(worksheetData);
+        // Select all worksheets by default
+        setSelectedWorksheets(worksheetData.map(ws => ws.id));
+      } else {
+        console.error('Worksheets response is not an array:', worksheetData);
+        setWorksheets([]);
+        setSelectedWorksheets([]);
+      }
     } catch (error) {
       console.error('Error loading worksheets:', error);
+      setWorksheets([]);
+      setSelectedWorksheets([]);
     } finally {
       setWorksheetsLoading(false);
     }
@@ -332,7 +346,7 @@ const Map = () => {
                 />
 
                 {/* Worksheets Layer */}
-                {showWorksheets && !worksheetsLoading && worksheets
+                {showWorksheets && !worksheetsLoading && worksheets && worksheets.length > 0 && worksheets
                   .filter((worksheet) => selectedWorksheets.includes(worksheet.id))
                   .map((worksheet) => (
                     <React.Fragment key={worksheet.id}>
@@ -482,7 +496,7 @@ const Map = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
               <CircularProgress size={24} />
             </Box>
-          ) : (
+          ) : worksheets && worksheets.length > 0 ? (
             <List>
               {worksheets.map((worksheet) => (
                 <ListItem key={worksheet.id} dense>
@@ -498,10 +512,10 @@ const Map = () => {
                     secondary={
                       <Box>
                         <Typography variant="caption" component="div">
-                          AIGP: {worksheet.aigp.join(', ')}
+                          AIGP: {worksheet.aigp ? worksheet.aigp.join(', ') : 'N/A'}
                         </Typography>
                         <Typography variant="caption" component="div">
-                          {worksheet.operations.length} operações
+                          {worksheet.operations ? worksheet.operations.length : 0} operações
                         </Typography>
                       </Box>
                     }
@@ -509,6 +523,10 @@ const Map = () => {
                 </ListItem>
               ))}
             </List>
+          ) : (
+            <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
+              Nenhuma folha de obra encontrada
+            </Typography>
           )}
 
           <Divider sx={{ my: 2 }} />
