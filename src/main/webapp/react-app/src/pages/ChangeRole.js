@@ -26,13 +26,13 @@ const ROLES = [
   { value: 'PO', label: 'Partner Operator' },
   { value: 'ADLU', label: 'ADLU' },
   { value: 'RU', label: 'Regular User' },
-  { value: 'VU', label: 'Visitor User' }
+  { value: 'VU', label: 'Visitor User' },
 ];
 
 const STATES = [
   { value: 'ACTIVE', label: 'Ativo' },
   { value: 'INACTIVE', label: 'Inativo' },
-  { value: 'SUSPENDED', label: 'Suspenso' }
+  { value: 'SUSPENDED', label: 'Suspenso' },
 ];
 
 const ChangeRole = () => {
@@ -50,20 +50,18 @@ const ChangeRole = () => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        // Get user list to find current user data
-        const response = await userService.listUsers();
-        const userData = response.data.find(u => u.username === userId || u.email === userId);
-        
-        if (!userData) {
-          throw new Error('User not found');
-        }
-        
+        // Get the specific user data using the new endpoint
+        const response = await userService.getUserById(userId);
+        const userData = response.data;
+
         setUser(userData);
         setNewRole(userData.role || '');
         setNewState(userData.accountStatus || 'ACTIVE');
       } catch (err) {
         setError('Falha ao carregar dados do utilizador.');
-        enqueueSnackbar('Falha ao carregar dados do utilizador.', { variant: 'error' });
+        enqueueSnackbar('Falha ao carregar dados do utilizador.', {
+          variant: 'error',
+        });
       } finally {
         setLoading(false);
       }
@@ -82,7 +80,7 @@ const ChangeRole = () => {
       if (newRole !== user.role) {
         await userService.changeRole({
           username: userId,
-          novo_role: newRole
+          novo_role: newRole,
         });
       }
 
@@ -90,14 +88,17 @@ const ChangeRole = () => {
       if (newState !== user.accountStatus) {
         await userService.changeAccountState({
           username: userId,
-          novo_estado: newState
+          novo_estado: newState,
         });
       }
 
-      enqueueSnackbar('Role e estado do utilizador atualizados com sucesso!', { variant: 'success' });
+      enqueueSnackbar('Role e estado do utilizador atualizados com sucesso!', {
+        variant: 'success',
+      });
       navigate('/dashboard/list-users');
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Erro ao atualizar o utilizador';
+      const errorMsg =
+        err.response?.data?.message || 'Erro ao atualizar o utilizador';
       setError(errorMsg);
       enqueueSnackbar(errorMsg, { variant: 'error' });
     } finally {
@@ -122,15 +123,15 @@ const ChangeRole = () => {
       </Container>
     );
   }
-  
+
   return (
     <Container component="main" maxWidth="sm">
       <Box sx={{ py: 4 }}>
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            padding: 4, 
-            width: '100%', 
+        <Paper
+          elevation={0}
+          sx={{
+            padding: 4,
+            width: '100%',
             border: '1px solid #e0e0e0',
             boxShadow: '0px 10px 30px -5px rgba(0, 0, 0, 0.07)',
             borderRadius: (theme) => theme.shape.borderRadius,
@@ -147,10 +148,14 @@ const ChangeRole = () => {
               {user.fullName}
             </Typography>
           )}
-          
+
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-            
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+
             <FormControl fullWidth margin="normal">
               <InputLabel id="role-select-label">Role</InputLabel>
               <Select
@@ -162,19 +167,19 @@ const ChangeRole = () => {
                 onChange={(e) => setNewRole(e.target.value)}
                 disabled={submitting || user.role === 'SYSADMIN'}
               >
-                {ROLES.map(r => (
+                {ROLES.map((r) => (
                   <MenuItem key={r.value} value={r.value}>
                     {r.label} ({r.value})
                   </MenuItem>
                 ))}
               </Select>
               <FormHelperText>
-                {user.role === 'SYSADMIN' ? 
-                  'Não é possível alterar o role de um SYSADMIN' : 
-                  'Selecione a nova role para o utilizador.'}
+                {user.role === 'SYSADMIN'
+                  ? 'Não é possível alterar o role de um SYSADMIN'
+                  : 'Selecione a nova role para o utilizador.'}
               </FormHelperText>
             </FormControl>
-            
+
             <FormControl fullWidth margin="normal">
               <InputLabel id="status-select-label">Estado</InputLabel>
               <Select
@@ -186,15 +191,17 @@ const ChangeRole = () => {
                 onChange={(e) => setNewState(e.target.value)}
                 disabled={submitting}
               >
-                {STATES.map(s => (
+                {STATES.map((s) => (
                   <MenuItem key={s.value} value={s.value}>
                     {s.label}
                   </MenuItem>
                 ))}
               </Select>
-              <FormHelperText>Selecione o estado da conta do utilizador.</FormHelperText>
+              <FormHelperText>
+                Selecione o estado da conta do utilizador.
+              </FormHelperText>
             </FormControl>
-            
+
             <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
               <Button
                 type="submit"

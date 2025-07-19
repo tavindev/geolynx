@@ -57,6 +57,16 @@ public class UserController {
         return Response.ok(userInfo).build();
     }
 
+    @GET
+    @Path("/{userId}")
+    public Response getUserById(
+            @CookieParam("session") String sessionToken,
+            @PathParam("userId") String userId) {
+        User user = userService.getUserById(sessionToken, userId);
+
+        return Response.ok(user).build();
+    }
+
     @POST
     @Path("/change-role")
     @Consumes(MediaType.APPLICATION_JSON)

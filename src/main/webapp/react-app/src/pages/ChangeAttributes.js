@@ -52,13 +52,9 @@ const ChangeAttributes = () => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        // Since there's no getUser endpoint, we need to list all users and find the one we need
-        const response = await userService.listUsers();
-        const user = response.data.find((u) => u.username === userId);
-
-        if (!user) {
-          throw new Error('User not found');
-        }
+        // Get the specific user data using the new endpoint
+        const response = await userService.getUserById(userId);
+        const user = response.data;
 
         setUserData(user);
 
@@ -88,6 +84,7 @@ const ChangeAttributes = () => {
           },
         });
       } catch (err) {
+        console.log(err);
         setError('Falha ao carregar dados do utilizador.');
         enqueueSnackbar('Falha ao carregar dados do utilizador.', {
           variant: 'error',

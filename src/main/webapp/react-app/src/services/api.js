@@ -49,7 +49,7 @@ export const authService = {
 // User management services
 export const userService = {
   listUsers: () => api.get('/user/all'),
-  // Removed getUser as it doesn't exist in backend
+  getUserById: (userId) => api.get(`/user/${userId}`),
   changeRole: (data) => api.post('/user/change-role', data),
   changeAccountState: (data) => api.post('/user/change-account-state', data),
   removeUser: (data) => api.post('/user/remove', data),
@@ -76,11 +76,13 @@ export const worksheetService = {
 // Execution Sheet services
 export const executionSheetService = {
   create: (data) => api.post('/execution-sheet/', data),
-  assignOperation: (data) => api.post('/execution-sheet/assign-operation', data),
+  assignOperation: (data) =>
+    api.post('/execution-sheet/assign-operation', data),
   startActivity: (data) => api.post('/execution-sheet/start-activity', data),
   stopActivity: (data) => api.post('/execution-sheet/stop-activity', data),
   viewActivity: (data) => api.post('/execution-sheet/view-activity', data),
-  viewStatusGlobal: (data) => api.post('/execution-sheet/view-status-global', data),
+  viewStatusGlobal: (data) =>
+    api.post('/execution-sheet/view-status-global', data),
   editOperation: (data) => api.post('/execution-sheet/edit-operation', data),
   export: (data) => api.post('/execution-sheet/export', data),
   getById: (id) => api.get(`/execution-sheet/${id}`),

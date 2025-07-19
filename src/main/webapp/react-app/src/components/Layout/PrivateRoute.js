@@ -23,12 +23,13 @@ const PrivateRoute = ({ children, roles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (roles && roles.length > 0) {
-    const hasRequiredRole = roles.some(role => hasRole(role));
-    if (!hasRequiredRole) {
-      return <Navigate to="/dashboard" replace />; // Redirect to a safe page if role is not sufficient
+  if (!hasRole('SYSADMIN'))
+    if (roles && roles.length > 0) {
+      const hasRequiredRole = roles.some((role) => hasRole(role));
+      if (!hasRequiredRole) {
+        return <Navigate to="/dashboard" replace />; // Redirect to a safe page if role is not sufficient
+      }
     }
-  }
 
   return children;
 };

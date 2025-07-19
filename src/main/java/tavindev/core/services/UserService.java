@@ -39,6 +39,20 @@ public class UserService {
         return allUsers;
     }
 
+    public User getUserById(String tokenId, String userId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        // Check if user has permission to view user details
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_ACCOUNT_PROFILE);
+
+        User targetUser = userRepository.findById(userId);
+        if (targetUser == null) {
+            throw new UserNotFoundException(userId);
+        }
+
+        return targetUser;
+    }
+
     public void changeRole(String tokenId, String username, UserRole newRole) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
 

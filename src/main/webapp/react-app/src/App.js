@@ -41,6 +41,7 @@ import WorksheetDashboard from './pages/WorksheetDashboard';
 import MyWorksheets from './pages/MyWorksheets';
 import MyProfile from './pages/MyProfile';
 import WorksheetDetail from './pages/WorksheetDetail';
+import WorkSheets from './pages/WorkSheets';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -217,6 +218,14 @@ function App() {
                     element={
                       <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
                         <ListUsers />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="manage-worksheets"
+                    element={
+                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                        <WorkSheets />
                       </PrivateRoute>
                     }
                   />
