@@ -43,13 +43,13 @@ const CreateAnimalModal = ({ open, onClose, coordinates, user, onSuccess }) => {
     setError(null);
 
     try {
-      // Convert coordinates to the format expected by the backend
+      // Use coordinates as Double values (regular degrees)
       const animalData = {
         name: formData.name,
         description: formData.description,
         image: formData.image,
-        lat: coordinates.lat, // Convert to microdegrees as Long
-        long: coordinates.lng, // Convert to microdegrees as Long
+        lat: coordinates.lat,
+        long: coordinates.lng,
         userId: user.id,
       };
 
@@ -86,7 +86,7 @@ const CreateAnimalModal = ({ open, onClose, coordinates, user, onSuccess }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add New Animal</DialogTitle>
+      <DialogTitle>Adicionar Novo Animal</DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -98,24 +98,25 @@ const CreateAnimalModal = ({ open, onClose, coordinates, user, onSuccess }) => {
 
             {coordinates && (
               <Alert severity="info">
-                Location: {coordinates.lat.toFixed(6)},{' '}
+                Localização: {coordinates.lat.toFixed(6)},{' '}
                 {coordinates.lng.toFixed(6)}
               </Alert>
             )}
 
             <TextField
               name="name"
-              label="Animal Name"
+              label="Nome do Animal"
               value={formData.name}
               onChange={handleChange}
               required
               fullWidth
               disabled={loading}
+              placeholder="Ex: Raposa"
             />
 
             <TextField
               name="description"
-              label="Description"
+              label="Descrição"
               value={formData.description}
               onChange={handleChange}
               required
@@ -123,23 +124,25 @@ const CreateAnimalModal = ({ open, onClose, coordinates, user, onSuccess }) => {
               multiline
               rows={3}
               disabled={loading}
+              placeholder="Descreva o animal avistado..."
             />
 
             <TextField
               name="image"
-              label="Image URL"
+              label="URL da Imagem"
               value={formData.image}
               onChange={handleChange}
               required
               fullWidth
               disabled={loading}
-              helperText="Enter a valid URL for the animal image"
+              helperText="Insira uma URL válida para a imagem do animal"
+              placeholder="https://exemplo.com/imagem.jpg"
             />
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} disabled={loading}>
-            Cancel
+            Cancelar
           </Button>
           <Button
             type="submit"
@@ -147,7 +150,7 @@ const CreateAnimalModal = ({ open, onClose, coordinates, user, onSuccess }) => {
             disabled={loading || !coordinates}
             startIcon={loading && <CircularProgress size={20} />}
           >
-            {loading ? 'Creating...' : 'Create Animal'}
+            {loading ? 'Criando...' : 'Criar Animal'}
           </Button>
         </DialogActions>
       </form>

@@ -12,13 +12,7 @@ import {
 } from '@mui/material';
 import { historicalCuriosityService } from '../services/api';
 
-const CreateCuriosityModal = ({
-  open,
-  onClose,
-  coordinates,
-  user,
-  onSuccess,
-}) => {
+const CreateCuriosityModal = ({ open, onClose, coordinates, user, onSuccess }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -39,7 +33,7 @@ const CreateCuriosityModal = ({
 
     if (!coordinates) {
       setError(
-        'No coordinates available. Please move the map to set a location.'
+        'Nenhuma coordenada disponível. Por favor, mova o mapa para definir uma localização.'
       );
       return;
     }
@@ -48,12 +42,12 @@ const CreateCuriosityModal = ({
     setError(null);
 
     try {
-      // Convert coordinates to the format expected by the backend
+      // Use coordinates as Double values (regular degrees)
       const curiosityData = {
         title: formData.title,
         description: formData.description,
-        lat: coordinates.lat, // Convert to microdegrees as Long
-        long: coordinates.lng, // Convert to microdegrees as Long
+        lat: coordinates.lat,
+        long: coordinates.lng,
       };
 
       await historicalCuriosityService.create(curiosityData);
@@ -68,7 +62,7 @@ const CreateCuriosityModal = ({
       onClose();
     } catch (error) {
       console.error('Error creating historical curiosity:', error);
-      setError('Failed to create historical curiosity. Please try again.');
+      setError('Falha ao criar curiosidade histórica. Por favor, tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -87,7 +81,7 @@ const CreateCuriosityModal = ({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add Historical Curiosity</DialogTitle>
+      <DialogTitle>Adicionar Curiosidade Histórica</DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -99,39 +93,40 @@ const CreateCuriosityModal = ({
 
             {coordinates && (
               <Alert severity="info">
-                Location: {coordinates.lat.toFixed(6)},{' '}
+                Localização: {coordinates.lat.toFixed(6)},{' '}
                 {coordinates.lng.toFixed(6)}
               </Alert>
             )}
 
             <TextField
               name="title"
-              label="Title"
+              label="Título"
               value={formData.title}
               onChange={handleChange}
               required
               fullWidth
               disabled={loading}
-              helperText="Short title for the historical curiosity"
+              placeholder="Ex: Antigo Moinho de Água"
             />
 
             <TextField
               name="description"
-              label="Description"
+              label="Descrição da Curiosidade Histórica"
               value={formData.description}
               onChange={handleChange}
               required
               fullWidth
               multiline
-              rows={4}
+              rows={5}
               disabled={loading}
-              helperText="Describe the historical significance or interesting fact about this location"
+              placeholder="Descreva um fato histórico interessante sobre este local..."
+              helperText="Conte algo sobre a história, cultura, arqueologia ou tradições deste lugar"
             />
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} disabled={loading}>
-            Cancel
+            Cancelar
           </Button>
           <Button
             type="submit"
@@ -139,7 +134,7 @@ const CreateCuriosityModal = ({
             disabled={loading || !coordinates}
             startIcon={loading && <CircularProgress size={20} />}
           >
-            {loading ? 'Creating...' : 'Add Curiosity'}
+            {loading ? 'Criando...' : 'Criar Curiosidade'}
           </Button>
         </DialogActions>
       </form>

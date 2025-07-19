@@ -200,7 +200,7 @@ const RegionSidebar = ({ regionData, loading, error, coordinates }) => {
                   <HistoryIcon fontSize="small" />
                 </ListItemIcon>
                 <ListItemText
-                  primary={curiosity.title || curiosity.name}
+                  primary={curiosity.title || 'Curiosidade Histórica'}
                   secondary={curiosity.description}
                 />
               </ListItem>
