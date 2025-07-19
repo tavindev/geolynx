@@ -135,12 +135,6 @@ const Layout = () => {
       roles: [],
     },
     {
-      text: 'Minhas Fichas',
-      icon: <DescriptionIcon />,
-      path: '/dashboard/my-worksheets',
-      roles: ['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO'],
-    },
-    {
       text: 'Pedir Remoção da Conta',
       icon: <DeleteSweepIcon />,
       path: '/dashboard/request-removal',
