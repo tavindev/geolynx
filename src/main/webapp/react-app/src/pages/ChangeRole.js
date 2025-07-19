@@ -13,7 +13,9 @@ import {
   Select,
   MenuItem,
   FormHelperText,
+  Chip,
 } from '@mui/material';
+import { AutorenewOutlined as AutorenewIcon } from '@mui/icons-material';
 import { userService } from '../services/api';
 import { useSnackbar } from 'notistack';
 
@@ -30,9 +32,10 @@ const ROLES = [
 ];
 
 const STATES = [
-  { value: 'ACTIVE', label: 'Ativo' },
-  { value: 'INACTIVE', label: 'Inativo' },
-  { value: 'SUSPENDED', label: 'Suspenso' },
+  { value: 'ATIVADA', label: 'Ativo' },
+  { value: 'SUSPENSA', label: 'Suspenso' },
+  { value: 'DESATIVADA', label: 'Desativado' },
+  { value: 'A_REMOVER', label: 'Remoção Pendente' },
 ];
 
 const ChangeRole = () => {
@@ -46,6 +49,8 @@ const ChangeRole = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [savingField, setSavingField] = useState(''); // 'role' or 'state'
+  const [lastSaved, setLastSaved] = useState({});
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -70,39 +75,77 @@ const ChangeRole = () => {
     loadUserData();
   }, [userId, enqueueSnackbar]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleRoleChange = async (newRoleValue) => {
+    // Store previous value for rollback
+    const previousRole = newRole;
+
+    // Optimistic update - update UI immediately
+    setNewRole(newRoleValue);
+    setUser((prev) => ({ ...prev, role: newRoleValue }));
     setSubmitting(true);
+    setSavingField('role');
     setError('');
 
     try {
-      // Update role if changed
-      if (newRole !== user.role) {
-        await userService.changeRole({
-          username: userId,
-          novo_role: newRole,
-        });
-      }
+      await userService.changeRole({
+        identifier: userId,
+        newRole: newRoleValue,
+      });
 
-      // Update state if changed
-      if (newState !== user.accountStatus) {
-        await userService.changeAccountState({
-          username: userId,
-          novo_estado: newState,
-        });
-      }
-
-      enqueueSnackbar('Role e estado do utilizador atualizados com sucesso!', {
+      enqueueSnackbar('Role do utilizador atualizada com sucesso!', {
         variant: 'success',
       });
-      navigate('/dashboard/list-users');
+
+      setLastSaved((prev) => ({ ...prev, role: new Date() }));
     } catch (err) {
       const errorMsg =
-        err.response?.data?.message || 'Erro ao atualizar o utilizador';
+        err.response?.data?.message || 'Erro ao atualizar role do utilizador';
       setError(errorMsg);
       enqueueSnackbar(errorMsg, { variant: 'error' });
+
+      // Rollback on error
+      setNewRole(previousRole);
+      setUser((prev) => ({ ...prev, role: previousRole }));
     } finally {
       setSubmitting(false);
+      setSavingField('');
+    }
+  };
+
+  const handleStateChange = async (newStateValue) => {
+    // Store previous value for rollback
+    const previousState = newState;
+
+    // Optimistic update - update UI immediately
+    setNewState(newStateValue);
+    setUser((prev) => ({ ...prev, accountStatus: newStateValue }));
+    setSubmitting(true);
+    setSavingField('state');
+    setError('');
+
+    try {
+      await userService.changeAccountState({
+        identifier: userId,
+        newState: newStateValue,
+      });
+
+      enqueueSnackbar('Estado do utilizador atualizado com sucesso!', {
+        variant: 'success',
+      });
+
+      setLastSaved((prev) => ({ ...prev, state: new Date() }));
+    } catch (err) {
+      const errorMsg =
+        err.response?.data?.message || 'Erro ao atualizar estado do utilizador';
+      setError(errorMsg);
+      enqueueSnackbar(errorMsg, { variant: 'error' });
+
+      // Rollback on error
+      setNewState(previousState);
+      setUser((prev) => ({ ...prev, accountStatus: previousState }));
+    } finally {
+      setSubmitting(false);
+      setSavingField('');
     }
   };
 
@@ -137,9 +180,26 @@ const ChangeRole = () => {
             borderRadius: (theme) => theme.shape.borderRadius,
           }}
         >
-          <Typography component="h1" variant="h5" align="center" gutterBottom>
-            Alterar Role e Estado do Utilizador
-          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
+            <Typography component="h1" variant="h5">
+              Alterar Role e Estado do Utilizador
+            </Typography>
+            {submitting && (
+              <Chip
+                icon={<AutorenewIcon />}
+                label="A guardar..."
+                color="primary"
+                size="small"
+              />
+            )}
+          </Box>
           <Typography variant="h6" align="center" sx={{ mb: 2 }}>
             Utilizador: <strong>{user.username}</strong>
           </Typography>
@@ -149,7 +209,7 @@ const ChangeRole = () => {
             </Typography>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+          <Box sx={{ mt: 3 }}>
             {error && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
@@ -164,8 +224,8 @@ const ChangeRole = () => {
                 name="role"
                 value={newRole}
                 label="Role"
-                onChange={(e) => setNewRole(e.target.value)}
-                disabled={submitting || user.role === 'SYSADMIN'}
+                onChange={(e) => handleRoleChange(e.target.value)}
+                disabled={savingField === 'role' || user.role === 'SYSADMIN'}
               >
                 {ROLES.map((r) => (
                   <MenuItem key={r.value} value={r.value}>
@@ -176,7 +236,11 @@ const ChangeRole = () => {
               <FormHelperText>
                 {user.role === 'SYSADMIN'
                   ? 'Não é possível alterar o role de um SYSADMIN'
-                  : 'Selecione a nova role para o utilizador.'}
+                  : savingField === 'role'
+                  ? 'A guardar alteração...'
+                  : lastSaved.role
+                  ? `Guardado às ${lastSaved.role.toLocaleTimeString('pt-PT')}`
+                  : 'As alterações são guardadas automaticamente'}
               </FormHelperText>
             </FormControl>
 
@@ -188,8 +252,8 @@ const ChangeRole = () => {
                 name="status"
                 value={newState}
                 label="Estado"
-                onChange={(e) => setNewState(e.target.value)}
-                disabled={submitting}
+                onChange={(e) => handleStateChange(e.target.value)}
+                disabled={savingField === 'state'}
               >
                 {STATES.map((s) => (
                   <MenuItem key={s.value} value={s.value}>
@@ -198,26 +262,21 @@ const ChangeRole = () => {
                 ))}
               </Select>
               <FormHelperText>
-                Selecione o estado da conta do utilizador.
+                {savingField === 'state'
+                  ? 'A guardar alteração...'
+                  : lastSaved.state
+                  ? `Guardado às ${lastSaved.state.toLocaleTimeString('pt-PT')}`
+                  : 'As alterações são guardadas automaticamente'}
               </FormHelperText>
             </FormControl>
 
-            <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
               <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={submitting}
-              >
-                {submitting ? <CircularProgress size={24} /> : 'Atualizar'}
-              </Button>
-              <Button
-                fullWidth
                 variant="outlined"
                 onClick={() => navigate('/dashboard/list-users')}
-                disabled={submitting}
+                disabled={savingField !== ''}
               >
-                Cancelar
+                Voltar à Lista de Utilizadores
               </Button>
             </Box>
           </Box>

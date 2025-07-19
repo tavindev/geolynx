@@ -73,9 +73,9 @@ public class UserController {
     public Response changeRole(
             @CookieParam("session") String sessionToken,
             @Valid ChangeRoleDTO request) {
-        userService.changeRole(sessionToken, request.username(), UserRole.valueOf(request.novo_role()));
+        userService.changeRole(sessionToken, request.identifier(), UserRole.valueOf(request.newRole()));
 
-        return Response.ok(ChangeRoleResponseDTO.success(request.username(), request.novo_role())).build();
+        return Response.ok(ChangeRoleResponseDTO.success(request.identifier(), request.newRole())).build();
     }
 
     @POST
@@ -84,9 +84,9 @@ public class UserController {
     public Response changeAccountState(
             @CookieParam("session") String sessionToken,
             @Valid ChangeAccountStateDTO request) {
-        userService.changeAccountState(sessionToken, request.username(), AccountStatus.valueOf(request.novo_estado()));
+        userService.changeAccountState(sessionToken, request.identifier(), AccountStatus.valueOf(request.newState()));
 
-        return Response.ok(ChangeAccountStateResponseDTO.success(request.username(), request.novo_estado())).build();
+        return Response.ok(ChangeAccountStateResponseDTO.success(request.identifier(), request.newState())).build();
     }
 
     @POST

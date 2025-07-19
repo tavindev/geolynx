@@ -53,16 +53,16 @@ public class UserService {
         return targetUser;
     }
 
-    public void changeRole(String tokenId, String username, UserRole newRole) {
+    public void changeRole(String tokenId, String identifier, UserRole newRole) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
 
         // Check if user has permission to change roles (SYSADMIN and SYSBO only)
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.REMOVE_ACCOUNT);
 
-        User targetUser = userRepository.findByUsername(username);
+        User targetUser = userRepository.findByIdentifier(identifier);
 
         if (targetUser == null) {
-            throw new UserNotFoundException(username);
+            throw new UserNotFoundException(identifier);
         }
 
         targetUser.setRole(newRole);
@@ -70,7 +70,7 @@ public class UserService {
         userRepository.save(targetUser);
     }
 
-    public void changeAccountState(String tokenId, String username, AccountStatus newState) {
+    public void changeAccountState(String tokenId, String identifier, AccountStatus newState) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
 
         // Check if user has permission to change account states (SYSADMIN and SYSBO
@@ -81,9 +81,9 @@ public class UserService {
                 Permission.SUSPEND_ACCOUNT);
         PermissionAuthorizationHandler.checkAnyPermission(currentUser, requiredPermissions);
 
-        User targetUser = userRepository.findByUsername(username);
+        User targetUser = userRepository.findByIdentifier(identifier);
         if (targetUser == null) {
-            throw new UserNotFoundException(username);
+            throw new UserNotFoundException(identifier);
         }
 
         targetUser.setAccountStatus(newState);
