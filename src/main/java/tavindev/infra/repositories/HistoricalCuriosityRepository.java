@@ -101,8 +101,7 @@ public class HistoricalCuriosityRepository {
 	public List<HistoricalCuriosity> findByGeohash(String geohash) {
 		Query<Entity> query = Query.newEntityQueryBuilder()
 				.setKind(HISTORICAL_CURIOSITY_KIND)
-				.setFilter(StructuredQuery.PropertyFilter.ge("geohash", geohash))
-				.setFilter(StructuredQuery.PropertyFilter.lt("geohash", geohash + "\ufffd"))
+				.setFilter(StructuredQuery.PropertyFilter.eq("geohash", geohash))
 				.build();
 
 		QueryResults<Entity> results = datastore.run(query);
