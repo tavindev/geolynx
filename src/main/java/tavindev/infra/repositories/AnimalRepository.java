@@ -1,30 +1,95 @@
 package tavindev.infra.repositories;
 
-import com.google.cloud.datastore.Datastore;
-import com.google.cloud.datastore.DatastoreOptions;
-import com.google.cloud.datastore.KeyFactory;
-import com.google.cloud.datastore.Key;
-import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.*;
+import com.google.cloud.Timestamp;
 import tavindev.core.entities.Animal;
 
 import org.jvnet.hk2.annotations.Service;
 
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class AnimalRepository {
   private static final String ANIMAL_KIND = "Animal";
-  private final Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+  private final Datastore datastore = DatastoreManager.getInstance();
 
-  public void save(Animal animal) {
+  public Animal save(Animal animal) {
     KeyFactory keyFactory = datastore.newKeyFactory().setKind(ANIMAL_KIND);
     Key animalKey = keyFactory.newKey(animal.getId());
 
-    Entity animalEntity = Entity.newBuilder(animalKey)
-        .set("name", animal.getName())
-        .set("description", animal.getDescription())
-        .set("image", animal.getImage())
-        .set("createdAt", animal.getCreatedAt())
+    Entity.Builder entityBuilder = Entity.newBuilder(animalKey);
+    
+    entityBuilder.set("name", animal.getName());
+    entityBuilder.set("description", animal.getDescription());
+    if (animal.getImage() != null) {
+      entityBuilder.set("image", animal.getImage());
+    }
+    entityBuilder.set("latitude", animal.getLatitude());
+    entityBuilder.set("longitude", animal.getLongitude());
+    entityBuilder.set("createdAt", Timestamp.of(java.sql.Timestamp.valueOf(animal.getCreatedAt())));
+    entityBuilder.set("userId", animal.getUserId());
+    
+    if (animal.getGeohash() != null) {
+      entityBuilder.set("geohash", animal.getGeohash());
+    }
+
+    Entity animalEntity = entityBuilder.build();
+    datastore.put(animalEntity);
+    
+    return animal;
+  }
+
+  public Animal get(String id) {
+    KeyFactory keyFactory = datastore.newKeyFactory().setKind(ANIMAL_KIND);
+    Key animalKey = keyFactory.newKey(id);
+    Entity animalEntity = datastore.get(animalKey);
+
+    if (animalEntity == null) {
+      return null;
+    }
+
+    String name = animalEntity.getString("name");
+    String description = animalEntity.getString("description");
+    String image = animalEntity.contains("image") ? animalEntity.getString("image") : null;
+    Long latitude = animalEntity.getLong("latitude");
+    Long longitude = animalEntity.getLong("longitude");
+    String geohash = animalEntity.contains("geohash") ? animalEntity.getString("geohash") : null;
+    String userId = animalEntity.getString("userId");
+    Timestamp createdAt = animalEntity.getTimestamp("createdAt");
+
+    return new Animal(id, name, description, image, latitude, longitude, geohash,
+        createdAt.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime(), userId);
+  }
+
+  public List<Animal> findByGeohash(String geohash) {
+    Query<Entity> query = Query.newEntityQueryBuilder()
+        .setKind(ANIMAL_KIND)
+        .setFilter(StructuredQuery.PropertyFilter.eq("geohash", geohash))
         .build();
 
-    datastore.put(animalEntity);
+    QueryResults<Entity> results = datastore.run(query);
+    List<Animal> animals = new ArrayList<>();
+
+    while (results.hasNext()) {
+      Entity animalEntity = results.next();
+
+      String id = animalEntity.getKey().getName();
+      String name = animalEntity.getString("name");
+      String description = animalEntity.getString("description");
+      String image = animalEntity.contains("image") ? animalEntity.getString("image") : null;
+      Long latitude = animalEntity.getLong("latitude");
+      Long longitude = animalEntity.getLong("longitude");
+      String userId = animalEntity.getString("userId");
+      Timestamp createdAt = animalEntity.getTimestamp("createdAt");
+
+      Animal animal = new Animal(id, name, description, image, latitude, longitude, geohash,
+          createdAt.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime(), userId);
+
+      animals.add(animal);
+    }
+
+    return animals;
   }
 }

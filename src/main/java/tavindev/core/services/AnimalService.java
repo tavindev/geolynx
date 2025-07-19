@@ -1,6 +1,5 @@
 package tavindev.core.services;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.inject.Inject;
@@ -14,11 +13,15 @@ public class AnimalService {
   @Inject
   private AnimalRepository animalRepository;
 
-  public List<Animal> getNearby(String geohash) {
-    return new ArrayList<>();
+  @Inject
+  private GeohashService geohashService;
+
+  public List<Animal> findByGeohash(String geohash) {
+    return animalRepository.findByGeohash(geohash);
   }
 
   public void create(Animal animal) {
+    animal.setGeohash(geohashService.encode(animal.getLatitude(), animal.getLongitude()));
     animalRepository.save(animal);
   }
 }

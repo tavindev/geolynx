@@ -34,8 +34,8 @@ public class AnimalController {
 
   @GET
   @Path("/nearby")
-  public Response getAnimal(@QueryParam("geohash") String geohash) {
-    List<Animal> animals = animalService.getNearby(geohash);
+  public Response getAnimals(@QueryParam("geohash") String geohash) {
+    List<Animal> animals = animalService.findByGeohash(geohash);
 
     return Response.ok(animals).build();
   }
