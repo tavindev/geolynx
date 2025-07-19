@@ -380,10 +380,37 @@ public class WorkSheetRepository {
                         }
                     }
                 }
+                
+                // Extract features to get coordinates
+                List<WorkSheetListResponseDTO.FeatureDTO> features = new ArrayList<>();
+                if (workSheetEntity.contains("features")) {
+                    List<Value<?>> featuresList = workSheetEntity.getList("features");
+                    // Only get the first feature for performance
+                    if (!featuresList.isEmpty()) {
+                        Value<?> firstFeatureValue = featuresList.get(0);
+                        if (firstFeatureValue instanceof EntityValue) {
+                            FullEntity<?> featureEntity = ((EntityValue) firstFeatureValue).get();
+                            String featureType = featureEntity.getString("type");
+                            
+                            // Extract geometry
+                            if (featureEntity.contains("geometry")) {
+                                FullEntity<?> geometryEntity = featureEntity.getEntity("geometry");
+                                String geometryType = geometryEntity.getString("type");
+                                List<List<List<Double>>> coordinates = parseCoordinates3D(geometryEntity.getString("coordinates"));
+                                
+                                WorkSheetListResponseDTO.GeometryDTO geometry = 
+                                    new WorkSheetListResponseDTO.GeometryDTO(geometryType, coordinates);
+                                WorkSheetListResponseDTO.FeatureDTO feature = 
+                                    new WorkSheetListResponseDTO.FeatureDTO(featureType, geometry);
+                                features.add(feature);
+                            }
+                        }
+                    }
+                }
 
                 WorkSheetListResponseDTO workSheet = new WorkSheetListResponseDTO(
                         workSheetId, aigp, startingDate, finishingDate, issueDate, awardDate, serviceProviderId,
-                        operations);
+                        operations, features);
 
                 workSheets.add(workSheet);
             }

@@ -43,9 +43,9 @@ const MyProfile = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     setError('');
   };
@@ -59,10 +59,12 @@ const MyProfile = () => {
       // Update user attributes
       await userService.changeAttributes({
         identificador: user.username, // Add the user identifier
-              atributos: {
-                fullName: formData.fullName,
-                email: formData.email,
-                phone: formData.phone,
+        atributos: {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          profile: formData.profile,
+        },
       });
 
       // Update profile if changed
@@ -103,10 +105,14 @@ const MyProfile = () => {
           <Typography variant="subtitle1" color="text.secondary" gutterBottom>
             Atualize suas informações pessoais
           </Typography>
-          
+
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-            
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <TextField
@@ -118,7 +124,7 @@ const MyProfile = () => {
                   disabled={loading}
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -130,7 +136,7 @@ const MyProfile = () => {
                   disabled={loading}
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -141,7 +147,7 @@ const MyProfile = () => {
                   disabled={loading}
                 />
               </Grid>
-              
+
               <Grid item xs={12}>
                 <FormControl fullWidth>
                   <InputLabel>Perfil de Privacidade</InputLabel>
@@ -157,9 +163,11 @@ const MyProfile = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              
+
               <Grid item xs={12}>
-                <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 1 }}>
+                <Box
+                  sx={{ bgcolor: 'background.default', p: 2, borderRadius: 1 }}
+                >
                   <Typography variant="body2" color="text.secondary">
                     <strong>Username:</strong> {user?.username}
                   </Typography>
@@ -167,7 +175,8 @@ const MyProfile = () => {
                     <strong>Role:</strong> {user?.role}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    <strong>Estado da Conta:</strong> {user?.accountStatus || 'ACTIVE'}
+                    <strong>Estado da Conta:</strong>{' '}
+                    {user?.accountStatus || 'ACTIVE'}
                   </Typography>
                 </Box>
               </Grid>
@@ -177,7 +186,7 @@ const MyProfile = () => {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ 
+              sx={{
                 mt: 3,
                 py: 1.5,
                 fontWeight: 500,
@@ -185,7 +194,7 @@ const MyProfile = () => {
                 '&:hover': {
                   boxShadow: '0px 12px 30px -8px rgba(0, 0, 0, 0.15)',
                   backgroundColor: 'primary.light',
-                }
+                },
               }}
               disabled={loading}
             >

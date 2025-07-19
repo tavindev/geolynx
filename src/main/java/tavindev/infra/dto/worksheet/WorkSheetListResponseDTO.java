@@ -10,10 +10,21 @@ public record WorkSheetListResponseDTO(
 		String issueDate,
 		String awardDate,
 		Long serviceProviderId,
-		List<OperationDTO> operations) {
+		List<OperationDTO> operations,
+		List<FeatureDTO> features) {
 	public record OperationDTO(
 			String operationCode,
 			String operationDescription,
 			double areaHa) {
+	}
+	
+	public record FeatureDTO(
+			String type,
+			GeometryDTO geometry) {
+	}
+	
+	public record GeometryDTO(
+			String type,
+			List<List<List<Double>>> coordinates) {
 	}
 }
