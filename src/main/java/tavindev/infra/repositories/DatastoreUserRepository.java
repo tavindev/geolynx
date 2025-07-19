@@ -159,7 +159,12 @@ public class DatastoreUserRepository {
         if (user != null)
             return user;
 
-        return findByUsername(identifier);
+        user = findByUsername(identifier);
+
+        if (user != null)
+            return user;
+
+        return findById(identifier);
     }
 
     public List<User> findAllUsers() {
