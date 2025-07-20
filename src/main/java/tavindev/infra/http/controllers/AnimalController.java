@@ -3,6 +3,7 @@ package tavindev.infra.http.controllers;
 import java.util.List;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.CookieParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -26,8 +27,8 @@ public class AnimalController {
   @POST
   @Path("/")
   @Consumes(MediaType.APPLICATION_JSON)
-  public Response createAnimal(Animal animal) {
-    animalService.create(animal);
+  public Response createAnimal(Animal animal, @CookieParam("session") String sessionId) {
+    animalService.create(animal, sessionId);
 
     return Response.ok().build();
   }

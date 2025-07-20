@@ -137,9 +137,6 @@ function MapControls({ user, onCreateAnimal, onCreateCuriosity, onCreateExecutio
     });
   };
 
-  // Check if user has permission to create execution sheets
-  const canCreateExecutionSheet = user && (user.role === 'PRBO' || user.role === 'SYSADMIN');
-
   return (
     <Box sx={{ position: 'absolute', top: 20, right: 20, zIndex: 1000 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -683,8 +680,6 @@ const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
   }
 
   const color = getPolygonColor(worksheetInfo.aigp[0] || 'default');
-  // Check if user has permission to create execution sheets
-  const canCreateExecutionSheet = user && (user.role === 'PRBO' || user.role === 'SYSADMIN');
 
   return (
     <>
@@ -726,7 +721,7 @@ const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
                     <strong>UI:</strong> {feature.properties.UI_id}
                   </Typography>
                 )}
-                {canCreateExecutionSheet && (
+                {user && (
                   <Box sx={{ mt: 2 }}>
                     <Button
                       size="small"

@@ -23,16 +23,84 @@ public class WorkSheetService {
     @Inject
     private GeoHashService geoHashService;
 
+    @Inject
+    private CoordinateTransformationService coordinateTransformationService;
+
     public WorkSheet createOrUpdateWorkSheet(String tokenId, WorkSheet workSheet) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
 
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.IMP_FO);
 
-        double[] firstPoint = workSheet.getFirstPoint();
-        workSheet.setGeohash(geoHashService.calculateGeohash(firstPoint[0], firstPoint[1]));
-        workSheetRepository.save(workSheet);
+        // Transform all coordinates from ETRS89/PT-TM06 to WGS84
+        WorkSheet transformedWorkSheet = transformWorkSheetCoordinates(workSheet);
 
-        return workSheet;
+        double[] firstPoint = transformedWorkSheet.getFirstPoint();
+
+        // transformedCoordinates are already in WGS84, so firstPoint[0] = lat, firstPoint[1] = lon
+        transformedWorkSheet.setGeohash(geoHashService.calculateGeohash(firstPoint[0], firstPoint[1]));
+        workSheetRepository.save(transformedWorkSheet);
+
+        return transformedWorkSheet;
+    }
+
+    private WorkSheet transformWorkSheetCoordinates(WorkSheet workSheet) {
+        if (workSheet.getFeatures() == null || workSheet.getFeatures().isEmpty()) {
+            return workSheet;
+        }
+
+        List<WorkSheet.GeoFeature> transformedFeatures = workSheet.getFeatures().stream()
+                .map(this::transformGeoFeature)
+                .toList();
+
+        return new WorkSheet(
+                workSheet.getType(),
+                workSheet.getCrs(),
+                transformedFeatures,
+                workSheet.getMetadata()
+        );
+    }
+
+    private WorkSheet.GeoFeature transformGeoFeature(WorkSheet.GeoFeature feature) {
+        if (feature.getGeometry() == null || feature.getGeometry().getCoordinates() == null) {
+            return feature;
+        }
+
+        List<List<List<Double>>> transformedCoordinates = feature.getGeometry().getCoordinates().stream()
+                .map(this::transformRing)
+                .toList();
+
+        WorkSheet.GeoFeature.Geometry transformedGeometry = new WorkSheet.GeoFeature.Geometry(
+                feature.getGeometry().getType(),
+                transformedCoordinates
+        );
+
+        return new WorkSheet.GeoFeature(
+                feature.getType(),
+                feature.getProperties(),
+                transformedGeometry
+        );
+    }
+
+    private List<List<Double>> transformRing(List<List<Double>> ring) {
+        return ring.stream()
+                .map(this::transformPoint)
+                .toList();
+    }
+
+    private List<Double> transformPoint(List<Double> point) {
+        if (point.size() < 2) {
+            return point;
+        }
+
+        // Original coordinates: [x, y] in ETRS89/PT-TM06
+        double x = point.get(0);
+        double y = point.get(1);
+
+        // Transform to WGS84
+        double[] wgs84 = coordinateTransformationService.transformFromEPSG3763ToWGS84(x, y);
+
+        // Return as [lon, lat] in WGS84
+        return List.of(wgs84[0], wgs84[1]);
     }
 
     public void removeWorkSheet(String tokenId, Long id) {

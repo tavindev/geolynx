@@ -9,7 +9,7 @@ public class GeoHashService {
   /**
    * Default precision for geohash calculations (6 characters = ~5km accuracy)
    */
-  private static final int DEFAULT_PRECISION = 5;
+  private static final int DEFAULT_PRECISION = 4;
 
   /**
    * Calculate geohash from latitude and longitude with default precision

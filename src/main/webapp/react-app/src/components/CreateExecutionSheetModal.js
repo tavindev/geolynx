@@ -29,14 +29,14 @@ import {
 } from '@mui/icons-material';
 import { executionSheetService, worksheetService } from '../services/api';
 
-const CreateExecutionSheetModal = ({ 
-  open, 
-  onClose, 
-  coordinates, 
-  user, 
+const CreateExecutionSheetModal = ({
+  open,
+  onClose,
+  coordinates,
+  user,
   onSuccess,
   preselectedPolygon = null,
-  preselectedWorksheet = null 
+  preselectedWorksheet = null,
 }) => {
   const [formData, setFormData] = useState({
     workSheetId: preselectedWorksheet?.id || '',
@@ -183,23 +183,10 @@ const CreateExecutionSheetModal = ({
     try {
       // Prepare data for submission
       const executionSheetData = {
-        workSheetId: parseInt(formData.workSheetId), // Ensure it's a number
-        startingDate: formData.startingDate,
-        finishingDate: formData.finishingDate || formData.startingDate,
+        ...formData,
         lastActivityDate: formData.startingDate,
-        observations: formData.observations || '',
-        operations: formData.operations.map((op, idx) => ({
-          operationCode: op.operationCode,
-          areaHaExecuted: parseFloat(op.areaHaExecuted),
-          areaPerc: op.areaPerc || 0,
-          startingDate: op.startingDate || formData.startingDate,
-          finishingDate: op.finishingDate || formData.finishingDate || formData.startingDate,
-          observations: op.observations || '',
-          plannedCompletionDate: op.plannedCompletionDate || formData.finishingDate || formData.startingDate,
-          estimatedDurationHours: parseInt(op.estimatedDurationHours) || 0,
-        })),
         // Ensure polygonsOperations are properly set
-        polygonsOperations: preselectedPolygon 
+        polygonsOperations: preselectedPolygon
           ? [{
               polygonId: parseInt(preselectedPolygon.properties.polygon_id || preselectedPolygon.properties.id),
               operations: formData.operations.map((op, idx) => ({
@@ -216,7 +203,6 @@ const CreateExecutionSheetModal = ({
           : [],
       };
 
-      console.log('Sending execution sheet data:', executionSheetData);
       await executionSheetService.create(executionSheetData);
 
       // Reset form

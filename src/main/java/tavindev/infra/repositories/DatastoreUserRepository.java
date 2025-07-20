@@ -108,8 +108,8 @@ public class DatastoreUserRepository {
             userEntityBuilder.set(PROPERTY_CITIZEN_CARD_VALIDITY, user.getCitizenCardValidity().toString());
         }
 
-        if (user.getStatus() != null) {
-            userEntityBuilder.set(PROPERTY_STATUS, user.getStatus());
+        if (user.getAccountStatus() != null) {
+            userEntityBuilder.set(PROPERTY_STATUS, user.getAccountStatus().name());
         }
 
         datastore.put(userEntityBuilder.build());
