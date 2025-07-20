@@ -10,7 +10,7 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExecutionSheet {
-	private final Long id;
+	private Long id;
 	private final Long workSheetId; // ID da folha de obra associada
 	private final String startingDate;
 	private final String finishingDate;
@@ -40,6 +40,10 @@ public class ExecutionSheet {
 		if (workSheetId == null) {
 			throw new IllegalArgumentException("Folha de execução deve estar associada a uma folha de obra");
 		}
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	// Getters

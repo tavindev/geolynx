@@ -121,6 +121,14 @@ public class ExecutionSheetRepository {
 		KeyFactory keyFactory = datastore.newKeyFactory().setKind(EXECUTION_SHEET_KIND);
 		Key executionSheetKey = keyFactory.newKey(executionSheet.getId());
 
+		if (executionSheet.getId() != null) {
+			executionSheetKey = keyFactory.newKey(executionSheet.getId());
+		} else {
+			// Auto-generate key for new entities
+			IncompleteKey incompleteKey = keyFactory.newKey();
+			executionSheetKey = datastore.allocateId(incompleteKey);
+		}
+
 		Entity.Builder entityBuilder = Entity.newBuilder(executionSheetKey);
 
 		// Save work sheet association
@@ -217,6 +225,8 @@ public class ExecutionSheetRepository {
 
 		Entity executionSheetEntity = entityBuilder.build();
 		datastore.put(executionSheetEntity);
+
+		executionSheet.setId(executionSheetEntity.getKey().getId());
 
 		return executionSheet;
 	}
