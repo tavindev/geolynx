@@ -24,7 +24,7 @@ const Register = () => {
     username: '',
     email: '',
     fullName: '',
-    phone: '',
+    phonePrimary: '',
     password: '',
     confirmPassword: '',
   });
@@ -50,7 +50,7 @@ const Register = () => {
     try {
       const result = await register({
         ...formData,
-        role: 'VU', // Default role for new users
+        role: 'RU', // Default role for new users
         profile: 'PUBLICO', // Default profile for new users
       });
 
