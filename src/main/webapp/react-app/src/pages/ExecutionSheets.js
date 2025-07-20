@@ -26,7 +26,7 @@ import {
   Edit as EditIcon,
   GetApp as ExportIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { executionSheetService, worksheetService } from '../services/api';
 
@@ -37,23 +37,40 @@ const ExecutionSheets = () => {
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, hasPermission } = useAuth();
+  const worksheetIdFilter = location.state?.worksheetId;
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [worksheetIdFilter]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Get all worksheets first
+      // Get all worksheets
       const worksheetsResponse = await worksheetService.getAll();
       setWorksheets(worksheetsResponse.data);
 
-      // Note: There's no endpoint to list all execution sheets
-      // This would need to be implemented in the backend
-      // For now, we'll show a message
-      setExecutionSheets([]);
+      // Get execution sheets
+      try {
+        let executionSheetsResponse;
+        
+        if (worksheetIdFilter) {
+          // If filtering by worksheet ID, use the specific endpoint
+          executionSheetsResponse = await executionSheetService.getByWorksheetId(worksheetIdFilter);
+        } else {
+          // Otherwise, get the operator's assignments
+          executionSheetsResponse = await executionSheetService.getMyAssignments();
+        }
+        
+        const sheets = executionSheetsResponse.data.executionSheets || [];
+        setExecutionSheets(sheets);
+      } catch (err) {
+        // If user doesn't have permission or no sheets exist
+        console.log('No execution sheets available');
+        setExecutionSheets([]);
+      }
     } catch (err) {
       setError('Erro ao carregar dados');
       console.error(err);
@@ -82,6 +99,29 @@ const ExecutionSheets = () => {
     return labels[status] || status;
   };
 
+  const handleExport = async (id) => {
+    try {
+      const response = await executionSheetService.export({
+        executionSheetId: id,
+      });
+      // Create downloadable file
+      const blob = new Blob([JSON.stringify(response.data.executionSheet, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `execution-sheet-${id}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setError(null);
+    } catch (err) {
+      console.error('Export error:', err);
+      setError('Erro ao exportar folha de execução');
+    }
+  };
+
   if (loading) {
     return (
       <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
@@ -102,13 +142,20 @@ const ExecutionSheets = () => {
       >
         <Typography variant="h4" component="h1">
           Folhas de Execução
+          {worksheetIdFilter && (
+            <Typography variant="body2" color="textSecondary" component="span">
+              {' '}(Folha de Obra #{worksheetIdFilter})
+            </Typography>
+          )}
         </Typography>
         {hasPermission('create_execution_sheet') && (
           <Button
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
-            onClick={() => navigate('/dashboard/execution-sheets/create')}
+            onClick={() => navigate('/dashboard/execution-sheets/create', 
+              worksheetIdFilter ? { state: { worksheetId: worksheetIdFilter } } : {}
+            )}
           >
             Nova Folha de Execução
           </Button>
@@ -149,8 +196,16 @@ const ExecutionSheets = () => {
                 <TableRow key={sheet.id}>
                   <TableCell>{sheet.id}</TableCell>
                   <TableCell>{sheet.workSheetId}</TableCell>
-                  <TableCell>{sheet.startingDate}</TableCell>
-                  <TableCell>{sheet.finishingDate || '-'}</TableCell>
+                  <TableCell>
+                    {sheet.startingDate
+                      ? new Date(sheet.startingDate).toLocaleDateString('pt-BR')
+                      : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {sheet.finishingDate
+                      ? new Date(sheet.finishingDate).toLocaleDateString('pt-BR')
+                      : '-'}
+                  </TableCell>
                   <TableCell>
                     <Chip
                       label={getStatusLabel(sheet.globalStatus)}
@@ -158,13 +213,17 @@ const ExecutionSheets = () => {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{sheet.lastActivityDate}</TableCell>
+                  <TableCell>
+                    {sheet.lastActivityDate
+                      ? new Date(sheet.lastActivityDate).toLocaleDateString('pt-BR')
+                      : '-'}
+                  </TableCell>
                   <TableCell align="center">
                     <Tooltip title="Ver Detalhes">
                       <IconButton
                         size="small"
                         onClick={() =>
-                          navigate(`/execution-sheets/${sheet.id}`)
+                          navigate(`/dashboard/execution-sheets/${sheet.id}`)
                         }
                       >
                         <ViewIcon />
@@ -175,7 +234,7 @@ const ExecutionSheets = () => {
                         <IconButton
                           size="small"
                           onClick={() =>
-                            navigate(`/execution-sheets/${sheet.id}/assign`)
+                            navigate(`/dashboard/execution-sheets/${sheet.id}/assign`)
                           }
                         >
                           <AssignIcon />
@@ -201,18 +260,6 @@ const ExecutionSheets = () => {
       )}
     </Container>
   );
-};
-
-const handleExport = async (id) => {
-  try {
-    const response = await executionSheetService.export({
-      executionSheetId: id,
-    });
-    // Handle export - could download as file or show in new window
-    console.log('Exported:', response.data);
-  } catch (err) {
-    console.error('Export error:', err);
-  }
 };
 
 export default ExecutionSheets;

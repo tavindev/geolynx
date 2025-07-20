@@ -232,4 +232,13 @@ public class ExecutionSheetService {
         // Get execution sheets where this operator is assigned
         return executionSheetRepository.findByOperatorId(currentUser.getId());
     }
+
+    public List<ExecutionSheet> getExecutionSheetsByWorksheetId(String tokenId, Long worksheetId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        // Get execution sheets for the given worksheet ID
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_GEN_FO);
+
+        return executionSheetRepository.findByWorksheetId(worksheetId);
+    }
 }

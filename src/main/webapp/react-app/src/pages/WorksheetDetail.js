@@ -14,12 +14,21 @@ import {
   List,
   ListItem,
   ListItemText,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
   Add as AddIcon,
+  Assignment as AssignmentIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
-import { worksheetService } from '../services/api';
+import { worksheetService, executionSheetService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const WorksheetDetail = () => {
@@ -27,11 +36,13 @@ const WorksheetDetail = () => {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
   const [worksheet, setWorksheet] = useState(null);
+  const [executionSheets, setExecutionSheets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     fetchWorksheet();
+    fetchExecutionSheets();
   }, [id]);
 
   const fetchWorksheet = async () => {
@@ -47,10 +58,50 @@ const WorksheetDetail = () => {
     }
   };
 
+  const fetchExecutionSheets = async () => {
+    try {
+      const response = await executionSheetService.getByWorksheetId(parseInt(id));
+      const sheets = response.data.executionSheets || [];
+      setExecutionSheets(sheets);
+    } catch (error) {
+      console.error('Error fetching execution sheets:', error);
+      // If the specific endpoint fails, fallback to getting all and filtering
+      try {
+        const fallbackResponse = await executionSheetService.getMyAssignments();
+        const allSheets = fallbackResponse.data.executionSheets || [];
+        const filteredSheets = allSheets.filter(sheet => sheet.workSheetId === parseInt(id));
+        setExecutionSheets(filteredSheets);
+      } catch (fallbackError) {
+        console.error('Error in fallback execution sheets fetch:', fallbackError);
+        setExecutionSheets([]);
+      }
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-PT');
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'default',
+      assigned: 'info',
+      ongoing: 'warning',
+      completed: 'success',
+    };
+    return colors[status] || 'default';
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      pending: 'Pendente',
+      assigned: 'Atribuído',
+      ongoing: 'Em Progresso',
+      completed: 'Concluído',
+    };
+    return labels[status] || status;
   };
 
   if (loading) {
@@ -231,6 +282,84 @@ const WorksheetDetail = () => {
               </Grid>
             )}
           </Grid>
+        )}
+      </Paper>
+
+      {/* Execution Sheets Section */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          mt: 3,
+          border: '1px solid #e0e0e0',
+          boxShadow: '0px 8px 24px -10px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" gutterBottom>
+            Folhas de Execução Associadas
+          </Typography>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<AssignmentIcon />}
+            onClick={() => navigate('/dashboard/execution-sheets', { state: { worksheetId: parseInt(id) } })}
+          >
+            Ver Todas
+          </Button>
+        </Box>
+        <Divider sx={{ mb: 2 }} />
+        
+        {executionSheets.length > 0 ? (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Data de Início</TableCell>
+                  <TableCell>Data de Fim</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="center">Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {executionSheets.map((sheet) => (
+                  <TableRow key={sheet.id}>
+                    <TableCell>{sheet.id}</TableCell>
+                    <TableCell>
+                      {sheet.startingDate
+                        ? new Date(sheet.startingDate).toLocaleDateString('pt-PT')
+                        : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {sheet.finishingDate
+                        ? new Date(sheet.finishingDate).toLocaleDateString('pt-PT')
+                        : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={getStatusLabel(sheet.globalStatus)}
+                        color={getStatusColor(sheet.globalStatus)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        onClick={() => navigate(`/dashboard/execution-sheets/${sheet.id}`)}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            Nenhuma folha de execução associada a esta ficha de obra.
+          </Typography>
         )}
       </Paper>
     </Container>

@@ -65,9 +65,9 @@ const Layout = () => {
     // Public pages available to all authenticated users
     { text: 'Início', icon: <HomeIcon />, path: '/dashboard', roles: [] },
     { text: 'Mapa', icon: <MapIcon />, path: '/dashboard/map', roles: [] },
-    
+
     { divider: true },
-    
+
     // User Management Section - SYSADMIN and SYSBO have user management permissions
     {
       text: 'Gestão de Utilizadores',
@@ -86,9 +86,9 @@ const Layout = () => {
       path: '/dashboard/removal-requests',
       roles: ['SYSADMIN', 'SYSBO'], // Both have LIST_ACCOUNTS_FOR_REMOVAL
     },
-    
+
     { divider: true },
-    
+
     // Worksheet Management Section
     {
       text: 'Gestão de Folhas',
@@ -101,9 +101,9 @@ const Layout = () => {
       path: '/dashboard/manage-worksheets',
       roles: ['SYSADMIN', 'SMBO'], // SMBO has IMP_FO (create/update) and REM_FO (remove)
     },
-    
+
     { divider: true },
-    
+
     // Worksheet Viewing Section
     {
       text: 'Visualização de Folhas',
@@ -116,24 +116,9 @@ const Layout = () => {
       path: '/dashboard/worksheets',
       roles: ['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO'], // SMBO has VIEW_GEN_FO and VIEW_DET_FO, SGVBO has VIEW_GEN_FO, SDVBO has VIEW_DET_FO
     },
-    
+
     { divider: true },
-    
-    // Execution Sheets Section
-    {
-      text: 'Folhas de Execução',
-      header: true,
-      roles: ['SYSADMIN', 'PRBO', 'PO', 'SDVBO'], // All have execution sheet related permissions
-    },
-    {
-      text: 'Gerir Folhas de Execução',
-      icon: <DescriptionIcon />,
-      path: '/dashboard/execution-sheets',
-      roles: ['SYSADMIN', 'PRBO', 'SDVBO'], // PRBO has CREATE_FE, ASSIGN_OP_FE; SDVBO has VIEW_STATUS_OP_GLOBAL_FE, EDIT_OP_FE
-    },
-    
-    { divider: true },
-    
+
     // Dashboard Section
     {
       text: 'Dashboards',
@@ -146,9 +131,9 @@ const Layout = () => {
       path: '/dashboard/admin',
       roles: ['SYSADMIN'], // Administrative overview for SYSADMIN
     },
-    
+
     { divider: true },
-    
+
     // Personal Account Section - Available to all authenticated users
     { text: 'Minha Conta', header: true, roles: [] },
     {
@@ -167,7 +152,17 @@ const Layout = () => {
       text: 'Pedir Remoção da Conta',
       icon: <DeleteSweepIcon />,
       path: '/dashboard/request-removal',
-      roles: ['SYSADMIN', 'SYSBO', 'RU', 'SMBO', 'SGVBO', 'SDVBO', 'PRBO', 'PO', 'ADLU'], // All except VU and SYSTEM have REQUEST_OWN_REMOVAL
+      roles: [
+        'SYSADMIN',
+        'SYSBO',
+        'RU',
+        'SMBO',
+        'SGVBO',
+        'SDVBO',
+        'PRBO',
+        'PO',
+        'ADLU',
+      ], // All except VU and SYSTEM have REQUEST_OWN_REMOVAL
     },
   ];
 

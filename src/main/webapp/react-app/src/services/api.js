@@ -86,6 +86,8 @@ export const executionSheetService = {
   editOperation: (data) => api.post('/execution-sheet/edit-operation', data),
   export: (data) => api.post('/execution-sheet/export', data),
   getById: (id) => api.get(`/execution-sheet/${id}`),
+  getMyAssignments: () => api.get('/execution-sheet/my-assignments'),
+  getByWorksheetId: (worksheetId) => api.get(`/execution-sheet/by-worksheet/${worksheetId}`),
 };
 
 // Region services

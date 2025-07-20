@@ -13,6 +13,7 @@ public class DatastoreUserRepository {
     private static final String USER_KIND = "User";
 
     // Property name constants
+    private static final String PROPERTY_ID = "id";
     private static final String PROPERTY_EMAIL = "email";
     private static final String PROPERTY_USERNAME = "username";
     private static final String PROPERTY_PASSWORD = "password";
@@ -154,15 +155,19 @@ public class DatastoreUserRepository {
     }
 
     public User findByIdentifier(String identifier) {
-        User user = findByEmail(identifier);
+        StructuredQuery.Filter idFilter = StructuredQuery.PropertyFilter.eq(PROPERTY_ID, identifier);
+        StructuredQuery.Filter emailFilter = StructuredQuery.PropertyFilter.eq(PROPERTY_EMAIL, identifier);
+        StructuredQuery.Filter usernameFilter = StructuredQuery.PropertyFilter.eq(PROPERTY_USERNAME, identifier);
 
-        if (user != null)
-            return user;
+        Query<Entity> query = Query.newEntityQueryBuilder()
+                .setKind(USER_KIND)
+                .setFilter(StructuredQuery.CompositeFilter.or(idFilter, emailFilter, usernameFilter))
+                .build();
 
-        user = findByUsername(identifier);
-
-        if (user != null)
-            return user;
+        QueryResults<Entity> results = datastore.run(query);
+        if (results.hasNext()) {
+            return convertToUser(results.next());
+        }
 
         return findById(identifier);
     }

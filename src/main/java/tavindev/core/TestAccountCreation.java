@@ -19,7 +19,6 @@ public class TestAccountCreation implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        // Create admin account if it doesn't exist
         if (userRepository.findByIdentifier("admin") == null) {
             User adminUser = new User(
                     "admin@gmail.com",

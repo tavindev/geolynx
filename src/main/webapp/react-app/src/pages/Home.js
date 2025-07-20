@@ -26,20 +26,22 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const StatCard = ({ title, value, icon, color, onClick }) => (
-  <Paper 
+  <Paper
     elevation={0}
-    sx={{ 
-      p: 3, 
-      display: 'flex', 
-      alignItems: 'center', 
+    sx={{
+      p: 3,
+      display: 'flex',
+      alignItems: 'center',
       justifyContent: 'space-between',
       border: '1px solid #e0e0e0',
       cursor: onClick ? 'pointer' : 'default',
       transition: 'all 0.2s',
-      '&:hover': onClick ? {
-        transform: 'translateY(-2px)',
-        boxShadow: '0px 12px 30px -8px rgba(0, 0, 0, 0.15)',
-      } : {},
+      '&:hover': onClick
+        ? {
+            transform: 'translateY(-2px)',
+            boxShadow: '0px 12px 30px -8px rgba(0, 0, 0, 0.15)',
+          }
+        : {},
     }}
     onClick={onClick}
   >
@@ -51,23 +53,31 @@ const StatCard = ({ title, value, icon, color, onClick }) => (
         {value}
       </Typography>
     </Box>
-    <Box sx={{ 
-      bgcolor: color, 
-      width: 56, 
-      height: 56, 
-      borderRadius: 2,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
+    <Box
+      sx={{
+        bgcolor: color,
+        width: 56,
+        height: 56,
+        borderRadius: 2,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       {React.cloneElement(icon, { sx: { color: 'white', fontSize: 28 } })}
     </Box>
   </Paper>
 );
 
-const QuickActionCard = ({ title, description, icon, path, color = 'primary.main' }) => {
+const QuickActionCard = ({
+  title,
+  description,
+  icon,
+  path,
+  color = 'primary.main',
+}) => {
   const navigate = useNavigate();
-  
+
   return (
     <Card
       sx={{
@@ -77,12 +87,16 @@ const QuickActionCard = ({ title, description, icon, path, color = 'primary.main
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: '0px 12px 30px -8px rgba(0, 0, 0, 0.15)',
-        }
+        },
       }}
       onClick={() => navigate(path)}
     >
       <CardContent>
-        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
           <Box>
             <Typography variant="h6" gutterBottom>
               {title}
@@ -91,7 +105,14 @@ const QuickActionCard = ({ title, description, icon, path, color = 'primary.main
               {description}
             </Typography>
           </Box>
-          <IconButton size="small" sx={{ bgcolor: color, color: 'white', '&:hover': { bgcolor: color } }}>
+          <IconButton
+            size="small"
+            sx={{
+              bgcolor: color,
+              color: 'white',
+              '&:hover': { bgcolor: color },
+            }}
+          >
             <ArrowForwardIcon />
           </IconButton>
         </Box>
@@ -127,36 +148,36 @@ const Home = () => {
             Dashboard do Operador - Gestão de Atividades
           </Typography>
         </Box>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-              title="Operações Atribuídas" 
-              value="3" 
+            <StatCard
+              title="Operações Atribuídas"
+              value="3"
               icon={<AssignmentIcon />}
               color="info.main"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-              title="Em Progresso" 
-              value="2" 
+            <StatCard
+              title="Em Progresso"
+              value="2"
               icon={<PlayIcon />}
               color="warning.main"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-              title="Concluídas" 
-              value="5" 
+            <StatCard
+              title="Concluídas"
+              value="5"
               icon={<CheckIcon />}
               color="success.main"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-              title="Total" 
-              value="10" 
+            <StatCard
+              title="Total"
+              value="10"
               icon={<ScheduleIcon />}
               color="primary.main"
             />
@@ -169,19 +190,19 @@ const Home = () => {
           </Typography>
           <Grid container spacing={3} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
-              <QuickActionCard 
-                title="Minhas Operações" 
+              <QuickActionCard
+                title="Minhas Operações"
                 description="Ver operações atribuídas"
-                icon={<AssignmentIcon />} 
+                icon={<AssignmentIcon />}
                 path="/dashboard/execution-sheets"
                 color="primary.main"
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <QuickActionCard 
-                title="Mapa" 
+              <QuickActionCard
+                title="Mapa"
                 description="Visualizar áreas de operação"
-                icon={<MapIcon />} 
+                icon={<MapIcon />}
                 path="/dashboard/map"
                 color="success.main"
               />
@@ -207,19 +228,19 @@ const Home = () => {
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            <QuickActionCard 
-              title="Dashboard Administrativo" 
+            <QuickActionCard
+              title="Dashboard Administrativo"
               description="Gerir utilizadores e visualizar estatísticas"
-              icon={<PeopleIcon />} 
+              icon={<PeopleIcon />}
               path="/dashboard/admin"
               color="primary.main"
             />
           </Grid>
           <Grid item xs={12} md={6}>
-            <QuickActionCard 
-              title="Folhas de Obra" 
+            <QuickActionCard
+              title="Folhas de Obra"
               description="Gerir e visualizar folhas de obra"
-              icon={<AssignmentIcon />} 
+              icon={<AssignmentIcon />}
               path="/dashboard/worksheets"
               color="secondary.main"
             />
@@ -244,33 +265,33 @@ const Home = () => {
 
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-              title="Folhas Pendentes" 
-              value="5" 
+            <StatCard
+              title="Folhas Pendentes"
+              value="5"
               icon={<ScheduleIcon />}
               color="warning.main"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-              title="Em Execução" 
-              value="12" 
-              icon={<PlayIcon />} 
+            <StatCard
+              title="Em Execução"
+              value="12"
+              icon={<PlayIcon />}
               color="info.main"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-              title="Concluídas (Mês)" 
-              value="8" 
+            <StatCard
+              title="Concluídas (Mês)"
+              value="8"
               icon={<CheckIcon />}
               color="success.main"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-              title="Taxa Conclusão" 
-              value="67%" 
+            <StatCard
+              title="Taxa Conclusão"
+              value="67%"
               icon={<AssignmentIcon />}
               color="primary.main"
             />
@@ -283,19 +304,19 @@ const Home = () => {
           </Typography>
           <Grid container spacing={3} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
-              <QuickActionCard 
-                title="Folhas de Execução" 
+              <QuickActionCard
+                title="Folhas de Execução"
                 description="Criar e gerir folhas de execução"
-                icon={<DescriptionIcon />} 
+                icon={<DescriptionIcon />}
                 path="/dashboard/execution-sheets"
                 color="primary.main"
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <QuickActionCard 
-                title="Ver Mapa" 
+              <QuickActionCard
+                title="Ver Mapa"
                 description="Visualizar operações no mapa"
-                icon={<MapIcon />} 
+                icon={<MapIcon />}
                 path="/dashboard/map"
                 color="success.main"
               />
@@ -320,19 +341,19 @@ const Home = () => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <QuickActionCard 
-            title="Ver Mapa" 
+          <QuickActionCard
+            title="Ver Mapa"
             description="Explorar dados geográficos"
-            icon={<MapIcon />} 
+            icon={<MapIcon />}
             path="/dashboard/map"
             color="primary.main"
           />
         </Grid>
         <Grid item xs={12} md={6}>
-          <QuickActionCard 
-            title="Meu Perfil" 
+          <QuickActionCard
+            title="Meu Perfil"
             description="Gerir informações da conta"
-            icon={<PeopleIcon />} 
+            icon={<PeopleIcon />}
             path="/dashboard/change-password"
             color="secondary.main"
           />

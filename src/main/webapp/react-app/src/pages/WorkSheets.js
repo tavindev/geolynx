@@ -25,6 +25,7 @@ import {
   Visibility as VisibilityIcon,
   Upload as UploadIcon,
   Map as MapIcon,
+  Assignment as AssignmentIcon,
 } from '@mui/icons-material';
 import { useDropzone } from 'react-dropzone';
 import { useSnackbar } from 'notistack';
@@ -251,6 +252,18 @@ const WorkSheets = () => {
                         </IconButton>
                       </Tooltip>
                     )}
+                    <Tooltip title="Ver folhas de execução">
+                      <IconButton
+                        onClick={() =>
+                          navigate('/dashboard/execution-sheets', {
+                            state: { worksheetId: worksheet.id },
+                          })
+                        }
+                        color="info"
+                      >
+                        <AssignmentIcon />
+                      </IconButton>
+                    </Tooltip>
                     {hasRemovePermission && (
                       <Tooltip title="Remover">
                         <IconButton

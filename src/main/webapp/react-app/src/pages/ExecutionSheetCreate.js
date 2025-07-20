@@ -45,7 +45,7 @@ import {
   Check as CheckIcon,
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { executionSheetService, worksheetService } from '../services/api';
 import PolygonSelector from '../components/PolygonSelector';
 
@@ -60,8 +60,9 @@ const steps = [
 const ExecutionSheetCreate = () => {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
-  const worksheetIdFromUrl = searchParams.get('worksheetId');
+  const worksheetIdFromUrl = searchParams.get('worksheetId') || location.state?.worksheetId;
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [worksheets, setWorksheets] = useState([]);

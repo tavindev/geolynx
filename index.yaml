@@ -1,0 +1,83 @@
+# Google Cloud Datastore Index Configuration
+# This file defines custom indexes for optimal query performance
+# 
+# Generated based on analysis of repository query patterns in:
+# - AnimalRepository.java
+# - DatastoreUserRepository.java  
+# - ExecutionSheetRepository.java
+# - HistoricalCuriosityRepository.java
+# - WorkSheetRepository.java
+
+indexes:
+
+# ============================================================================
+# USER ENTITY INDEXES
+# ============================================================================
+
+
+# Composite index for identifier OR query (email OR username)
+# Used in DatastoreUserRepository.findByIdentifier()
+# Note: OR queries require all combinations to be indexed
+- kind: User
+  properties:
+  - name: id
+  - name: email
+  - name: username
+
+# Composite index for registered users query
+# Used in DatastoreUserRepository.getAllRegisteredUsers()
+- kind: User
+  properties:
+  - name: role
+  - name: profile  
+  - name: accountStatus
+
+# ============================================================================
+# ANIMAL ENTITY INDEXES
+# ============================================================================
+
+
+# ============================================================================
+# EXECUTIONSHEET ENTITY INDEXES  
+# ============================================================================
+
+
+# ============================================================================
+# WORKSHEET ENTITY INDEXES
+# ============================================================================
+
+
+
+# ============================================================================
+# COMPOSITE INDEXES FOR COMMON QUERY COMBINATIONS
+# ============================================================================
+
+# WorkSheet filtering by date range (if start and end dates are queried together)
+- kind: WorkSheet
+  properties:
+  - name: metadata.startingDate
+  - name: metadata.finishingDate
+
+# ============================================================================
+# PERFORMANCE OPTIMIZATION NOTES
+# ============================================================================
+
+# 1. Single property indexes are automatically created by Datastore for:
+#    - Entity keys
+#    - Single properties (unless excluded)
+#    
+# 2. The indexes defined here are for:
+#    - Composite queries (multiple filters)
+#    - Range queries on single properties
+#    - Sort orders combined with filters
+#
+# 3. Monitor query performance and add additional indexes as needed:
+#    - Use Cloud Monitoring to track slow queries
+#    - Check Cloud Console Datastore section for suggested indexes
+#    - Consider index size vs. query performance trade-offs
+#
+# 4. To deploy these indexes:
+#    gcloud datastore indexes create index.yaml
+#
+# 5. To clean up unused indexes:
+#    gcloud datastore indexes cleanup index.yaml

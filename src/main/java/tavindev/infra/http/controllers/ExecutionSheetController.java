@@ -157,4 +157,16 @@ public class ExecutionSheetController {
 				"Folhas de execução obtidas com sucesso.",
 				executionSheets);
 	}
+
+	@GET
+	@Path("/by-worksheet/{worksheetId}")
+	public GetExecutionSheetsForOperatorResponseDTO getExecutionSheetsByWorksheetId(
+			@CookieParam("session") String token,
+			@PathParam("worksheetId") Long worksheetId) {
+		List<ExecutionSheet> executionSheets = executionSheetService.getExecutionSheetsByWorksheetId(token, worksheetId);
+
+		return new GetExecutionSheetsForOperatorResponseDTO(
+				"Folhas de execução obtidas com sucesso.",
+				executionSheets);
+	}
 }

@@ -119,7 +119,7 @@ public class ExecutionSheetRepository {
 
 	public ExecutionSheet save(ExecutionSheet executionSheet) {
 		KeyFactory keyFactory = datastore.newKeyFactory().setKind(EXECUTION_SHEET_KIND);
-		Key executionSheetKey = keyFactory.newKey(executionSheet.getId());
+		Key executionSheetKey;
 
 		if (executionSheet.getId() != null) {
 			executionSheetKey = keyFactory.newKey(executionSheet.getId());
@@ -246,6 +246,27 @@ public class ExecutionSheetRepository {
 			Entity entity = results.next();
 			ExecutionSheet executionSheet = get(entity.getKey().getId());
 			if (executionSheet != null && hasOperatorAssigned(executionSheet, operatorId)) {
+				executionSheets.add(executionSheet);
+			}
+		}
+
+		return executionSheets;
+	}
+
+	public List<ExecutionSheet> findByWorksheetId(Long worksheetId) {
+		// Query for execution sheets by worksheet ID
+		Query<Entity> query = Query.newEntityQueryBuilder()
+				.setKind(EXECUTION_SHEET_KIND)
+				.setFilter(StructuredQuery.PropertyFilter.eq("workSheetId", worksheetId))
+				.build();
+
+		QueryResults<Entity> results = datastore.run(query);
+		List<ExecutionSheet> executionSheets = new ArrayList<>();
+
+		while (results.hasNext()) {
+			Entity entity = results.next();
+			ExecutionSheet executionSheet = get(entity.getKey().getId());
+			if (executionSheet != null) {
 				executionSheets.add(executionSheet);
 			}
 		}

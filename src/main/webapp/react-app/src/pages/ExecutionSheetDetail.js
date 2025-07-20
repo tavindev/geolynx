@@ -219,7 +219,7 @@ const ExecutionSheetDetail = () => {
       <Box sx={{ mb: 3 }}>
         <Button
           startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/execution-sheets')}
+          onClick={() => navigate('/dashboard/execution-sheets')}
           sx={{ mb: 2 }}
         >
           Voltar
