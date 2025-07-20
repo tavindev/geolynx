@@ -111,7 +111,16 @@ export const AuthProvider = ({ children }) => {
         'assign_operations',
         'view_global_status',
       ],
-      PO: ['start_activity', 'stop_activity', 'view_assigned_operations'],
+      PO: [
+        'start_activity', 
+        'stop_activity', 
+        'view_assigned_operations',
+        'view_execution_sheets',
+        'view_my_assignments',
+        'export_execution_sheets',
+        'create_execution_sheet',
+        'assign_operations'
+      ],
       OPERATOR: ['view_assigned_work', 'update_progress'],
       PARTNER: ['view_public_data'],
     };

@@ -110,27 +110,6 @@ const Layout = () => {
 
     { divider: true },
 
-    // Operations Section - For PO (Partner Operators)
-    {
-      text: 'Operações',
-      header: true,
-      roles: ['PO'], // Partner Operators
-    },
-    {
-      text: 'Minhas Operações',
-      icon: <AssignmentIcon />,
-      path: '/dashboard/my-worksheets',
-      roles: ['PO'], // PO has access to their assigned operations
-    },
-    {
-      text: 'Folhas de Execução',
-      icon: <DescriptionIcon />,
-      path: '/dashboard/execution-sheets',
-      roles: ['PO'], // PO can view execution sheet details
-    },
-
-    { divider: true },
-
     // Worksheet Management Section
     {
       text: 'Gestão de Folhas',
@@ -142,27 +121,6 @@ const Layout = () => {
       icon: <AssignmentIcon />,
       path: '/dashboard/manage-worksheets',
       roles: ['SYSADMIN', 'SMBO'], // SMBO has IMP_FO (create/update) and REM_FO (remove)
-    },
-
-    { divider: true },
-
-    // Operations Section - For PO (Partner Operators)
-    {
-      text: 'Operações',
-      header: true,
-      roles: ['PO'], // Partner Operators
-    },
-    {
-      text: 'Minhas Operações',
-      icon: <AssignmentIcon />,
-      path: '/dashboard/my-worksheets',
-      roles: ['PO'], // PO has access to their assigned operations
-    },
-    {
-      text: 'Folhas de Execução',
-      icon: <DescriptionIcon />,
-      path: '/dashboard/execution-sheets',
-      roles: ['PO'], // PO can view execution sheet details
     },
 
     { divider: true },
@@ -182,27 +140,6 @@ const Layout = () => {
 
     { divider: true },
 
-    // Operations Section - For PO (Partner Operators)
-    {
-      text: 'Operações',
-      header: true,
-      roles: ['PO'], // Partner Operators
-    },
-    {
-      text: 'Minhas Operações',
-      icon: <AssignmentIcon />,
-      path: '/dashboard/my-worksheets',
-      roles: ['PO'], // PO has access to their assigned operations
-    },
-    {
-      text: 'Folhas de Execução',
-      icon: <DescriptionIcon />,
-      path: '/dashboard/execution-sheets',
-      roles: ['PO'], // PO can view execution sheet details
-    },
-
-    { divider: true },
-
     // Dashboard Section
     {
       text: 'Dashboards',
@@ -214,27 +151,6 @@ const Layout = () => {
       icon: <DashboardIcon />,
       path: '/dashboard/admin',
       roles: ['SYSADMIN'], // Administrative overview for SYSADMIN
-    },
-
-    { divider: true },
-
-    // Operations Section - For PO (Partner Operators)
-    {
-      text: 'Operações',
-      header: true,
-      roles: ['PO'], // Partner Operators
-    },
-    {
-      text: 'Minhas Operações',
-      icon: <AssignmentIcon />,
-      path: '/dashboard/my-worksheets',
-      roles: ['PO'], // PO has access to their assigned operations
-    },
-    {
-      text: 'Folhas de Execução',
-      icon: <DescriptionIcon />,
-      path: '/dashboard/execution-sheets',
-      roles: ['PO'], // PO can view execution sheet details
     },
 
     { divider: true },

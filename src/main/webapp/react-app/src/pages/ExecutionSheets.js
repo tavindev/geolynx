@@ -61,16 +61,27 @@ const ExecutionSheets = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Get all worksheets
-      const worksheetsResponse = await worksheetService.getAll();
-      setWorksheets(worksheetsResponse.data);
+      
+      // Get operators (only if user has permission to list users)
+      try {
+        const usersResponse = await userService.listUsers();
+        const operatorUsers = usersResponse.data.filter(user =>
+          user.role === 'PO'
+        );
+        setOperators(operatorUsers);
+      } catch (err) {
+        console.log('No permission to list users, skipping operators');
+        setOperators([]);
+      }
 
-      // Get operators
-      const usersResponse = await userService.listUsers();
-      const operatorUsers = usersResponse.data.filter(user =>
-        user.role === 'PO'
-      );
-      setOperators(operatorUsers);
+      // Get all worksheets (only if user has permission)
+      try {
+        const worksheetsResponse = await worksheetService.getAll();
+        setWorksheets(worksheetsResponse.data);
+      } catch (err) {
+        console.log('No permission to view worksheets, skipping');
+        setWorksheets([]);
+      }
 
       // Get execution sheets
       try {
@@ -256,7 +267,7 @@ const ExecutionSheets = () => {
             Nenhuma folha de execução encontrada.
             {worksheets.length > 0
               ? ' Crie uma nova folha de execução a partir de uma folha de obra.'
-              : ' Primeiro, crie uma folha de obra.'}
+              : ' Aguarde que sejam atribuídas folhas de execução.'}
           </Typography>
         </Paper>
       ) : (
@@ -265,7 +276,7 @@ const ExecutionSheets = () => {
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
-                <TableCell>Folha de Obra</TableCell>
+                {worksheets.length > 0 && <TableCell>Folha de Obra</TableCell>}
                 <TableCell>Data Início</TableCell>
                 <TableCell>Data Fim</TableCell>
                 <TableCell>Estado</TableCell>
@@ -277,7 +288,7 @@ const ExecutionSheets = () => {
               {executionSheets.map((sheet) => (
                 <TableRow key={sheet.id}>
                   <TableCell>{sheet.id}</TableCell>
-                  <TableCell>{sheet.workSheetId}</TableCell>
+                  {worksheets.length > 0 && <TableCell>{sheet.workSheetId}</TableCell>}
                   <TableCell>
                     {sheet.startingDate
                       ? new Date(sheet.startingDate).toLocaleDateString('pt-BR')
@@ -311,7 +322,7 @@ const ExecutionSheets = () => {
                         <ViewIcon />
                       </IconButton>
                     </Tooltip>
-                    {hasPermission('assign_operations') && (
+                    {hasPermission('assign_operations') && operators.length > 0 && (
                       <>
                         <Tooltip title="Atribuir Todas Operações">
                           <IconButton
@@ -358,20 +369,26 @@ const ExecutionSheets = () => {
           <Typography variant="body2" sx={{ mb: 2 }}>
             Selecione um operador para atribuir todas as operações pendentes da Folha de Execução #{selectedSheet?.id}
           </Typography>
-          <FormControl fullWidth>
-            <InputLabel>Operador</InputLabel>
-            <Select
-              value={selectedOperator}
-              onChange={(e) => setSelectedOperator(e.target.value)}
-              label="Operador"
-            >
-              {operators.map((operator) => (
-                <MenuItem key={operator.id} value={operator.id}>
-                  {operator.personalInfo?.fullName || operator.username} ({operator.role})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          {operators.length > 0 ? (
+            <FormControl fullWidth>
+              <InputLabel>Operador</InputLabel>
+              <Select
+                value={selectedOperator}
+                onChange={(e) => setSelectedOperator(e.target.value)}
+                label="Operador"
+              >
+                {operators.map((operator) => (
+                  <MenuItem key={operator.id} value={operator.id}>
+                    {operator.personalInfo?.fullName || operator.username} ({operator.role})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ) : (
+            <Typography variant="body2" color="textSecondary">
+              Nenhum operador disponível para atribuição.
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAssignDialog}>Cancelar</Button>
@@ -379,7 +396,7 @@ const ExecutionSheets = () => {
             onClick={handleQuickAssign}
             variant="contained"
             color="primary"
-            disabled={!selectedOperator}
+            disabled={!selectedOperator || operators.length === 0}
           >
             Atribuir Todas
           </Button>
