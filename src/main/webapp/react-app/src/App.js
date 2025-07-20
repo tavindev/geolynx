@@ -209,7 +209,7 @@ function App() {
                   <Route
                     path="worksheets"
                     element={
-                      <PrivateRoute roles={['SMBO', 'SGVBO', 'PRBO']}>
+                      <PrivateRoute roles={['SMBO', 'SGVBO', 'SDVBO', 'PRBO']}>
                         <WorksheetDashboard />
                       </PrivateRoute>
                     }

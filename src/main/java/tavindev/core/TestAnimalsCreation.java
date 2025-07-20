@@ -54,7 +54,7 @@ public class TestAnimalsCreation implements ServletContextListener {
     // Center approximately: 39.5542° N, 8.0144° W
     double centerLat = 39.5542;
     double centerLon = -8.0144;
-    double range = 1;
+    double range = 0.2;
 
     // Test user ID
     String testUserId = "";

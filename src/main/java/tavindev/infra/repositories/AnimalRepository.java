@@ -65,9 +65,13 @@ public class AnimalRepository {
   }
 
   public List<Animal> findByGeohash(String geohash) {
+    // For geohash prefix matching (contains), use range query
+    // This finds all geohashes that start with the given prefix
     Query<Entity> query = Query.newEntityQueryBuilder()
         .setKind(ANIMAL_KIND)
-        .setFilter(StructuredQuery.PropertyFilter.eq("geohash", geohash))
+        .setFilter(StructuredQuery.CompositeFilter.and(
+            StructuredQuery.PropertyFilter.ge("geohash", geohash),
+            StructuredQuery.PropertyFilter.lt("geohash", geohash + "\uffff")))
         .build();
 
     QueryResults<Entity> results = datastore.run(query);
