@@ -71,6 +71,7 @@ public class RolePermissionManager {
         // Sheet Detailed Viewer (SDVBO) permissions
         ROLE_PERMISSIONS.put(UserRole.SDVBO, EnumSet.of(
                 Permission.VIEW_DET_FO,
+                Permission.VIEW_GEN_FO,
                 Permission.SEARCH_DET_FO,
                 Permission.VIEW_STATUS_OP_GLOBAL_FE,
                 Permission.EXPORT_FE,

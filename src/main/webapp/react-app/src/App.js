@@ -201,7 +201,7 @@ function App() {
                   <Route
                     path="admin"
                     element={
-                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                      <PrivateRoute roles={['SYSADMIN']}>
                         <AdminDashboard />
                       </PrivateRoute>
                     }
@@ -209,7 +209,7 @@ function App() {
                   <Route
                     path="worksheets"
                     element={
-                      <PrivateRoute roles={['SMBO', 'SGVBO', 'SDVBO', 'PRBO']}>
+                      <PrivateRoute roles={['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO']}>
                         <WorksheetDashboard />
                       </PrivateRoute>
                     }
@@ -217,7 +217,7 @@ function App() {
                   <Route
                     path="list-users"
                     element={
-                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                      <PrivateRoute roles={['SYSADMIN', 'SYSBO']}>
                         <ListUsers />
                       </PrivateRoute>
                     }
@@ -233,7 +233,7 @@ function App() {
                   <Route
                     path="change-attributes/:userId"
                     element={
-                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                      <PrivateRoute roles={['SYSADMIN', 'SYSBO']}>
                         <ChangeAttributes />
                       </PrivateRoute>
                     }
@@ -241,7 +241,7 @@ function App() {
                   <Route
                     path="change-role/:userId"
                     element={
-                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                      <PrivateRoute roles={['SYSADMIN']}>
                         <ChangeRole />
                       </PrivateRoute>
                     }
@@ -266,7 +266,7 @@ function App() {
                     path="my-worksheets"
                     element={
                       <PrivateRoute
-                        roles={['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO']}
+                        roles={['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO', 'PRBO', 'PO']}
                       >
                         <MyWorksheets />
                       </PrivateRoute>
@@ -275,7 +275,7 @@ function App() {
                   <Route
                     path="account-management/:userId"
                     element={
-                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                      <PrivateRoute roles={['SYSADMIN', 'SYSBO']}>
                         <AccountManagement />
                       </PrivateRoute>
                     }
@@ -283,7 +283,7 @@ function App() {
                   <Route
                     path="removal-requests"
                     element={
-                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                      <PrivateRoute roles={['SYSADMIN', 'SYSBO']}>
                         <AccountRemovalRequests />
                       </PrivateRoute>
                     }
@@ -291,7 +291,7 @@ function App() {
                   <Route
                     path="request-removal"
                     element={
-                      <PrivateRoute>
+                      <PrivateRoute roles={['SYSADMIN', 'SYSBO', 'RU', 'SMBO', 'SGVBO', 'SDVBO', 'PRBO', 'PO', 'ADLU']}>
                         <RequestAccountRemoval />
                       </PrivateRoute>
                     }
@@ -300,7 +300,7 @@ function App() {
                     path="worksheet/:id"
                     element={
                       <PrivateRoute
-                        roles={['PO', 'ADLU', 'PRBO', 'SMBO', 'SGVBO']}
+                        roles={['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO']}
                       >
                         <WorksheetDetail />
                       </PrivateRoute>
@@ -309,7 +309,9 @@ function App() {
                   <Route
                     path="worksheet-update/:worksheetId"
                     element={
-                      <PrivateRoute roles={['PO', 'ADLU']}>
+                      <PrivateRoute
+                        roles={['SYSADMIN', 'SMBO']}
+                      >
                         <WorksheetUpdate />
                       </PrivateRoute>
                     }
@@ -317,7 +319,7 @@ function App() {
                   <Route
                     path="execution-sheets"
                     element={
-                      <PrivateRoute roles={['PRBO', 'PO', 'SDVBO', 'OPERATOR']}>
+                      <PrivateRoute roles={['SYSADMIN', 'PRBO', 'SDVBO']}>
                         <ExecutionSheets />
                       </PrivateRoute>
                     }
@@ -325,7 +327,7 @@ function App() {
                   <Route
                     path="execution-sheets/create"
                     element={
-                      <PrivateRoute roles={['PRBO', 'PO', 'SDVBO', 'OPERATOR']}>
+                      <PrivateRoute roles={['SYSADMIN', 'PRBO']}>
                         <ExecutionSheetCreate />
                       </PrivateRoute>
                     }
@@ -333,7 +335,7 @@ function App() {
                   <Route
                     path="execution-sheets/:id"
                     element={
-                      <PrivateRoute roles={['PRBO', 'PO', 'SDVBO', 'OPERATOR']}>
+                      <PrivateRoute roles={['SYSADMIN', 'PRBO', 'PO', 'SDVBO']}>
                         <ExecutionSheetDetail />
                       </PrivateRoute>
                     }
