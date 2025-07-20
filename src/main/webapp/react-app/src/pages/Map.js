@@ -122,6 +122,8 @@ function MapEventHandler({ onMoveEnd }) {
 // Map controls component
 function MapControls({ user, onCreateAnimal, onCreateCuriosity, onCreateExecutionSheet }) {
   const map = useMap();
+  const { hasPermission } = useAuth();
+  const canCreateExecutionSheet = hasPermission('create_execution_sheet');
 
   const handleZoomIn = () => {
     map.zoomIn();
