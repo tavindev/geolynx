@@ -100,7 +100,8 @@ const RegionSidebar = ({ regionData, loading, error, coordinates }) => {
         height: '600px',
         border: '1px solid #e0e0e0',
         boxShadow: '0px 8px 24px -10px rgba(0, 0, 0, 0.1)',
-        overflow: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       <Typography variant="h6" gutterBottom>
@@ -117,100 +118,163 @@ const RegionSidebar = ({ regionData, loading, error, coordinates }) => {
 
       <Divider sx={{ my: 2 }} />
 
-      {/* Animals Section */}
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <AnimalIcon color="primary" />
-          <Typography variant="h6">
-            Animais
-          </Typography>
-          <Chip 
-            label={animals.length} 
-            size="small" 
-            color="primary" 
-            variant="outlined"
-          />
+      {/* Split view container */}
+      <Box sx={{ 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: 'column',
+        gap: 2,
+        minHeight: 0 // Important for proper flex behavior
+      }}>
+        {/* Animals Section */}
+        <Box sx={{ 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column',
+          minHeight: 0, // Important for proper scrolling
+          backgroundColor: '#f8f9fa',
+          borderRadius: 1,
+          p: 2
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <AnimalIcon color="primary" />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Animais
+            </Typography>
+            <Chip 
+              label={animals.length} 
+              size="small" 
+              color="primary" 
+              variant="outlined"
+            />
+          </Box>
+          
+          <Box sx={{ 
+            flex: 1, 
+            overflow: 'auto',
+            minHeight: 0,
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: '#f1f1f1',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: '#888',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              backgroundColor: '#555',
+            }
+          }}>
+            {animals.length > 0 ? (
+              <List dense sx={{ py: 0 }}>
+                {animals.map((animal, index) => (
+                  <ListItem key={index} sx={{ pl: 0, alignItems: 'flex-start' }}>
+                    <ListItemAvatar>
+                      <Avatar
+                        src={animal.image}
+                        alt={animal.name}
+                        sx={{ width: 48, height: 48 }}
+                      >
+                        <AnimalIcon />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={animal.name}
+                      secondary={
+                        <Box>
+                          <Typography variant="body2" component="span">
+                            {animal.description}
+                          </Typography>
+                          {animal.userId && (
+                            <Typography 
+                              variant="caption" 
+                              component="div" 
+                              color="text.secondary"
+                              sx={{ mt: 0.5 }}
+                            >
+                              Adicionado por usuário: {animal.userId}
+                            </Typography>
+                          )}
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Nenhum animal encontrado nesta região
+              </Typography>
+            )}
+          </Box>
         </Box>
-        
-        {animals.length > 0 ? (
-          <List dense>
-            {animals.map((animal, index) => (
-              <ListItem key={index} sx={{ pl: 0, alignItems: 'flex-start' }}>
-                <ListItemAvatar>
-                  <Avatar
-                    src={animal.image}
-                    alt={animal.name}
-                    sx={{ width: 48, height: 48 }}
-                  >
-                    <AnimalIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={animal.name}
-                  secondary={
-                    <Box>
-                      <Typography variant="body2" component="span">
-                        {animal.description}
-                      </Typography>
-                      {animal.userId && (
-                        <Typography 
-                          variant="caption" 
-                          component="div" 
-                          color="text.secondary"
-                          sx={{ mt: 0.5 }}
-                        >
-                          Adicionado por usuário: {animal.userId}
-                        </Typography>
-                      )}
-                    </Box>
-                  }
-                />
-              </ListItem>
-            ))}
-          </List>
-        ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ pl: 2 }}>
-            Nenhum animal encontrado nesta região
-          </Typography>
-        )}
-      </Box>
 
-      <Divider sx={{ my: 2 }} />
-
-      {/* Historical Curiosities Section */}
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <HistoryIcon color="secondary" />
-          <Typography variant="h6">
-            Curiosidades Históricas
-          </Typography>
-          <Chip 
-            label={historicalCuriosities.length} 
-            size="small" 
-            color="secondary" 
-            variant="outlined"
-          />
+        {/* Historical Curiosities Section */}
+        <Box sx={{ 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column',
+          minHeight: 0, // Important for proper scrolling
+          backgroundColor: '#f5f8ff',
+          borderRadius: 1,
+          p: 2
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <HistoryIcon color="secondary" />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Curiosidades Históricas
+            </Typography>
+            <Chip 
+              label={historicalCuriosities.length} 
+              size="small" 
+              color="secondary" 
+              variant="outlined"
+            />
+          </Box>
+          
+          <Box sx={{ 
+            flex: 1, 
+            overflow: 'auto',
+            minHeight: 0,
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: '#f1f1f1',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: '#888',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              backgroundColor: '#555',
+            }
+          }}>
+            {historicalCuriosities.length > 0 ? (
+              <List dense sx={{ py: 0 }}>
+                {historicalCuriosities.map((curiosity, index) => (
+                  <ListItem key={index} sx={{ pl: 0 }}>
+                    <ListItemIcon>
+                      <HistoryIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={curiosity.title || 'Curiosidade Histórica'}
+                      secondary={curiosity.description}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Nenhuma curiosidade histórica encontrada nesta região
+              </Typography>
+            )}
+          </Box>
         </Box>
-        
-        {historicalCuriosities.length > 0 ? (
-          <List dense>
-            {historicalCuriosities.map((curiosity, index) => (
-              <ListItem key={index} sx={{ pl: 0 }}>
-                <ListItemIcon>
-                  <HistoryIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={curiosity.title || 'Curiosidade Histórica'}
-                  secondary={curiosity.description}
-                />
-              </ListItem>
-            ))}
-          </List>
-        ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ pl: 2 }}>
-            Nenhuma curiosidade histórica encontrada nesta região
-          </Typography>
-        )}
       </Box>
     </Paper>
   );
