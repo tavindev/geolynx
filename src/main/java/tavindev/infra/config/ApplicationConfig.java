@@ -3,6 +3,7 @@ package tavindev.infra.config;
 import jakarta.ws.rs.ApplicationPath;
 import org.glassfish.jersey.server.ResourceConfig;
 import tavindev.core.TestAccountCreation;
+import tavindev.core.TestAnimalsCreation;
 import tavindev.infra.http.controllers.ExecutionSheetController;
 import tavindev.infra.http.controllers.WorkSheetController;
 import tavindev.infra.filters.AuthTokenExtractionFilter;
@@ -32,6 +33,7 @@ public class ApplicationConfig extends ResourceConfig {
         register(AuthTokenExtractionFilter.class);
         register(AdditionalResponseHeadersFilter.class);
         register(TestAccountCreation.class);
+        register(TestAnimalsCreation.class);
         register(JacksonConfig.class);
         register(WorkSheetController.class);
         register(ExecutionSheetController.class);
