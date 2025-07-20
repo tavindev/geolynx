@@ -237,7 +237,7 @@ const ExecutionSheetCreate = () => {
       enqueueSnackbar('Folha de execução criada com sucesso!', {
         variant: 'success',
       });
-      navigate('/execution-sheets');
+      navigate('/dashboard/execution-sheets');
     } catch (error) {
       enqueueSnackbar(
         error.response?.data?.message || 'Erro ao criar folha de execução',

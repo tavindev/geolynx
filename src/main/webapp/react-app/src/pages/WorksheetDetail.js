@@ -145,7 +145,7 @@ const WorksheetDetail = () => {
               color="primary"
               startIcon={<AddIcon />}
               onClick={() =>
-                navigate(`/dashboard/execution-sheets/create?worksheetId=${id}`)
+                navigate('/dashboard/execution-sheets/create', { state: { worksheetId: parseInt(id) } })
               }
             >
               Criar Folha de Execução

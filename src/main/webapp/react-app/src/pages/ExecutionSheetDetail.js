@@ -89,7 +89,7 @@ const ExecutionSheetDetail = () => {
   const handleAssignOperation = async () => {
     try {
       await executionSheetService.assignOperation({
-        executionSheetId: id,
+        executionSheetId: parseInt(id),
         polygonId: formData.polygonId,
         operationId: formData.operationId,
         operatorId: formData.operatorId,
@@ -108,7 +108,7 @@ const ExecutionSheetDetail = () => {
   const handleStartActivity = async (polygonId, operationId) => {
     try {
       await executionSheetService.startActivity({
-        executionSheetId: id,
+        executionSheetId: parseInt(id),
         polygonId,
         operationId,
       });
@@ -124,7 +124,7 @@ const ExecutionSheetDetail = () => {
   const handleStopActivity = async (polygonId, operationId) => {
     try {
       await executionSheetService.stopActivity({
-        executionSheetId: id,
+        executionSheetId: parseInt(id),
         polygonId,
         operationId,
       });
@@ -140,10 +140,10 @@ const ExecutionSheetDetail = () => {
   const handleEditOperation = async () => {
     try {
       await executionSheetService.editOperation({
-        executionSheetId: id,
+        executionSheetId: parseInt(id),
         operationId: formData.operationId,
         plannedCompletionDate: formData.plannedCompletionDate,
-        estimatedDurationHours: formData.estimatedDurationHours,
+        estimatedDurationHours: parseInt(formData.estimatedDurationHours),
         observations: formData.observations,
       });
 
@@ -159,7 +159,7 @@ const ExecutionSheetDetail = () => {
 
   const handleExport = async () => {
     try {
-      const response = await executionSheetService.export({ executionSheetId: id });
+      const response = await executionSheetService.export({ executionSheetId: parseInt(id) });
       // Handle export - could download as file or show in new window
       console.log('Exported:', response.data);
       // You could create a downloadable file here
@@ -196,6 +196,11 @@ const ExecutionSheetDetail = () => {
       completed: 'Concluído',
     };
     return labels[status] || status;
+  };
+
+  const getOperatorName = (operatorId) => {
+    const operator = operators.find(op => op.id === operatorId);
+    return operator?.personalInfo?.fullName || operator?.username || `Operador ${operatorId}`;
   };
 
   if (loading) {
@@ -327,7 +332,7 @@ const ExecutionSheetDetail = () => {
                     onClick={async () => {
                       try {
                         const response = await executionSheetService.viewStatusGlobal({
-                          executionSheetId: id,
+                          executionSheetId: parseInt(id),
                           operationId: operation.id || index,
                         });
                         setSelectedOperation(response.data);
@@ -380,7 +385,7 @@ const ExecutionSheetDetail = () => {
                         </Typography>
                         {op.operatorId && (
                           <Typography variant="body2">
-                            Operador ID: {op.operatorId}
+                            Operador: {getOperatorName(op.operatorId)}
                           </Typography>
                         )}
                         {op.startingDate && (
@@ -434,7 +439,7 @@ const ExecutionSheetDetail = () => {
                         onClick={async () => {
                           try {
                             const response = await executionSheetService.viewActivity({
-                              executionSheetId: id,
+                              executionSheetId: parseInt(id),
                               polygonId: polygonOp.polygonId,
                               operationId: op.operationId,
                             });
@@ -541,7 +546,7 @@ const ExecutionSheetDetail = () => {
                 <strong>Estado:</strong> {getStatusLabel(selectedOperation.operationDetail.status)}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                <strong>Operador ID:</strong> {selectedOperation.operationDetail.operatorId || 'Não atribuído'}
+                <strong>Operador:</strong> {selectedOperation.operationDetail.operatorId ? getOperatorName(selectedOperation.operationDetail.operatorId) : 'Não atribuído'}
               </Typography>
               <Typography variant="body1" gutterBottom>
                 <strong>Data Início:</strong> {selectedOperation.operationDetail.startingDate || 'Não iniciado'}
@@ -612,7 +617,7 @@ const ExecutionSheetDetail = () => {
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="body2">
-                        Operador ID: {polyStatus.operatorId || 'Não atribuído'}
+                        Operador: {polyStatus.operatorId ? getOperatorName(polyStatus.operatorId) : 'Não atribuído'}
                       </Typography>
                     </Grid>
                     <Grid item xs={6}>

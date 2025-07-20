@@ -16,6 +16,14 @@ import {
   Chip,
   Alert,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -25,16 +33,21 @@ import {
   Stop as StopIcon,
   Edit as EditIcon,
   GetApp as ExportIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { executionSheetService, worksheetService } from '../services/api';
+import { executionSheetService, worksheetService, userService } from '../services/api';
 
 const ExecutionSheets = () => {
   const [executionSheets, setExecutionSheets] = useState([]);
   const [worksheets, setWorksheets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [operators, setOperators] = useState([]);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedSheet, setSelectedSheet] = useState(null);
+  const [selectedOperator, setSelectedOperator] = useState('');
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,6 +64,13 @@ const ExecutionSheets = () => {
       // Get all worksheets
       const worksheetsResponse = await worksheetService.getAll();
       setWorksheets(worksheetsResponse.data);
+
+      // Get operators
+      const usersResponse = await userService.listUsers();
+      const operatorUsers = usersResponse.data.filter(user =>
+        user.role === 'OPERATOR' || user.role === 'PO'
+      );
+      setOperators(operatorUsers);
 
       // Get execution sheets
       try {
@@ -119,6 +139,68 @@ const ExecutionSheets = () => {
     } catch (err) {
       console.error('Export error:', err);
       setError('Erro ao exportar folha de execução');
+    }
+  };
+
+  const handleOpenAssignDialog = (sheet) => {
+    setSelectedSheet(sheet);
+    setSelectedOperator('');
+    setAssignDialogOpen(true);
+  };
+
+  const handleCloseAssignDialog = () => {
+    setAssignDialogOpen(false);
+    setSelectedSheet(null);
+    setSelectedOperator('');
+  };
+
+  const handleQuickAssign = async () => {
+    if (!selectedSheet || !selectedOperator) return;
+
+    try {
+      // Get all pending operations for this execution sheet
+      const sheet = await executionSheetService.getById(selectedSheet.id);
+      const executionSheetData = sheet.data;
+
+      let assignmentCount = 0;
+      let errorCount = 0;
+
+      // Iterate through all polygon operations
+      if (executionSheetData.polygonsOperations) {
+        for (const polygonOp of executionSheetData.polygonsOperations) {
+          for (const op of polygonOp.operations) {
+            if (op.status === 'pending') {
+              try {
+                await executionSheetService.assignOperation({
+                  executionSheetId: selectedSheet.id,
+                  polygonId: polygonOp.polygonId,
+                  operationId: op.operationId,
+                  operatorId: selectedOperator,
+                });
+                assignmentCount++;
+              } catch (err) {
+                console.error(`Failed to assign operation ${op.operationId}:`, err);
+                errorCount++;
+              }
+            }
+          }
+        }
+      }
+
+      if (assignmentCount > 0) {
+        setError(null);
+        alert(`${assignmentCount} operações foram atribuídas com sucesso!${errorCount > 0 ? ` ${errorCount} falharam.` : ''}`);
+        fetchData(); // Refresh the data
+      } else if (errorCount > 0) {
+        setError(`Falha ao atribuir ${errorCount} operações.`);
+      } else {
+        alert('Não há operações pendentes para atribuir.');
+      }
+
+      handleCloseAssignDialog();
+    } catch (err) {
+      console.error('Error in quick assign:', err);
+      setError('Erro ao atribuir operações em massa');
     }
   };
 
@@ -230,16 +312,26 @@ const ExecutionSheets = () => {
                       </IconButton>
                     </Tooltip>
                     {hasPermission('assign_operations') && (
-                      <Tooltip title="Atribuir Operações">
-                        <IconButton
-                          size="small"
-                          onClick={() =>
-                            navigate(`/dashboard/execution-sheets/${sheet.id}/assign`)
-                          }
-                        >
-                          <AssignIcon />
-                        </IconButton>
-                      </Tooltip>
+                      <>
+                        <Tooltip title="Atribuir Todas Operações">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleOpenAssignDialog(sheet)}
+                          >
+                            <PersonIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Atribuir Operações Individuais">
+                          <IconButton
+                            size="small"
+                            onClick={() =>
+                              navigate(`/dashboard/execution-sheets/${sheet.id}/assign`)
+                            }
+                          >
+                            <AssignIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </>
                     )}
                     {hasPermission('export_execution_sheets') && (
                       <Tooltip title="Exportar">
@@ -258,6 +350,41 @@ const ExecutionSheets = () => {
           </Table>
         </TableContainer>
       )}
+
+      {/* Quick Assign Dialog */}
+      <Dialog open={assignDialogOpen} onClose={handleCloseAssignDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Atribuir Todas as Operações Pendentes</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Selecione um operador para atribuir todas as operações pendentes da Folha de Execução #{selectedSheet?.id}
+          </Typography>
+          <FormControl fullWidth>
+            <InputLabel>Operador</InputLabel>
+            <Select
+              value={selectedOperator}
+              onChange={(e) => setSelectedOperator(e.target.value)}
+              label="Operador"
+            >
+              {operators.map((operator) => (
+                <MenuItem key={operator.id} value={operator.id}>
+                  {operator.personalInfo?.fullName || operator.username} ({operator.role})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAssignDialog}>Cancelar</Button>
+          <Button
+            onClick={handleQuickAssign}
+            variant="contained"
+            color="primary"
+            disabled={!selectedOperator}
+          >
+            Atribuir Todas
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
