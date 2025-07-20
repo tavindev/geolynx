@@ -56,9 +56,6 @@ public class TestAnimalsCreation implements ServletContextListener {
     double centerLon = -8.0144;
     double range = 0.2;
 
-    // Test user ID
-    String testUserId = "";
-
     // Cattle/Bovines - Common in Portuguese agriculture
     String[] cattleNames = { "Vaca Mirandesa", "Touro Alentejano", "Vaca Barrosã", "Novilho", "Vitela" };
     String[] cattleDescriptions = {
@@ -78,8 +75,7 @@ public class TestAnimalsCreation implements ServletContextListener {
           cattleDescriptions[i % cattleDescriptions.length],
           "cattle_" + (i + 1) + ".jpg",
           lat,
-          lon,
-          testUserId));
+          lon));
     }
 
     // Sheep - Very common in central Portugal
@@ -100,8 +96,7 @@ public class TestAnimalsCreation implements ServletContextListener {
           sheepDescriptions[i % sheepDescriptions.length],
           "sheep_" + (i + 1) + ".jpg",
           lat,
-          lon,
-          testUserId));
+          lon));
     }
 
     // Goats - Common in Portuguese hills
@@ -122,8 +117,7 @@ public class TestAnimalsCreation implements ServletContextListener {
           goatDescriptions[i % goatDescriptions.length],
           "goat_" + (i + 1) + ".jpg",
           lat,
-          lon,
-          testUserId));
+          lon));
     }
 
     // Pigs - Traditional Portuguese breeds
@@ -144,8 +138,7 @@ public class TestAnimalsCreation implements ServletContextListener {
           pigDescriptions[i % pigDescriptions.length],
           "pig_" + (i + 1) + ".jpg",
           lat,
-          lon,
-          testUserId));
+          lon));
     }
 
     // Horses - Used for work and recreation
@@ -166,8 +159,7 @@ public class TestAnimalsCreation implements ServletContextListener {
           horseDescriptions[i % horseDescriptions.length],
           "horse_" + (i + 1) + ".jpg",
           lat,
-          lon,
-          testUserId));
+          lon));
     }
 
     return animals;

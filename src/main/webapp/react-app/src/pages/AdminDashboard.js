@@ -73,9 +73,11 @@ const AdminDashboard = () => {
       // Calculate stats
       setStats({
         totalUsers: allUsers.length,
-        activeUsers: allUsers.filter((u) => u.status === 'ACTIVE').length,
+        activeUsers: allUsers.filter((u) => u.accountStatus === 'ATIVADA')
+          .length,
         pendingRemoval: removalList.length,
-        suspendedUsers: allUsers.filter((u) => u.status === 'SUSPENDED').length,
+        suspendedUsers: allUsers.filter((u) => u.accountStatus === 'SUSPENSA')
+          .length,
         totalWorksheets: allWorksheets.length,
       });
 

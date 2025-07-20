@@ -30,7 +30,9 @@ public class AnimalRepository {
     entityBuilder.set("longitude", animal.getLongitude());
     entityBuilder.set("createdAt",
         Timestamp.of(java.util.Date.from(animal.getCreatedAt().atZone(ZoneOffset.UTC).toInstant())));
-    entityBuilder.set("userId", animal.getUserId());
+    if (animal.getUserId() != null) {
+      entityBuilder.set("userId", animal.getUserId());
+    }
 
     if (animal.getGeohash() != null) {
       entityBuilder.set("geohash", animal.getGeohash());

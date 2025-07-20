@@ -50,7 +50,6 @@ const CreateAnimalModal = ({ open, onClose, coordinates, user, onSuccess }) => {
         image: formData.image,
         lat: coordinates.lat,
         long: coordinates.lng,
-        userId: user.id,
       };
 
       await animalService.create(animalData);

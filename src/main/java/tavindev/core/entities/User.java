@@ -247,10 +247,6 @@ public class User {
         return dateOfBirth != null ? dateOfBirth.toString() : null;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
     public UserProfile getProfile() {
         return profile;
     }
