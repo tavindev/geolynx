@@ -68,7 +68,7 @@ const ExecutionSheets = () => {
       // Get operators
       const usersResponse = await userService.listUsers();
       const operatorUsers = usersResponse.data.filter(user =>
-        user.role === 'OPERATOR' || user.role === 'PO'
+        user.role === 'PO'
       );
       setOperators(operatorUsers);
 

@@ -215,12 +215,22 @@ const Map = () => {
 
   // Load worksheets on component mount
   useEffect(() => {
-    loadWorksheets();
-  }, []);
+    if (user) {
+      loadWorksheets();
+    }
+  }, [user]);
 
   const loadWorksheets = async () => {
     setWorksheetsLoading(true);
     try {
+      // For PO operators, don't load worksheets since they should only see their execution sheets
+      if (user?.role === 'PO') {
+        setWorksheets([]);
+        setSelectedWorksheets([]);
+        setWorksheetsLoading(false);
+        return;
+      }
+
       const response = await worksheetService.getAll();
       console.log('Worksheets response:', response); // Debug log
       
@@ -525,7 +535,11 @@ const Map = () => {
           <Typography variant="subtitle2" gutterBottom>
             Folhas de Obra
           </Typography>
-          {worksheetsLoading ? (
+          {user?.role === 'PO' ? (
+            <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
+              Como operador, suas operações são visualizadas através das folhas de execução atribuídas.
+            </Typography>
+          ) : worksheetsLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
               <CircularProgress size={24} />
             </Box>

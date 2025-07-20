@@ -137,7 +137,7 @@ const Home = () => {
   };
 
   // Show operator dashboard for operators
-  if (hasRole('OPERATOR') || hasRole('PO')) {
+  if (hasRole('PO')) {
     return (
       <Container maxWidth="lg">
         <Box sx={{ mb: 4, mt: 2 }}>
@@ -194,7 +194,7 @@ const Home = () => {
                 title="Minhas Operações"
                 description="Ver operações atribuídas"
                 icon={<AssignmentIcon />}
-                path="/dashboard/execution-sheets"
+                path="/dashboard/my-worksheets"
                 color="primary.main"
               />
             </Grid>

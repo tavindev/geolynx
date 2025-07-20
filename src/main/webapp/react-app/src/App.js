@@ -320,7 +320,7 @@ function App() {
                   <Route
                     path="execution-sheets"
                     element={
-                      <PrivateRoute roles={['SYSADMIN', 'PRBO', 'SDVBO']}>
+                      <PrivateRoute roles={['SYSADMIN', 'PRBO', 'SDVBO', 'PO']}>
                         <ExecutionSheets />
                       </PrivateRoute>
                     }

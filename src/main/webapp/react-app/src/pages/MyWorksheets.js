@@ -18,52 +18,65 @@ import {
 } from '@mui/material';
 import {
   Visibility as ViewIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
+  PlayArrow as StartIcon,
+  Stop as StopIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { worksheetService } from '../services/api';
+import { executionSheetService } from '../services/api';
 import { useSnackbar } from 'notistack';
 import { useAuth } from '../contexts/AuthContext';
 
 const MyWorksheets = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const { user } = useAuth();
-  const [worksheets, setWorksheets] = useState([]);
+  const { user, hasRole } = useAuth();
+  const [executionSheets, setExecutionSheets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchWorksheets();
+    fetchMyOperations();
   }, []);
 
-  const fetchWorksheets = async () => {
+  const fetchMyOperations = async () => {
     try {
       setLoading(true);
-      const response = await worksheetService.getAll();
-      // The response data is directly an array
-      const myWorksheets = response.data || response || [];
-      setWorksheets(myWorksheets);
+      if (hasRole('PO')) {
+        // For PO operators, get their assigned execution sheets
+        const response = await executionSheetService.getMyAssignments();
+        const mySheets = response.data?.executionSheets || [];
+        setExecutionSheets(mySheets);
+      } else {
+        // For other roles, show empty or redirect
+        setExecutionSheets([]);
+      }
     } catch (error) {
-      console.error('Error fetching worksheets:', error);
-      setError('Erro ao carregar fichas de obra');
-      enqueueSnackbar('Erro ao carregar fichas de obra', { variant: 'error' });
+      console.error('Error fetching my operations:', error);
+      setError('Erro ao carregar operações atribuídas');
+      enqueueSnackbar('Erro ao carregar operações atribuídas', { variant: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza de que deseja excluir esta ficha?')) {
-      try {
-        await worksheetService.delete(id);
-        enqueueSnackbar('Ficha removida com sucesso', { variant: 'success' });
-        fetchWorksheets();
-      } catch (error) {
-        enqueueSnackbar('Erro ao remover ficha', { variant: 'error' });
-      }
-    }
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'default',
+      assigned: 'info',
+      ongoing: 'warning', 
+      completed: 'success',
+    };
+    return colors[status] || 'default';
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      pending: 'Pendente',
+      assigned: 'Atribuído',
+      ongoing: 'Em Progresso',
+      completed: 'Concluído',
+    };
+    return labels[status] || status;
   };
 
   const formatDate = (dateString) => {
@@ -92,10 +105,10 @@ const MyWorksheets = () => {
     <Container maxWidth="lg">
       <Box sx={{ mb: 4, mt: 2 }}>
         <Typography variant="h4" gutterBottom>
-          Minhas Fichas de Obra
+          Minhas Operações
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          Visualize e gerencie suas fichas de obra
+          Visualize e gerencie suas operações atribuídas
         </Typography>
       </Box>
 
@@ -110,70 +123,44 @@ const MyWorksheets = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>AIGP</TableCell>
+              <TableCell>ID Execução</TableCell>
+              <TableCell>Folha de Obra</TableCell>
               <TableCell>Data Início</TableCell>
               <TableCell>Data Fim</TableCell>
-              <TableCell>Data Emissão</TableCell>
-              <TableCell>Operações</TableCell>
+              <TableCell>Estado</TableCell>
+              <TableCell>Última Atividade</TableCell>
               <TableCell align="right">Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {worksheets.length === 0 ? (
+            {executionSheets.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} align="center">
-                  Nenhuma ficha de obra encontrada
+                  Nenhuma operação atribuída encontrada
                 </TableCell>
               </TableRow>
             ) : (
-              worksheets.map((worksheet) => (
-                <TableRow key={worksheet.id}>
-                  <TableCell>{worksheet.id}</TableCell>
+              executionSheets.map((sheet) => (
+                <TableRow key={sheet.id}>
+                  <TableCell>{sheet.id}</TableCell>
+                  <TableCell>{sheet.workSheetId}</TableCell>
+                  <TableCell>{formatDate(sheet.startingDate)}</TableCell>
+                  <TableCell>{formatDate(sheet.finishingDate)}</TableCell>
                   <TableCell>
-                    {worksheet.aigp && worksheet.aigp.length > 0 ? (
-                      worksheet.aigp.map((code, index) => (
-                        <Chip 
-                          key={index} 
-                          label={code} 
-                          size="small" 
-                          sx={{ mr: 0.5 }}
-                        />
-                      ))
-                    ) : (
-                      '-'
-                    )}
+                    <Chip
+                      label={getStatusLabel(sheet.globalStatus)}
+                      color={getStatusColor(sheet.globalStatus)}
+                      size="small"
+                    />
                   </TableCell>
-                  <TableCell>{formatDate(worksheet.startingDate)}</TableCell>
-                  <TableCell>{formatDate(worksheet.finishingDate)}</TableCell>
-                  <TableCell>{formatDate(worksheet.issueDate)}</TableCell>
-                  <TableCell>
-                    {worksheet.operations ? worksheet.operations.length : 0}
-                  </TableCell>
+                  <TableCell>{formatDate(sheet.lastActivityDate)}</TableCell>
                   <TableCell align="right">
-                    <Tooltip title="Visualizar">
+                    <Tooltip title="Visualizar Detalhes">
                       <IconButton 
                         size="small" 
-                        onClick={() => navigate(`/dashboard/worksheet/${worksheet.id}`)}
+                        onClick={() => navigate(`/dashboard/execution-sheets/${sheet.id}`)}
                       >
                         <ViewIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Editar">
-                      <IconButton 
-                        size="small" 
-                        onClick={() => navigate(`/dashboard/worksheet-update/${worksheet.id}`)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Remover">
-                      <IconButton 
-                        size="small" 
-                        color="error"
-                        onClick={() => handleDelete(worksheet.id)}
-                      >
-                        <DeleteIcon />
                       </IconButton>
                     </Tooltip>
                   </TableCell>
