@@ -125,8 +125,8 @@ const Register = () => {
                   required
                   fullWidth
                   label="Phone Number"
-                  name="phone"
-                  value={formData.phone}
+                  name="phonePrimary"
+                  value={formData.phonePrimary}
                   onChange={handleChange}
                   disabled={loading}
                 />
