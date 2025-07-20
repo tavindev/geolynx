@@ -26,7 +26,7 @@ public class TestAnimalsCreation implements ServletContextListener {
 
   @Override
   public void contextInitialized(ServletContextEvent sce) {
-    createTestAnimalsForMacao();
+    // createTestAnimalsForMacao();
   }
 
   @Override
