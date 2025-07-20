@@ -183,28 +183,40 @@ const CreateExecutionSheetModal = ({
     try {
       // Prepare data for submission
       const executionSheetData = {
-        ...formData,
+        workSheetId: parseInt(formData.workSheetId), // Ensure it's a number
+        startingDate: formData.startingDate,
+        finishingDate: formData.finishingDate || formData.startingDate,
         lastActivityDate: formData.startingDate,
+        observations: formData.observations || '',
+        operations: formData.operations.map((op, idx) => ({
+          operationCode: op.operationCode,
+          areaHaExecuted: parseFloat(op.areaHaExecuted),
+          areaPerc: op.areaPerc || 0,
+          startingDate: op.startingDate || formData.startingDate,
+          finishingDate: op.finishingDate || formData.finishingDate || formData.startingDate,
+          observations: op.observations || '',
+          plannedCompletionDate: op.plannedCompletionDate || formData.finishingDate || formData.startingDate,
+          estimatedDurationHours: parseInt(op.estimatedDurationHours) || 0,
+        })),
         // Ensure polygonsOperations are properly set
-        polygonsOperations: formData.polygonsOperations.length > 0 
-          ? formData.polygonsOperations 
-          : preselectedPolygon 
-            ? [{
-                polygonId: preselectedPolygon.properties.polygon_id || preselectedPolygon.properties.id,
-                operations: formData.operations.map((op, idx) => ({
-                  operationId: idx + 1,
-                  status: 'pending',
-                  startingDate: null,
-                  finishingDate: null,
-                  lastActivityDate: null,
-                  observations: '',
-                  tracks: [],
-                  operatorId: null,
-                })),
-              }]
-            : [],
+        polygonsOperations: preselectedPolygon 
+          ? [{
+              polygonId: parseInt(preselectedPolygon.properties.polygon_id || preselectedPolygon.properties.id),
+              operations: formData.operations.map((op, idx) => ({
+                operationId: idx + 1,
+                status: 'pending',
+                startingDate: null,
+                finishingDate: null,
+                lastActivityDate: null,
+                observations: '',
+                tracks: [],
+                operatorId: null,
+              })),
+            }]
+          : [],
       };
 
+      console.log('Sending execution sheet data:', executionSheetData);
       await executionSheetService.create(executionSheetData);
 
       // Reset form
