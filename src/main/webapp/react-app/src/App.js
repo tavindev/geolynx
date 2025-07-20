@@ -37,6 +37,7 @@ import RequestAccountRemoval from './pages/RequestAccountRemoval';
 import ExecutionSheets from './pages/ExecutionSheets';
 import ExecutionSheetDetail from './pages/ExecutionSheetDetail';
 import ExecutionSheetCreate from './pages/ExecutionSheetCreate';
+import ExecutionSheetAssign from './pages/ExecutionSheetAssign';
 import AdminDashboard from './pages/AdminDashboard';
 import WorksheetDashboard from './pages/WorksheetDashboard';
 import MyWorksheets from './pages/MyWorksheets';
@@ -337,6 +338,14 @@ function App() {
                     element={
                       <PrivateRoute roles={['SYSADMIN', 'PRBO', 'PO', 'SDVBO']}>
                         <ExecutionSheetDetail />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="execution-sheets/:id/assign"
+                    element={
+                      <PrivateRoute roles={['SYSADMIN', 'PRBO']}>
+                        <ExecutionSheetAssign />
                       </PrivateRoute>
                     }
                   />
