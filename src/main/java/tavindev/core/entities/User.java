@@ -32,7 +32,6 @@ public class User {
     private String citizenCardIssuePlace;
     private LocalDate citizenCardValidity;
     private LocalDate dateOfBirth;
-    private String status;
     private UserProfile profile;
     private String employer;
     private String jobTitle;
@@ -103,7 +102,6 @@ public class User {
         this.citizenCardIssuePlace = citizenCardIssuePlace;
         this.citizenCardValidity = citizenCardValidity;
         this.dateOfBirth = dateOfBirth;
-        this.status = status;
         this.role = role;
         this.accountStatus = accountStatus;
     }
@@ -360,8 +358,5 @@ public class User {
             this.employerTaxId = attributes.get("employerTaxId");
         }
 
-        if (attributes.containsKey("status")) {
-            this.status = attributes.get("status");
-        }
     }
 }

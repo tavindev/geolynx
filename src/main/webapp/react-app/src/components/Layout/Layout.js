@@ -80,12 +80,6 @@ const Layout = () => {
       path: '/dashboard/my-worksheets',
       roles: ['PO'], // PO has access to their assigned operations
     },
-    {
-      text: 'Folhas de Execução',
-      icon: <DescriptionIcon />,
-      path: '/dashboard/execution-sheets',
-      roles: ['PO'], // PO can view execution sheet details
-    },
 
     { divider: true },
 
