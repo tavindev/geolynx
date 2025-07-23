@@ -69,14 +69,33 @@ L.Marker.prototype.options.icon = DefaultIcon;
 // Define projection for EPSG:3763 (Portuguese grid system)
 proj4.defs("EPSG:3763", "+proj=tmerc +lat_0=39.66825833333333 +lon_0=-8.133108333333334 +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
 
-// Convert EPSG:3763 to EPSG:4326 (WGS84)
+// Convert coordinates to EPSG:4326 (WGS84)
 const convertCoordinates = (coordinates) => {
-  return coordinates.map(ring => 
-    ring.map(coord => {
-      const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [coord[0], coord[1]]);
-      return [lat, lng]; // Leaflet expects [lat, lng]
-    })
-  );
+  // Check if coordinates are already in WGS84 (values between -180 to 180 for lng, -90 to 90 for lat)
+  const isWGS84 = (coord) => {
+    return Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90;
+  };
+
+  return coordinates.map(ring => {
+    if (!Array.isArray(ring)) return [];
+
+    return ring.map(coord => {
+      if (!Array.isArray(coord) || coord.length < 2) return [0, 0];
+
+      // If already in WGS84, just swap to [lat, lng] for Leaflet
+      if (isWGS84(coord)) {
+        return [coord[1], coord[0]]; // GeoJSON is [lng, lat], Leaflet expects [lat, lng]
+      }
+      // Otherwise convert from EPSG:3763
+      try {
+        const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [coord[0], coord[1]]);
+        return [lat, lng]; // Leaflet expects [lat, lng]
+      } catch (error) {
+        console.error('Coordinate conversion error:', error);
+        return [0, 0];
+      }
+    });
+  });
 };
 
 // Custom animal marker icon
@@ -188,6 +207,120 @@ function MapControls({ user, onCreateAnimal, onCreateCuriosity, onCreateExecutio
   );
 }
 
+// Component to render worksheet polygons
+const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
+  const [worksheet, setWorksheet] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const loadWorksheet = async () => {
+      try {
+        const response = await worksheetService.get(worksheetId);
+        setWorksheet(response.data || response);
+      } catch (error) {
+        console.error('Error loading worksheet details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadWorksheet();
+  }, [worksheetId]);
+
+  if (loading || !worksheet || !worksheet.features) {
+    return null;
+  }
+
+  const color = getPolygonColor(worksheetInfo.aigp?.[0] || 'default');
+
+  return (
+    <>
+      {worksheet.features.map((feature, index) => {
+        if (!feature.geometry || feature.geometry.type !== 'Polygon') return null;
+
+        const convertedCoords = convertCoordinates(feature.geometry.coordinates);
+
+        // Skip if no valid coordinates
+        if (!convertedCoords[0] || convertedCoords[0].length < 3) return null;
+
+        return (
+          <Polygon
+            key={`${worksheetId}-${index}`}
+            positions={convertedCoords[0]}
+            pathOptions={{
+              color: color,
+              fillOpacity: 0.4,
+              weight: 2,
+            }}
+            eventHandlers={{
+              click: () => onAreaClick({
+                worksheetId: worksheetId,
+                worksheetInfo: worksheetInfo,
+                worksheet: worksheet,
+                feature: feature.properties,
+                polygon: feature,
+              }),
+            }}
+          >
+            <Popup>
+              <Box sx={{ minWidth: 200 }}>
+                <Typography variant="h6">Polígono {feature.properties?.polygon_id || index + 1}</Typography>
+                <Typography variant="body2">
+                  <strong>AIGP:</strong> {feature.properties?.aigp || worksheetInfo.aigp?.join(', ') || 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Propriedade Rural:</strong> {feature.properties?.rural_property_id || 'N/A'}
+                </Typography>
+                {feature.properties?.UI_id && (
+                  <Typography variant="body2">
+                    <strong>UI:</strong> {feature.properties.UI_id}
+                  </Typography>
+                )}
+                {user && (
+                  <Box sx={{ mt: 2 }}>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="warning"
+                      startIcon={<ExecutionSheetIcon />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAreaClick({
+                          worksheetId: worksheetId,
+                          worksheetInfo: worksheetInfo,
+                          worksheet: worksheet,
+                          feature: feature.properties,
+                          polygon: feature,
+                          createExecutionSheet: true,
+                        });
+                      }}
+                      fullWidth
+                    >
+                      Criar Folha de Execução
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            </Popup>
+          </Polygon>
+        );
+      })}
+    </>
+  );
+};
+
+// Helper function for color generation
+const getPolygonColor = (aigp) => {
+  const colors = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c'];
+  let hash = 0;
+  const str = aigp || 'default';
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
+
 const Map = () => {
   const { user } = useAuth();
   const [worksheets, setWorksheets] = useState([]);
@@ -233,10 +366,10 @@ const Map = () => {
 
       const response = await worksheetService.getAll();
       console.log('Worksheets response:', response); // Debug log
-      
+
       // Handle different response formats
       const worksheetData = response.data || response;
-      
+
       // Ensure we have an array
       if (Array.isArray(worksheetData)) {
         setWorksheets(worksheetData);
@@ -254,16 +387,6 @@ const Map = () => {
     } finally {
       setWorksheetsLoading(false);
     }
-  };
-
-  const getPolygonColor = (aigp) => {
-    // Generate color based on AIGP name for consistency
-    const colors = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c'];
-    let hash = 0;
-    for (let i = 0; i < aigp.length; i++) {
-      hash = aigp.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
   };
 
   const handleToggleWorksheet = (id) => {
@@ -292,7 +415,7 @@ const Map = () => {
 
       try {
         const response = await regionService.getRegionData(lat, lng);
-        
+
         // The backend already returns coordinates as Double values, not microdegrees
         setRegionData(response.data);
       } catch (error) {
@@ -331,17 +454,6 @@ const Map = () => {
     } else {
       // Regular area selection
       setSelectedArea(areaData);
-    }
-  };
-
-  // Get detailed worksheet data
-  const getDetailedWorksheet = async (worksheetId) => {
-    try {
-      const detailed = await worksheetService.get(worksheetId);
-      return detailed;
-    } catch (error) {
-      console.error('Error fetching worksheet details:', error);
-      return null;
     }
   };
 
@@ -393,9 +505,8 @@ const Map = () => {
                   .filter((worksheet) => selectedWorksheets.includes(worksheet.id))
                   .map((worksheet) => (
                     <React.Fragment key={worksheet.id}>
-                      {/* We need to fetch full worksheet data to get the geometry */}
-                      <WorksheetPolygons 
-                        worksheetId={worksheet.id} 
+                      <WorksheetPolygons
+                        worksheetId={worksheet.id}
                         worksheetInfo={worksheet}
                         onAreaClick={handleAreaClick}
                       />
@@ -416,9 +527,9 @@ const Map = () => {
                           {animal.description}
                         </Typography>
                         {animal.image && (
-                          <img 
-                            src={animal.image} 
-                            alt={animal.name} 
+                          <img
+                            src={animal.image}
+                            alt={animal.name}
                             style={{ width: '100%', marginTop: 8, borderRadius: 4 }}
                           />
                         )}
@@ -490,17 +601,17 @@ const Map = () => {
                     <strong>ID:</strong> {selectedArea.worksheetId}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>AIGP:</strong> {selectedArea.aigp.join(', ')}
+                    <strong>AIGP:</strong> {selectedArea.aigp?.join(', ') || selectedArea.feature?.aigp || 'N/A'}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Período:</strong> {selectedArea.startingDate} até {selectedArea.finishingDate}
+                    <strong>Período:</strong> {selectedArea.worksheet?.metadata?.startingDate || 'N/A'} até {selectedArea.worksheet?.metadata?.finishingDate || 'N/A'}
                   </Typography>
-                  {selectedArea.operations && selectedArea.operations.length > 0 && (
+                  {selectedArea.worksheet?.metadata?.operations && selectedArea.worksheet.metadata.operations.length > 0 && (
                     <>
                       <Typography variant="body2" sx={{ mt: 1 }}>
                         <strong>Operações:</strong>
                       </Typography>
-                      {selectedArea.operations.map((op, idx) => (
+                      {selectedArea.worksheet.metadata.operations.map((op, idx) => (
                         <Typography key={idx} variant="caption" component="div" sx={{ ml: 1 }}>
                           • {op.operationDescription} ({op.areaHa} ha)
                         </Typography>
@@ -668,116 +779,6 @@ const Map = () => {
       />
     </Container>
   );
-};
-
-// Component to render worksheet polygons
-const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
-  const [worksheet, setWorksheet] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-
-  useEffect(() => {
-    const loadWorksheet = async () => {
-      try {
-        const data = await worksheetService.get(worksheetId);
-        setWorksheet(data);
-      } catch (error) {
-        console.error('Error loading worksheet details:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadWorksheet();
-  }, [worksheetId]);
-
-  if (loading || !worksheet || !worksheet.features) {
-    return null;
-  }
-
-  const color = getPolygonColor(worksheetInfo.aigp[0] || 'default');
-
-  return (
-    <>
-      {worksheet.features.map((feature, index) => {
-        if (feature.geometry.type !== 'Polygon') return null;
-
-        const convertedCoords = convertCoordinates(feature.geometry.coordinates);
-
-        return (
-          <Polygon
-            key={`${worksheetId}-${index}`}
-            positions={convertedCoords[0]}
-            pathOptions={{
-              color: color,
-              fillOpacity: 0.4,
-              weight: 2,
-            }}
-            eventHandlers={{
-              click: () => onAreaClick({
-                worksheetId: worksheetId,
-                worksheetInfo: worksheetInfo,
-                worksheet: worksheet,
-                feature: feature.properties,
-                polygon: feature,
-              }),
-            }}
-          >
-            <Popup>
-              <Box sx={{ minWidth: 200 }}>
-                <Typography variant="h6">Polígono {feature.properties.polygon_id}</Typography>
-                <Typography variant="body2">
-                  <strong>AIGP:</strong> {feature.properties.aigp}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Propriedade Rural:</strong> {feature.properties.rural_property_id}
-                </Typography>
-                {feature.properties.UI_id && (
-                  <Typography variant="body2">
-                    <strong>UI:</strong> {feature.properties.UI_id}
-                  </Typography>
-                )}
-                {user && (
-                  <Box sx={{ mt: 2 }}>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      color="warning"
-                      startIcon={<ExecutionSheetIcon />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAreaClick({
-                          worksheetId: worksheetId,
-                          worksheetInfo: worksheetInfo,
-                          worksheet: worksheet,
-                          feature: feature.properties,
-                          polygon: feature,
-                          createExecutionSheet: true,
-                        });
-                      }}
-                      fullWidth
-                    >
-                      Criar Folha de Execução
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            </Popup>
-          </Polygon>
-        );
-      })}
-    </>
-  );
-};
-
-// Helper function for color generation
-const getPolygonColor = (aigp) => {
-  const colors = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c'];
-  let hash = 0;
-  for (let i = 0; i < aigp.length; i++) {
-    hash = aigp.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
 };
 
 export default Map;

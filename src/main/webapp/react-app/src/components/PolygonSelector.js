@@ -22,6 +22,7 @@ import {
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { worksheetService } from '../services/api';
+import proj4 from 'proj4';
 
 // Fix for default markers in React-Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -35,6 +36,38 @@ let DefaultIcon = L.icon({
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
+
+// Define projection for EPSG:3763 (Portuguese grid system)
+proj4.defs("EPSG:3763", "+proj=tmerc +lat_0=39.66825833333333 +lon_0=-8.133108333333334 +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+
+// Convert coordinates to EPSG:4326 (WGS84)
+const convertCoordinates = (coordinates) => {
+  // Check if coordinates are already in WGS84 (values between -180 to 180 for lng, -90 to 90 for lat)
+  const isWGS84 = (coord) => {
+    return Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90;
+  };
+
+  if (!Array.isArray(coordinates) || coordinates.length === 0) {
+    return [];
+  }
+
+  return coordinates.map(coord => {
+    if (!Array.isArray(coord) || coord.length < 2) return [0, 0];
+
+    // If already in WGS84, just swap to [lat, lng] for Leaflet
+    if (isWGS84(coord)) {
+      return [coord[1], coord[0]]; // GeoJSON is [lng, lat], Leaflet expects [lat, lng]
+    }
+    // Otherwise convert from EPSG:3763
+    try {
+      const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [coord[0], coord[1]]);
+      return [lat, lng]; // Leaflet expects [lat, lng]
+    } catch (error) {
+      console.error('Coordinate conversion error:', error);
+      return [0, 0];
+    }
+  });
+};
 
 // Map controls component
 function MapControls() {
@@ -76,9 +109,7 @@ const PolygonSelector = ({ open, onClose, onSelect, worksheetId }) => {
   const [loading, setLoading] = useState(true);
   const [selectedPolygon, setSelectedPolygon] = useState(null);
   const [error, setError] = useState(null);
-
-  // Center of Portugal (roughly Mação area)
-  const mapCenter = [39.6347, -8.0323];
+  const [mapCenter, setMapCenter] = useState([39.6547, -8.0123]); // Default center
 
   useEffect(() => {
     if (open && worksheetId) {
@@ -90,40 +121,51 @@ const PolygonSelector = ({ open, onClose, onSelect, worksheetId }) => {
     try {
       setLoading(true);
       const response = await worksheetService.get(worksheetId);
-      const worksheet = response.data;
+      const worksheet = response.data || response;
 
       if (worksheet.features && worksheet.features.length > 0) {
-        const extractedPolygons = worksheet.features.map((feature, index) => ({
-          id: feature.properties?.polygonId || index + 1,
-          name: `Polígono ${feature.properties?.polygonId || index + 1}`,
-          coordinates: feature.geometry?.coordinates?.[0] || [],
-          properties: feature.properties,
-        }));
+        const extractedPolygons = [];
+        let allCoords = [];
+
+        worksheet.features.forEach((feature, index) => {
+          if (feature.geometry && feature.geometry.type === 'Polygon' && feature.geometry.coordinates) {
+            // Get the polygon ID from properties
+            const polygonId = feature.properties?.polygon_id ||
+                            feature.properties?.polygonId ||
+                            feature.properties?.id ||
+                            (index + 1);
+
+            // Convert coordinates
+            const coords = feature.geometry.coordinates[0]; // Get the outer ring
+            const convertedCoords = convertCoordinates(coords);
+
+            if (convertedCoords.length >= 3) { // Valid polygon needs at least 3 points
+              extractedPolygons.push({
+                id: polygonId,
+                name: `Polígono ${polygonId}`,
+                coordinates: convertedCoords,
+                properties: feature.properties,
+                originalFeature: feature,
+              });
+
+              // Collect all coordinates for centering
+              allCoords = allCoords.concat(convertedCoords);
+            }
+          }
+        });
+
         setPolygons(extractedPolygons);
+
+        // Calculate center from all coordinates if we have polygons
+        if (allCoords.length > 0) {
+          const latSum = allCoords.reduce((sum, coord) => sum + coord[0], 0);
+          const lngSum = allCoords.reduce((sum, coord) => sum + coord[1], 0);
+          const centerLat = latSum / allCoords.length;
+          const centerLng = lngSum / allCoords.length;
+          setMapCenter([centerLat, centerLng]);
+        }
       } else {
-        // Fallback to mock data if no features found
-        setPolygons([
-          {
-            id: 1,
-            name: 'Polígono 1',
-            coordinates: [
-              [39.6547, -8.0123],
-              [39.6647, -8.0123],
-              [39.6647, -8.0023],
-              [39.6547, -8.0023],
-            ],
-          },
-          {
-            id: 2,
-            name: 'Polígono 2',
-            coordinates: [
-              [39.6347, -8.0323],
-              [39.6447, -8.0323],
-              [39.6447, -8.0223],
-              [39.6347, -8.0223],
-            ],
-          },
-        ]);
+        setError('Nenhum polígono encontrado nesta folha de obra');
       }
     } catch (error) {
       console.error('Error fetching worksheet polygons:', error);
@@ -139,7 +181,12 @@ const PolygonSelector = ({ open, onClose, onSelect, worksheetId }) => {
 
   const handleConfirmSelection = () => {
     if (selectedPolygon) {
-      onSelect(selectedPolygon);
+      onSelect({
+        id: selectedPolygon.id,
+        name: selectedPolygon.name,
+        properties: selectedPolygon.properties,
+        feature: selectedPolygon.originalFeature,
+      });
       onClose();
     }
   };
@@ -186,65 +233,78 @@ const PolygonSelector = ({ open, onClose, onSelect, worksheetId }) => {
           </Alert>
         )}
 
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Clique num polígono no mapa para selecioná-lo
-        </Typography>
+        {polygons.length === 0 ? (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Nenhum polígono disponível para seleção nesta folha de obra.
+          </Alert>
+        ) : (
+          <>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Clique num polígono no mapa para selecioná-lo. Total de polígonos: {polygons.length}
+            </Typography>
 
-        <Box sx={{ height: '500px', position: 'relative' }}>
-          <MapContainer
-            center={mapCenter}
-            zoom={11}
-            style={{ height: '100%', width: '100%' }}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-
-            <MapControls />
-
-            {polygons.map((polygon) => (
-              <Polygon
-                key={polygon.id}
-                positions={polygon.coordinates}
-                pathOptions={{
-                  color: getPolygonColor(polygon),
-                  fillOpacity: selectedPolygon?.id === polygon.id ? 0.6 : 0.3,
-                  weight: selectedPolygon?.id === polygon.id ? 3 : 2,
-                }}
-                eventHandlers={{
-                  click: () => handlePolygonClick(polygon),
-                }}
+            <Box sx={{ height: '500px', position: 'relative' }}>
+              <MapContainer
+                center={mapCenter}
+                zoom={12}
+                style={{ height: '100%', width: '100%' }}
               >
-                <Popup>
-                  <Box sx={{ minWidth: 200 }}>
-                    <Typography variant="h6">{polygon.name}</Typography>
-                    <Typography variant="body2">ID: {polygon.id}</Typography>
-                    {polygon.properties?.ruralPropertyId && (
-                      <Typography variant="body2">
-                        Propriedade: {polygon.properties.ruralPropertyId}
-                      </Typography>
-                    )}
-                    {polygon.properties?.aigp && (
-                      <Typography variant="body2">
-                        AIGP: {polygon.properties.aigp}
-                      </Typography>
-                    )}
-                    <Button
-                      size="small"
-                      variant="contained"
-                      startIcon={<CheckIcon />}
-                      onClick={() => handlePolygonClick(polygon)}
-                      sx={{ mt: 1 }}
-                    >
-                      Selecionar
-                    </Button>
-                  </Box>
-                </Popup>
-              </Polygon>
-            ))}
-          </MapContainer>
-        </Box>
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+
+                <MapControls />
+
+                {polygons.map((polygon) => (
+                  <Polygon
+                    key={polygon.id}
+                    positions={polygon.coordinates}
+                    pathOptions={{
+                      color: getPolygonColor(polygon),
+                      fillOpacity: selectedPolygon?.id === polygon.id ? 0.6 : 0.3,
+                      weight: selectedPolygon?.id === polygon.id ? 3 : 2,
+                    }}
+                    eventHandlers={{
+                      click: () => handlePolygonClick(polygon),
+                    }}
+                  >
+                    <Popup>
+                      <Box sx={{ minWidth: 200 }}>
+                        <Typography variant="h6">{polygon.name}</Typography>
+                        <Typography variant="body2">ID: {polygon.id}</Typography>
+                        {polygon.properties?.rural_property_id && (
+                          <Typography variant="body2">
+                            Propriedade: {polygon.properties.rural_property_id}
+                          </Typography>
+                        )}
+                        {polygon.properties?.aigp && (
+                          <Typography variant="body2">
+                            AIGP: {polygon.properties.aigp}
+                          </Typography>
+                        )}
+                        {polygon.properties?.UI_id && (
+                          <Typography variant="body2">
+                            UI: {polygon.properties.UI_id}
+                          </Typography>
+                        )}
+                        <Button
+                          size="small"
+                          variant="contained"
+                          startIcon={<CheckIcon />}
+                          onClick={() => handlePolygonClick(polygon)}
+                          sx={{ mt: 1 }}
+                        >
+                          Selecionar
+                        </Button>
+                      </Box>
+                    </Popup>
+                  </Polygon>
+                ))}
+              </MapContainer>
+            </Box>
+          </>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancelar</Button>
