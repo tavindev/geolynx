@@ -72,6 +72,18 @@ public class DatastoreCorporationRepository {
         return corporationEntity != null ? convertToCorporation(corporationEntity) : null;
     }
 
+    public Corporation findByNif(String nif) {
+        Query<Entity> query = Query.newEntityQueryBuilder()
+                .setKind(CORPORATION_KIND)
+                .setFilter(StructuredQuery.PropertyFilter.eq("nif", nif))
+                .build();
+        QueryResults<Entity> results = datastore.run(query);
+        if (results.hasNext()) {
+            return convertToCorporation(results.next());
+        }
+        return null;
+    }
+
     private Corporation convertToCorporation(Entity entity) {
         // Use safe getters for fields that might not exist in existing data
         String name = entity.contains(PROPERTY_NAME) ? entity.getString(PROPERTY_NAME) : null;

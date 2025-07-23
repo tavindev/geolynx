@@ -110,14 +110,6 @@ const Layout = () => {
       header: true,
       roles: ['SYSADMIN', 'SMBO'], // Only SMBO has IMP_FO and REM_FO
     },
-    {
-      text: 'Gerir Folhas de Obra',
-      icon: <AssignmentIcon />,
-      path: '/dashboard/manage-worksheets',
-      roles: ['SYSADMIN', 'SMBO'], // SMBO has IMP_FO (create/update) and REM_FO (remove)
-    },
-
-    { divider: true },
 
     // Worksheet Viewing Section
     {

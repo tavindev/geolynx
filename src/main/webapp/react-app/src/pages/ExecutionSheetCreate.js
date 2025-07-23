@@ -35,8 +35,8 @@ import {
   Switch,
   FormControlLabel,
   Dialog,
-   DialogTitle,
-   DialogContent,
+  DialogTitle,
+  DialogContent,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -66,7 +66,8 @@ const ExecutionSheetCreate = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const worksheetIdFromUrl = searchParams.get('worksheetId') || location.state?.worksheetId;
+  const worksheetIdFromUrl =
+    searchParams.get('worksheetId') || location.state?.worksheetId;
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [worksheets, setWorksheets] = useState([]);
@@ -145,6 +146,45 @@ const ExecutionSheetCreate = () => {
   };
 
   const handleFormChange = (field, value) => {
+    const today = new Date().toISOString().split('T')[0];
+
+    if (field === 'startingDate') {
+      if (value < today) {
+        enqueueSnackbar('A data de início não pode ser no passado', {
+          variant: 'warning',
+        });
+        return;
+      }
+      if (formData.finishingDate && value > formData.finishingDate) {
+        setFormData((prev) => ({
+          ...prev,
+          startingDate: value,
+          finishingDate: '',
+        }));
+        enqueueSnackbar(
+          'Data de fim foi limpa pois estava antes da nova data de início',
+          { variant: 'info' }
+        );
+        return;
+      }
+    }
+
+    if (field === 'finishingDate') {
+      if (value && formData.startingDate && value < formData.startingDate) {
+        enqueueSnackbar(
+          'A data de fim não pode ser anterior à data de início',
+          { variant: 'warning' }
+        );
+        return;
+      }
+      if (value < today) {
+        enqueueSnackbar('A data de fim não pode ser no passado', {
+          variant: 'warning',
+        });
+        return;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -224,7 +264,9 @@ const ExecutionSheetCreate = () => {
     if (formData.workSheetId) {
       setPolygonSelectorOpen(true);
     } else {
-      enqueueSnackbar('Por favor, selecione uma folha de obra primeiro', { variant: 'warning' });
+      enqueueSnackbar('Por favor, selecione uma folha de obra primeiro', {
+        variant: 'warning',
+      });
     }
   };
 
@@ -249,9 +291,13 @@ const ExecutionSheetCreate = () => {
     handleClosePolygonSelector();
 
     if (polygon.type === 'custom') {
-      enqueueSnackbar(`Polígono personalizado "${polygon.name}" selecionado`, { variant: 'success' });
+      enqueueSnackbar(`Polígono personalizado "${polygon.name}" selecionado`, {
+        variant: 'success',
+      });
     } else {
-      enqueueSnackbar(`Polígono ${polygon.id} selecionado`, { variant: 'success' });
+      enqueueSnackbar(`Polígono ${polygon.id} selecionado`, {
+        variant: 'success',
+      });
     }
   };
 
@@ -363,6 +409,10 @@ const ExecutionSheetCreate = () => {
             value={formData.finishingDate}
             onChange={(e) => handleFormChange('finishingDate', e.target.value)}
             InputLabelProps={{ shrink: true }}
+            inputProps={{
+              min:
+                formData.startingDate || new Date().toISOString().split('T')[0],
+            }}
           />
         </Grid>
         <Grid item xs={12}>
@@ -524,7 +574,9 @@ const ExecutionSheetCreate = () => {
                   <TableCell>{operation.operationCode}</TableCell>
                   <TableCell>{operation.areaHaExecuted}</TableCell>
                   <TableCell>{operation.polygonId || '-'}</TableCell>
-                  <TableCell>{operation.estimatedDurationHours || '-'}</TableCell>
+                  <TableCell>
+                    {operation.estimatedDurationHours || '-'}
+                  </TableCell>
                   <TableCell>{operation.startingDate || '-'}</TableCell>
                   <TableCell>{operation.finishingDate || '-'}</TableCell>
                   <TableCell align="center">
@@ -595,7 +647,11 @@ const ExecutionSheetCreate = () => {
                 Adicionar Polígono
               </Button>
               {formData.operations.length === 0 && (
-                <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ ml: 2 }}
+                >
                   Adicione operações primeiro
                 </Typography>
               )}

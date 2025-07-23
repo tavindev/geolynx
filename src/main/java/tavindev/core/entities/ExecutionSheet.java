@@ -13,21 +13,21 @@ public class ExecutionSheet {
 	private Long id;
 	private final Long workSheetId; // ID da folha de obra associada
 	private final String startingDate;
-	private final String finishingDate;
-	private String lastActivityDate;
+	private String finishingDate; // Can be null
+	private String lastActivityDate; // Can be null
 	private final String observations;
 	private final List<Operation> operations;
 	private final List<PolygonOperation> polygonsOperations;
 
-	@JsonCreator
-	public ExecutionSheet(@JsonProperty("id") Long id,
-			@JsonProperty("workSheetId") Long workSheetId,
-			@JsonProperty("startingDate") String startingDate,
-			@JsonProperty("finishingDate") String finishingDate,
-			@JsonProperty("lastActivityDate") String lastActivityDate,
-			@JsonProperty("observations") String observations,
-			@JsonProperty("operations") List<Operation> operations,
-			@JsonProperty("polygonsOperations") List<PolygonOperation> polygonsOperations) {
+	public ExecutionSheet(
+			Long id,
+			Long workSheetId,
+			String startingDate,
+			String observations,
+			List<Operation> operations,
+			List<PolygonOperation> polygonsOperations,
+			String finishingDate,
+			String lastActivityDate) {
 		this.id = id;
 		this.workSheetId = workSheetId;
 		this.startingDate = startingDate;
@@ -40,6 +40,17 @@ public class ExecutionSheet {
 		if (workSheetId == null) {
 			throw new IllegalArgumentException("Folha de execução deve estar associada a uma folha de obra");
 		}
+
+	}
+
+	@JsonCreator
+	public ExecutionSheet(@JsonProperty("id") Long id,
+			@JsonProperty("workSheetId") Long workSheetId,
+			@JsonProperty("startingDate") String startingDate,
+			@JsonProperty("observations") String observations,
+			@JsonProperty("operations") List<Operation> operations,
+			@JsonProperty("polygonsOperations") List<PolygonOperation> polygonsOperations) {
+		this(id, workSheetId, startingDate, observations, operations, polygonsOperations, null, null);
 	}
 
 	public void setId(Long id) {

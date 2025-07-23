@@ -30,8 +30,12 @@ public class ExecutionSheetRepository {
 		Long workSheetId = executionSheetEntity.contains("workSheetId") ? executionSheetEntity.getLong("workSheetId")
 				: null;
 		String startingDate = executionSheetEntity.getString("startingDate");
-		String finishingDate = executionSheetEntity.getString("finishingDate");
-		String lastActivityDate = executionSheetEntity.getString("lastActivityDate");
+		String finishingDate = executionSheetEntity.contains("finishingDate")
+				? executionSheetEntity.getString("finishingDate")
+				: null;
+		String lastActivityDate = executionSheetEntity.contains("lastActivityDate")
+				? executionSheetEntity.getString("lastActivityDate")
+				: null;
 		String observations = executionSheetEntity.getString("observations");
 
 		// Extract operations
@@ -119,8 +123,8 @@ public class ExecutionSheetRepository {
 			}
 		}
 
-		return new ExecutionSheet(id, workSheetId, startingDate, finishingDate, lastActivityDate,
-				observations, operations, polygonsOperations);
+		return new ExecutionSheet(id, workSheetId, startingDate, observations, operations, polygonsOperations,
+				finishingDate, lastActivityDate);
 	}
 
 	public ExecutionSheet save(ExecutionSheet executionSheet) {
