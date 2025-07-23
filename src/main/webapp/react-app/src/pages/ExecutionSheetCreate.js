@@ -34,6 +34,9 @@ import {
   ListItemSecondaryAction,
   Switch,
   FormControlLabel,
+  Dialog,
+   DialogTitle,
+   DialogContent,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -48,6 +51,7 @@ import { useSnackbar } from 'notistack';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { executionSheetService, worksheetService } from '../services/api';
 import PolygonSelector from '../components/PolygonSelector';
+import 'leaflet-draw/dist/leaflet.draw.css';
 
 const steps = [
   'Selecionar Folha de Obra',
@@ -244,7 +248,18 @@ const ExecutionSheetCreate = () => {
     // Close the selector dialog
     handleClosePolygonSelector();
 
-    enqueueSnackbar(`Polígono ${polygon.id} selecionado`, { variant: 'success' });
+    if (polygon.type === 'custom') {
+      enqueueSnackbar(`Polígono personalizado "${polygon.name}" selecionado`, { variant: 'success' });
+    } else {
+      enqueueSnackbar(`Polígono ${polygon.id} selecionado`, { variant: 'success' });
+    }
+  };
+
+  const handlePolygonCreated = async (polygonData) => {
+    // For custom polygons, we don't need to store them separately in the backend
+    // They will be included in the execution sheet data when it's created
+    console.log('Custom polygon created for execution sheet:', polygonData);
+    return polygonData; // Just return the data, don't make API call
   };
 
   const handleSubmit = async () => {
@@ -784,7 +799,10 @@ const ExecutionSheetCreate = () => {
         open={polygonSelectorOpen}
         onClose={handleClosePolygonSelector}
         onSelect={handlePolygonSelect}
+        onPolygonCreated={handlePolygonCreated}
         worksheetId={formData.workSheetId}
+        allowDrawing={true}
+        title="Selecionar ou Desenhar Polígono"
       />
     </Container>
   );
