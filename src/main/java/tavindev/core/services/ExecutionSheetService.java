@@ -10,14 +10,11 @@ import tavindev.core.entities.User;
 import tavindev.core.entities.Permission;
 import tavindev.core.entities.UserRole;
 import tavindev.core.authorization.PermissionAuthorizationHandler;
+import tavindev.core.exceptions.*;
 import tavindev.core.utils.AuthUtils;
 import tavindev.infra.repositories.ExecutionSheetRepository;
 import tavindev.infra.repositories.WorkSheetRepository;
 import tavindev.infra.repositories.DatastoreUserRepository;
-import tavindev.core.exceptions.UnauthorizedException;
-import tavindev.core.exceptions.BadRequestException;
-import tavindev.core.exceptions.UserNotFoundException;
-import tavindev.core.exceptions.ExecutionSheetNotFoundException;
 import tavindev.core.entities.WorkSheet;
 
 public class ExecutionSheetService {
@@ -85,6 +82,10 @@ public class ExecutionSheetService {
         if (executionSheet == null) {
             throw new NotFoundException("Folha de execução não encontrada");
         }
+        WorkSheet workSheet = workSheetRepository.get(executionSheet.getWorkSheetId());
+
+        if (operator.getCorporationId().equals(workSheet.getMetadata().getServiceProviderId()))
+            throw new UnidenticalCorporationIdException();
 
         // Delegate to domain logic
         executionSheet.assignOperationToOperator(polygonId, operationId, operatorId);

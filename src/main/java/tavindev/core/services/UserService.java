@@ -144,8 +144,8 @@ public class UserService {
         }
 
         // Only PRBO can be assigned a corporation
-        if (targetUser.getRole() != UserRole.PRBO) {
-            throw new UnauthorizedException("Only PRBO can be assigned a corporation");
+        if (targetUser.getRole() != UserRole.PRBO && targetUser.getRole() != UserRole.PO) {
+            throw new UnauthorizedException("Only PRBO or PO can be assigned a corporation");
         }
 
         targetUser.setCorporationId(corporationId);

@@ -2,20 +2,25 @@ package tavindev.core.services;
 
 import java.util.List;
 
+import com.google.api.gax.rpc.AlreadyExistsException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 import tavindev.core.entities.User;
 import tavindev.core.entities.WorkSheet;
 import tavindev.core.entities.Permission;
 import tavindev.core.authorization.PermissionAuthorizationHandler;
+import tavindev.core.exceptions.CorporationNotFoundException;
 import tavindev.core.utils.AuthUtils;
 import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
 import tavindev.infra.dto.worksheet.WorksheetQueryFilters;
+import tavindev.infra.repositories.DatastoreCorporationRepository;
 import tavindev.infra.repositories.WorkSheetRepository;
 
 public class WorkSheetService {
     @Inject
     private WorkSheetRepository workSheetRepository;
+    @Inject
+    private DatastoreCorporationRepository corporationRepository;
 
     @Inject
     private AuthUtils authUtils;
@@ -38,6 +43,9 @@ public class WorkSheetService {
 
         // transformedCoordinates are already in WGS84, so firstPoint[0] = lat, firstPoint[1] = lon
         transformedWorkSheet.setGeohash(geoHashService.calculateGeohash(firstPoint[0], firstPoint[1]));
+        if (corporationRepository.exists(transformedWorkSheet.getMetadata().getServiceProviderId()))
+            throw new CorporationNotFoundException("WorkSheet already exists");
+
         workSheetRepository.save(transformedWorkSheet);
 
         return transformedWorkSheet;
