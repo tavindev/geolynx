@@ -762,21 +762,6 @@ const Map = () => {
         user={user}
         onSuccess={handleCreationSuccess}
       />
-
-      {/* Create Execution Sheet Modal */}
-      <CreateExecutionSheetModal
-        open={createExecutionSheetOpen}
-        onClose={() => {
-          setCreateExecutionSheetOpen(false);
-          setSelectedPolygonForExecution(null);
-          setSelectedWorksheetForExecution(null);
-        }}
-        coordinates={currentCoordinates}
-        user={user}
-        onSuccess={handleCreationSuccess}
-        preselectedPolygon={selectedPolygonForExecution}
-        preselectedWorksheet={selectedWorksheetForExecution}
-      />
     </Container>
   );
 };

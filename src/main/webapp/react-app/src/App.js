@@ -234,6 +234,14 @@ function App() {
                     }
                   />
                   <Route
+                      path="worksheet-create"
+                      element={
+                          <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                              <WorksheetCreate />
+                          </PrivateRoute>
+                      }
+                  />
+                  <Route
                     path="change-attributes/:userId"
                     element={
                       <PrivateRoute roles={['SYSADMIN', 'SYSBO']}>
