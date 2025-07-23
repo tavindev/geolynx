@@ -282,16 +282,16 @@ if (loading) {
   if (!executionSheet) {
     return (
       <Container sx={{ mt: 4 }}>
-        <Alert severity=\"error\">Folha de execução não encontrada</Alert>
+        <Alert severity="error">Folha de execução não encontrada</Alert>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth=\"lg\" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Paper elevation={3} sx={{ p: 3 }}>
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant=\"h4\" component=\"h1\">
+          <Typography variant="h4" component="h1">
             Editar Folha de Execução #{id}
           </Typography>
           <Button
@@ -305,15 +305,15 @@ if (loading) {
         {/* Basic Information */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Typography variant=\"h6\" gutterBottom>
+            <Typography variant="h6" gutterBottom>
               Informações Básicas
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label=\"Data de Início\"
-                  type=\"date\"
+                  label="Data de Início"
+                  type="date"
                   value={formData.startingDate}
                   onChange={(e) => handleFormChange('startingDate', e.target.value)}
                   InputLabelProps={{ shrink: true }}
@@ -322,8 +322,8 @@ if (loading) {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label=\"Data de Fim\"
-                  type=\"date\"
+                  label="Data de Fim"
+                  type="date"
                   value={formData.finishingDate}
                   onChange={(e) => handleFormChange('finishingDate', e.target.value)}
                   InputLabelProps={{ shrink: true }}
@@ -334,7 +334,7 @@ if (loading) {
                   fullWidth
                   multiline
                   rows={3}
-                  label=\"Observações\"
+                  label="Observações"
                   value={formData.observations}
                   onChange={(e) => handleFormChange('observations', e.target.value)}
                 />
@@ -347,14 +347,14 @@ if (loading) {
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant=\"h6\">
+              <Typography variant="h6">
                 Polígonos e Operações
               </Typography>
               <Button
-                size=\"small\"
+                size="small"
                 startIcon={<AddIcon />}
                 onClick={handleAddPolygon}
-                variant=\"outlined\"
+                variant="outlined"
               >
                 Adicionar Polígono
               </Button>
@@ -365,12 +365,12 @@ if (loading) {
                 <Card key={polygon.polygonId} sx={{ mb: 2, bgcolor: 'grey.50' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Typography variant=\"subtitle1\">
+                      <Typography variant="subtitle1">
                         Polígono #{polygon.polygonId}
                       </Typography>
                       <Box>
                         <Button
-                          size=\"small\"
+                          size="small"
                           startIcon={<AddIcon />}
                           onClick={handleAddOperation}
                           sx={{ mr: 1 }}
@@ -378,8 +378,8 @@ if (loading) {
                           Adicionar Operação
                         </Button>
                         <IconButton
-                          size=\"small\"
-                          color=\"error\"
+                          size="small"
+                          color="error"
                           onClick={() => handleDeletePolygon(polygon.polygonId)}
                         >
                           <DeleteIcon />
@@ -388,7 +388,7 @@ if (loading) {
                     </Box>
 
                     <TableContainer>
-                      <Table size=\"small\">
+                      <Table size="small">
                         <TableHead>
                           <TableRow>
                             <TableCell>ID</TableCell>
@@ -396,7 +396,7 @@ if (loading) {
                             <TableCell>Operador</TableCell>
                             <TableCell>Data Início</TableCell>
                             <TableCell>Data Fim</TableCell>
-                            <TableCell align=\"right\">Ações</TableCell>
+                            <TableCell align="right">Ações</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -407,7 +407,7 @@ if (loading) {
                                 <Chip
                                   label={getStatusLabel(operation.status)}
                                   color={getStatusColor(operation.status)}
-                                  size=\"small\"
+                                  size="small"
                                 />
                               </TableCell>
                               <TableCell>{operation.operatorId || '-'}</TableCell>
@@ -421,16 +421,16 @@ if (loading) {
                                   ? new Date(operation.finishingDate).toLocaleDateString('pt-PT')
                                   : '-'}
                               </TableCell>
-                              <TableCell align=\"right\">
+                              <TableCell align="right">
                                 <IconButton
-                                  size=\"small\"
+                                  size="small"
                                   onClick={() => handleEditOperation(polygon.polygonId, operation)}
                                 >
                                   <EditIcon />
                                 </IconButton>
                                 <IconButton
-                                  size=\"small\"
-                                  color=\"error\"
+                                  size="small"
+                                  color="error"
                                   onClick={() => handleDeleteOperation(polygon.polygonId, operation.operationId)}
                                 >
                                   <DeleteIcon />
@@ -445,7 +445,7 @@ if (loading) {
                 </Card>
               ))
             ) : (
-              <Alert severity=\"info\">Nenhum polígono encontrado</Alert>
+              <Alert severity="info">Nenhum polígono encontrado</Alert>
             )}
           </CardContent>
         </Card>
@@ -453,13 +453,13 @@ if (loading) {
         {/* Save Button */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
           <Button
-            variant=\"outlined\"
+            variant="outlined"
             onClick={() => navigate(`/dashboard/execution-sheets/${id}`)}
           >
             Cancelar
           </Button>
           <Button
-            variant=\"contained\"
+            variant="contained"
             startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
             onClick={handleSave}
             disabled={saving}
@@ -470,7 +470,7 @@ if (loading) {
       </Paper>
 
       {/* Operation Dialog */}
-      <Dialog open={operationDialogOpen} onClose={() => setOperationDialogOpen(false)} maxWidth=\"sm\" fullWidth>
+      <Dialog open={operationDialogOpen} onClose={() => setOperationDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
           {selectedOperation ? 'Editar Operação' : 'Adicionar Operação'}
         </DialogTitle>
@@ -479,7 +479,7 @@ if (loading) {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label=\"Código da Operação\"
+                label="Código da Operação"
                 value={operationForm.operationCode}
                 onChange={(e) => setOperationForm({ ...operationForm, operationCode: e.target.value })}
               />
@@ -487,8 +487,8 @@ if (loading) {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label=\"Área Executada (ha)\"
-                type=\"number\"
+                label="Área Executada (ha)"
+                type="number"
                 value={operationForm.areaHaExecuted}
                 onChange={(e) => setOperationForm({ ...operationForm, areaHaExecuted: e.target.value })}
               />
@@ -496,8 +496,8 @@ if (loading) {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label=\"Data de Início\"
-                type=\"date\"
+                label="Data de Início"
+                type="date"
                 value={operationForm.startingDate}
                 onChange={(e) => setOperationForm({ ...operationForm, startingDate: e.target.value })}
                 InputLabelProps={{ shrink: true }}
@@ -506,8 +506,8 @@ if (loading) {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label=\"Data de Fim\"
-                type=\"date\"
+                label="Data de Fim"
+                type="date"
                 value={operationForm.finishingDate}
                 onChange={(e) => setOperationForm({ ...operationForm, finishingDate: e.target.value })}
                 InputLabelProps={{ shrink: true }}
@@ -518,7 +518,7 @@ if (loading) {
                 fullWidth
                 multiline
                 rows={2}
-                label=\"Observações\"
+                label="Observações"
                 value={operationForm.observations}
                 onChange={(e) => setOperationForm({ ...operationForm, observations: e.target.value })}
               />
@@ -527,30 +527,30 @@ if (loading) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOperationDialogOpen(false)}>Cancelar</Button>
-          <Button onClick={handleSaveOperation} variant=\"contained\">
+          <Button onClick={handleSaveOperation} variant="contained">
             Salvar
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Polygon Dialog */}
-      <Dialog open={polygonDialogOpen} onClose={() => setPolygonDialogOpen(false)} maxWidth=\"sm\" fullWidth>
+      <Dialog open={polygonDialogOpen} onClose={() => setPolygonDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Adicionar Polígono</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <TextField
                 fullWidth
-                label=\"ID do Polígono\"
-                type=\"number\"
+                label="ID do Polígono"
+                type="number"
                 value={polygonForm.polygonId}
                 onChange={(e) => setPolygonForm({ polygonId: e.target.value })}
               />
               <Button
-                variant=\"outlined\"
+                variant="outlined"
                 onClick={handleOpenPolygonSelector}
                 sx={{ minWidth: 'auto', px: 2 }}
-                title=\"Selecionar no mapa\"
+                title="Selecionar no mapa"
               >
                 <MapIcon />
               </Button>
@@ -559,7 +559,7 @@ if (loading) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPolygonDialogOpen(false)}>Cancelar</Button>
-          <Button onClick={handleSavePolygon} variant=\"contained\">
+          <Button onClick={handleSavePolygon} variant="contained">
             Adicionar
           </Button>
         </DialogActions>
@@ -571,7 +571,7 @@ if (loading) {
         onClose={() => setPolygonSelectorOpen(false)}
         onSelect={handlePolygonSelect}
         worksheetId={executionSheet.workSheetId}
-        title=\"Selecionar Polígono\"
+        title="Selecionar Polígono"
       />
     </Container>
   );
