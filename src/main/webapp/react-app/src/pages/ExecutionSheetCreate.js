@@ -34,6 +34,9 @@ import {
   ListItemSecondaryAction,
   Switch,
   FormControlLabel,
+  Dialog,
+   DialogTitle,
+   DialogContent,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -48,6 +51,7 @@ import { useSnackbar } from 'notistack';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { executionSheetService, worksheetService } from '../services/api';
 import PolygonSelector from '../components/PolygonSelector';
+import 'leaflet-draw/dist/leaflet.draw.css';
 
 const steps = [
   'Selecionar Folha de Obra',
@@ -106,7 +110,7 @@ const ExecutionSheetCreate = () => {
   useEffect(() => {
     if (worksheetIdFromUrl && worksheets.length > 0) {
       const worksheet = worksheets.find(
-        (w) => w.id.toString() === worksheetIdFromUrl
+        (w) => w.id.toString() === worksheetIdFromUrl.toString()
       );
       if (worksheet) {
         handleWorksheetSelect(worksheet);
@@ -118,7 +122,7 @@ const ExecutionSheetCreate = () => {
   const fetchWorksheets = async () => {
     try {
       const response = await worksheetService.getAll();
-      setWorksheets(response.data);
+      setWorksheets(response.data || []);
     } catch (error) {
       enqueueSnackbar('Erro ao carregar folhas de obra', { variant: 'error' });
     }
@@ -159,6 +163,7 @@ const ExecutionSheetCreate = () => {
       const newOperation = {
         id: Date.now(),
         ...operationForm,
+        areaPerc: operationForm.areaPerc || '100',
       };
       setFormData((prev) => ({
         ...prev,
@@ -216,7 +221,11 @@ const ExecutionSheetCreate = () => {
   };
 
   const handleOpenPolygonSelector = () => {
-    setPolygonSelectorOpen(true);
+    if (formData.workSheetId) {
+      setPolygonSelectorOpen(true);
+    } else {
+      enqueueSnackbar('Por favor, selecione uma folha de obra primeiro', { variant: 'warning' });
+    }
   };
 
   const handleClosePolygonSelector = () => {
@@ -224,10 +233,33 @@ const ExecutionSheetCreate = () => {
   };
 
   const handlePolygonSelect = (polygon) => {
+    // Update operation form with selected polygon ID
     setOperationForm((prev) => ({
       ...prev,
       polygonId: polygon.id.toString(),
     }));
+
+    // Also update the polygon form for quick addition
+    setPolygonForm((prev) => ({
+      ...prev,
+      polygonId: polygon.id.toString(),
+    }));
+
+    // Close the selector dialog
+    handleClosePolygonSelector();
+
+    if (polygon.type === 'custom') {
+      enqueueSnackbar(`Polígono personalizado "${polygon.name}" selecionado`, { variant: 'success' });
+    } else {
+      enqueueSnackbar(`Polígono ${polygon.id} selecionado`, { variant: 'success' });
+    }
+  };
+
+  const handlePolygonCreated = async (polygonData) => {
+    // For custom polygons, we don't need to store them separately in the backend
+    // They will be included in the execution sheet data when it's created
+    console.log('Custom polygon created for execution sheet:', polygonData);
+    return polygonData; // Just return the data, don't make API call
   };
 
   const handleSubmit = async () => {
@@ -278,13 +310,13 @@ const ExecutionSheetCreate = () => {
               <CardContent>
                 <Typography variant="h6">Folha #{worksheet.id}</Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Data de Início: {worksheet.startingDate}
+                  Data de Início: {worksheet.startingDate || 'N/A'}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Data de Fim: {worksheet.finishingDate}
+                  Data de Fim: {worksheet.finishingDate || 'N/A'}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Fornecedor: {worksheet.serviceProviderId}
+                  Fornecedor: {worksheet.serviceProviderId || 'N/A'}
                 </Typography>
                 {worksheet.aigp && worksheet.aigp.length > 0 && (
                   <Box sx={{ mt: 1 }}>
@@ -320,6 +352,7 @@ const ExecutionSheetCreate = () => {
             value={formData.startingDate}
             onChange={(e) => handleFormChange('startingDate', e.target.value)}
             InputLabelProps={{ shrink: true }}
+            required
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -367,6 +400,7 @@ const ExecutionSheetCreate = () => {
                 onChange={(e) =>
                   handleOperationFormChange('operationCode', e.target.value)
                 }
+                required
               />
             </Grid>
             <Grid item xs={12} md={3}>
@@ -378,6 +412,7 @@ const ExecutionSheetCreate = () => {
                 onChange={(e) =>
                   handleOperationFormChange('areaHaExecuted', e.target.value)
                 }
+                required
               />
             </Grid>
             <Grid item xs={12} md={3}>
@@ -396,6 +431,7 @@ const ExecutionSheetCreate = () => {
                   onClick={handleOpenPolygonSelector}
                   sx={{ minWidth: 'auto', px: 2 }}
                   title="Selecionar no mapa"
+                  disabled={!formData.workSheetId}
                 >
                   🗺️
                 </Button>
@@ -488,9 +524,9 @@ const ExecutionSheetCreate = () => {
                   <TableCell>{operation.operationCode}</TableCell>
                   <TableCell>{operation.areaHaExecuted}</TableCell>
                   <TableCell>{operation.polygonId || '-'}</TableCell>
-                  <TableCell>{operation.estimatedDurationHours}</TableCell>
-                  <TableCell>{operation.startingDate}</TableCell>
-                  <TableCell>{operation.finishingDate}</TableCell>
+                  <TableCell>{operation.estimatedDurationHours || '-'}</TableCell>
+                  <TableCell>{operation.startingDate || '-'}</TableCell>
+                  <TableCell>{operation.finishingDate || '-'}</TableCell>
                   <TableCell align="center">
                     <IconButton
                       size="small"
@@ -523,18 +559,29 @@ const ExecutionSheetCreate = () => {
           </Typography>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="ID do Polígono"
-                type="number"
-                value={polygonForm.polygonId}
-                onChange={(e) =>
-                  setPolygonForm((prev) => ({
-                    ...prev,
-                    polygonId: e.target.value,
-                  }))
-                }
-              />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  fullWidth
+                  label="ID do Polígono"
+                  type="number"
+                  value={polygonForm.polygonId}
+                  onChange={(e) =>
+                    setPolygonForm((prev) => ({
+                      ...prev,
+                      polygonId: e.target.value,
+                    }))
+                  }
+                />
+                <Button
+                  variant="outlined"
+                  onClick={handleOpenPolygonSelector}
+                  sx={{ minWidth: 'auto', px: 2 }}
+                  title="Selecionar no mapa"
+                  disabled={!formData.workSheetId}
+                >
+                  🗺️
+                </Button>
+              </Box>
             </Grid>
             <Grid item xs={12} md={8}>
               <Button
@@ -547,6 +594,11 @@ const ExecutionSheetCreate = () => {
               >
                 Adicionar Polígono
               </Button>
+              {formData.operations.length === 0 && (
+                <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                  Adicione operações primeiro
+                </Typography>
+              )}
             </Grid>
           </Grid>
         </CardContent>
@@ -747,7 +799,10 @@ const ExecutionSheetCreate = () => {
         open={polygonSelectorOpen}
         onClose={handleClosePolygonSelector}
         onSelect={handlePolygonSelect}
+        onPolygonCreated={handlePolygonCreated}
         worksheetId={formData.workSheetId}
+        allowDrawing={true}
+        title="Selecionar ou Desenhar Polígono"
       />
     </Container>
   );

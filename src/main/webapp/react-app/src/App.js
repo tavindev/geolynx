@@ -37,13 +37,13 @@ import RequestAccountRemoval from './pages/RequestAccountRemoval';
 import ExecutionSheets from './pages/ExecutionSheets';
 import ExecutionSheetDetail from './pages/ExecutionSheetDetail';
 import ExecutionSheetCreate from './pages/ExecutionSheetCreate';
+import ExecutionSheetEdit from './pages/ExecutionSheetEdit';
 import ExecutionSheetAssign from './pages/ExecutionSheetAssign';
 import AdminDashboard from './pages/AdminDashboard';
-import WorksheetDashboard from './pages/WorksheetDashboard';
+import WorksheetManagement from './pages/WorksheetManagement';
 import MyWorksheets from './pages/MyWorksheets';
 import MyProfile from './pages/MyProfile';
 import WorksheetDetail from './pages/WorksheetDetail';
-import WorkSheets from './pages/WorkSheets';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -211,7 +211,7 @@ function App() {
                     path="worksheets"
                     element={
                       <PrivateRoute roles={['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO']}>
-                        <WorksheetDashboard />
+                        <WorksheetManagement />
                       </PrivateRoute>
                     }
                   />
