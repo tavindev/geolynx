@@ -37,6 +37,7 @@ public class DatastoreUserRepository {
     private static final String PROPERTY_CITIZEN_CARD_VALIDITY = "citizenCardValidity";
     private static final String PROPERTY_STATUS = "status";
     private static final String PROPERTY_ADDRESS = "address";
+    private static final String PROPERTY_CORPORATION_ID = "corporationId";
 
     private final Datastore datastore = DatastoreManager.getInstance();
 
@@ -111,6 +112,9 @@ public class DatastoreUserRepository {
 
         if (user.getAccountStatus() != null) {
             userEntityBuilder.set(PROPERTY_STATUS, user.getAccountStatus().name());
+        }
+        if (user.getCorporationId() != null) {
+            userEntityBuilder.set(PROPERTY_CORPORATION_ID, user.getCorporationId());
         }
 
         datastore.put(userEntityBuilder.build());
@@ -233,6 +237,7 @@ public class DatastoreUserRepository {
         String username = entity.contains(PROPERTY_USERNAME) ? entity.getString(PROPERTY_USERNAME) : null;
         String password = entity.contains(PROPERTY_PASSWORD) ? entity.getString(PROPERTY_PASSWORD) : null;
         String address = entity.contains(PROPERTY_ADDRESS) ? entity.getString(PROPERTY_ADDRESS) : null;
+        String corporationId = entity.contains(PROPERTY_CORPORATION_ID) ? entity.getString(PROPERTY_ADDRESS) : null;
 
         return new User(
                 entity.getKey().getName(),
@@ -258,7 +263,8 @@ public class DatastoreUserRepository {
                 phoneSecondary,
                 status,
                 role != null ? UserRole.valueOf(role) : null,
-                accountStatus != null ? AccountStatus.valueOf(accountStatus) : null);
+                accountStatus != null ? AccountStatus.valueOf(accountStatus) : null,
+                corporationId);
     }
 
     public List<User> findRegisteredUsers() {

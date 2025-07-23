@@ -38,6 +38,7 @@ public class User {
     private String employerTaxId;
     private UserRole role;
     private AccountStatus accountStatus;
+    private String corporationId;
 
     public User(
             String email,
@@ -80,7 +81,8 @@ public class User {
             String phoneSecondary,
             String status,
             UserRole role,
-            AccountStatus accountStatus) {
+            AccountStatus accountStatus,
+            String corporationId) {
         this.id = id;
         this.email = email;
         this.username = username;
@@ -104,6 +106,7 @@ public class User {
         this.dateOfBirth = dateOfBirth;
         this.role = role;
         this.accountStatus = accountStatus;
+        this.corporationId = corporationId;
     }
 
     @JsonCreator
@@ -128,7 +131,8 @@ public class User {
             @JsonProperty("employerTaxId") String employerTaxId,
             @JsonProperty("postalCode") String postalCode,
             @JsonProperty("phonePrimary") String phonePrimary,
-            @JsonProperty("phoneSecondary") String phoneSecondary) {
+            @JsonProperty("phoneSecondary") String phoneSecondary,
+            @JsonProperty("corporationId") String corporationId) {
         if (!password.equals(confirmPassword)) {
             throw new PasswordDoesntMatchException();
         }
@@ -156,6 +160,7 @@ public class User {
         this.dateOfBirth = dateOfBirth;
         this.role = UserRole.RU;
         this.accountStatus = AccountStatus.DESATIVADA;
+        this.corporationId = corporationId;
 
         UserValidationStrategy strategy = UserValidationFactory.createStrategy(this.role);
         strategy.validateMinimumRequirements(this);
@@ -265,6 +270,8 @@ public class User {
         return accountStatus;
     }
 
+    public String getCorporationId() { return corporationId; }
+
     public boolean isPasswordInvalid(String password) {
         return !PasswordUtils.verifyPassword(password, this.password);
     }
@@ -284,6 +291,8 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public void setCorporationId(String corporationId) {this.corporationId = corporationId;}
 
     public void setAttributes(Map<String, String> attributes) {
         if (attributes == null) {
@@ -357,6 +366,8 @@ public class User {
         if (attributes.containsKey("employerTaxId")) {
             this.employerTaxId = attributes.get("employerTaxId");
         }
-
+        if(attributes.containsKey("corporationId")) {
+            this.corporationId = attributes.get("corporationId");
+        }
     }
 }

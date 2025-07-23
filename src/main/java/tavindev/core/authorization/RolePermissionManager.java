@@ -29,6 +29,7 @@ public class RolePermissionManager {
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
                 Permission.CHANGE_OWN_PROFILE,
+                Permission.LIST_ALL_USERS,
                 Permission.LIST_REGISTERED_USERS,
                 Permission.LIST_ACTIVE_USERS,
                 Permission.LIST_DEACTIVATED_USERS,
@@ -56,7 +57,10 @@ public class RolePermissionManager {
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
                 Permission.VIEW_ACCOUNT_STATUS,
-                Permission.VIEW_ACCOUNT_PROFILE));
+                Permission.VIEW_ACCOUNT_PROFILE,
+                Permission.VIEW_CORPORATION,
+                Permission.LIST_ALL_CORPORATIONS,
+                Permission.ASSIGN_CORPORATION));
 
         // Sheet General Viewer (SGVBO) permissions
         ROLE_PERMISSIONS.put(UserRole.SGVBO, EnumSet.of(

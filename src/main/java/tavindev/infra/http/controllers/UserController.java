@@ -16,6 +16,7 @@ import tavindev.infra.dto.accountProfile.AccountProfileDTO;
 import tavindev.infra.dto.accountProfile.AccountProfileResponseDTO;
 import tavindev.infra.dto.changeAccountState.ChangeAccountStateDTO;
 import tavindev.infra.dto.changeAccountState.ChangeAccountStateResponseDTO;
+import tavindev.infra.dto.corporation.AssignAccountDTO;
 import tavindev.infra.dto.removeUser.RemoveUserAccountDTO;
 import tavindev.infra.dto.removeUser.RemoveUserAccountResponseDTO;
 import tavindev.infra.dto.changeAttributes.ChangeAttributesDTO;
@@ -117,6 +118,17 @@ public class UserController {
         userService.changeAttributes(sessionToken, request.identificador(), request.atributos());
 
         return Response.ok(ChangeAttributesResponseDTO.success(request.identificador())).build();
+    }
+
+    @POST
+    @Path("/assign-corporations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response assignCorporation(
+            @CookieParam("session") String sessionToken,
+            @Valid AssignAccountDTO request) {
+        userService.assignCorporation(sessionToken, request.identificador(), request.corporationId());
+
+        return Response.ok().build();
     }
 
     @POST

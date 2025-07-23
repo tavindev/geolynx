@@ -2,13 +2,9 @@ package tavindev.core.services;
 
 import jakarta.inject.Inject;
 import org.jvnet.hk2.annotations.Service;
+import tavindev.core.entities.*;
 import tavindev.core.repositories.AuthTokenRepository;
 import tavindev.infra.repositories.DatastoreUserRepository;
-import tavindev.core.entities.User;
-import tavindev.core.entities.UserRole;
-import tavindev.core.entities.UserProfile;
-import tavindev.core.entities.AccountStatus;
-import tavindev.core.entities.Permission;
 import tavindev.core.exceptions.UserNotFoundException;
 import tavindev.core.exceptions.UnauthorizedException;
 import tavindev.core.utils.AuthUtils;
@@ -34,6 +30,9 @@ public class UserService {
     }
 
     public List<User> listUsers(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        // Check if user has permission to view user details
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.LIST_ALL_USERS);
         List<User> allUsers = userRepository.findAllUsers();
 
         return allUsers;
@@ -129,6 +128,27 @@ public class UserService {
         }
 
         targetUser.setAttributes(attributes);
+
+        userRepository.save(targetUser);
+    }
+
+    public void assignCorporation(String tokenId, String identifier, String corporationId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+
+        // Check if user has permission to change attributes
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.ASSIGN_CORPORATION);
+
+        User targetUser = userRepository.findByIdentifier(identifier);
+        if (targetUser == null) {
+            throw new UserNotFoundException(identifier);
+        }
+
+        // Only PRBO can be assigned a corporation
+        if (targetUser.getRole() != UserRole.PRBO) {
+            throw new UnauthorizedException("Only PRBO can be assigned a corporation");
+        }
+
+        targetUser.setCorporationId(corporationId);
 
         userRepository.save(targetUser);
     }

@@ -11,6 +11,9 @@ public enum Permission {
     VIEW_DET_FO("View work sheet (detailed)"),
     SEARCH_GEN_FO("Search work sheet (generic)"),
     SEARCH_DET_FO("Search work sheet (detailed)"),
+    VIEW_CORPORATION("View corporation"),
+    LIST_ALL_CORPORATIONS("List all corporations"),
+    ASSIGN_CORPORATION("Assign corporation"),
 
     // Sheet General Viewer (SGVBO) permissions
     GENERATE_MONTHLY_REPORT("Generate monthly reports (PDF)"),
@@ -54,6 +57,7 @@ public enum Permission {
     REQUEST_OWN_REMOVAL("Request own account removal"),
     CHANGE_OWN_PROFILE("Change own account profile"),
 
+    LIST_ALL_USERS("List all users"),
     LIST_REGISTERED_USERS("List registered accounts"),
     LIST_ACTIVE_USERS("List active accounts"),
     LIST_DEACTIVATED_USERS("List deactivated accounts"),
