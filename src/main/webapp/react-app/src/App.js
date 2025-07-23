@@ -44,6 +44,8 @@ import WorksheetManagement from './pages/WorksheetManagement';
 import MyWorksheets from './pages/MyWorksheets';
 import MyProfile from './pages/MyProfile';
 import WorksheetDetail from './pages/WorksheetDetail';
+import WorkSheets from './pages/WorkSheets';
+
 
 // Create a client
 const queryClient = new QueryClient({
