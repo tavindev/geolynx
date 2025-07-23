@@ -105,4 +105,12 @@ public class DatastoreCorporationRepository {
         }
         return corporations;
     }
+
+    public boolean exists(Long id) {
+        KeyFactory keyFactory = datastore.newKeyFactory().setKind(CORPORATION_KIND);
+        Key corporationKey = keyFactory.newKey(id);
+        Entity corporationEntity = datastore.get(corporationKey);
+
+        return corporationEntity != null;
+    }
 }
