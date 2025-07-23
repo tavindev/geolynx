@@ -85,8 +85,12 @@ public class ExecutionSheetRepository {
 								String podFinishingDate = polygonOpEntity.contains("finishingDate")
 										? polygonOpEntity.getString("finishingDate")
 										: null;
-								String podLastActivityDate = polygonOpEntity.getString("lastActivityDate");
-								String podObservations = polygonOpEntity.getString("observations");
+								String podLastActivityDate = polygonOpEntity.contains("lastActivityDate")
+										? polygonOpEntity.getString("lastActivityDate")
+										: null;
+								String podObservations = polygonOpEntity.contains("observations")
+										? polygonOpEntity.getString("observations")
+										: null;
 								String operatorId = polygonOpEntity.contains("operatorId") ? polygonOpEntity.getString("operatorId")
 										: null;
 
