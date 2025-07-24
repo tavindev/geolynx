@@ -59,6 +59,15 @@ const steps = [
   'Revisar e Criar',
 ];
 
+// Predefined operation codes - these should come from the worksheet
+const OPERATION_CODES = [
+  { code: 'OP001', description: 'Limpeza de Terreno' },
+  { code: 'OP002', description: 'Plantação' },
+  { code: 'OP003', description: 'Manutenção' },
+  { code: 'OP004', description: 'Colheita' },
+  { code: 'OP005', description: 'Preparação do Solo' },
+];
+
 const ExecutionSheetCreate = () => {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
@@ -70,7 +79,6 @@ const ExecutionSheetCreate = () => {
   const [loading, setLoading] = useState(false);
   const [worksheets, setWorksheets] = useState([]);
   const [selectedWorksheet, setSelectedWorksheet] = useState(null);
-  const [polygonMapOpen, setPolygonMapOpen] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -93,12 +101,6 @@ const ExecutionSheetCreate = () => {
     finishingDate: '',
     observations: '',
     estimatedDurationHours: '',
-  });
-
-  // Polygon operations form
-  const [polygonForm, setPolygonForm] = useState({
-    polygonId: '',
-    operations: [],
   });
 
   useEffect(() => {
@@ -210,10 +212,10 @@ const ExecutionSheetCreate = () => {
         operationCode: '',
         areaHaExecuted: '',
         areaPerc: '100',
-        polygonId: '',
         startingDate: new Date().toISOString().split('T')[0],
         finishingDate: '',
         observations: '',
+        plannedCompletionDate: '',
         estimatedDurationHours: '',
       });
     }
@@ -226,12 +228,36 @@ const ExecutionSheetCreate = () => {
     }));
   };
 
-  const addPolygonOperation = () => {
-    if (polygonForm.polygonId) {
-      const newPolygonOp = {
-        polygonId: parseInt(polygonForm.polygonId),
-        operations: formData.operations.map((op) => ({
-          operationId: op.id,
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      // Get unique polygon IDs from the worksheet operations
+      const polygonIds = [];
+      if (selectedWorksheet && selectedWorksheet.metadata && selectedWorksheet.metadata.operations) {
+        selectedWorksheet.metadata.operations.forEach(op => {
+          if (op.polygonId && !polygonIds.includes(op.polygonId)) {
+            polygonIds.push(op.polygonId);
+          }
+        });
+      }
+
+      // If no polygon IDs found in operations, get from features
+      if (polygonIds.length === 0 && selectedWorksheet && selectedWorksheet.features) {
+        selectedWorksheet.features.forEach(feature => {
+          if (feature.properties && feature.properties.polygonId) {
+            const id = parseInt(feature.properties.polygonId);
+            if (!polygonIds.includes(id)) {
+              polygonIds.push(id);
+            }
+          }
+        });
+      }
+
+      // Create polygon operations for each polygon
+      const polygonsOperations = polygonIds.map(polygonId => ({
+        polygonId: parseInt(polygonId),
+        operations: formData.operations.map((op, index) => ({
+          operationId: index + 1,
           status: 'pending',
           startingDate: null,
           finishingDate: null,
@@ -240,79 +266,14 @@ const ExecutionSheetCreate = () => {
           tracks: [],
           operatorId: null,
         })),
-      };
-      setFormData((prev) => ({
-        ...prev,
-        polygonsOperations: [...prev.polygonsOperations, newPolygonOp],
       }));
-      setPolygonForm({ polygonId: '', operations: [] });
-    }
-  };
 
-  const removePolygonOperation = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      polygonsOperations: prev.polygonsOperations.filter((_, i) => i !== index),
-    }));
-  };
+      const executionSheetData = {
+        ...formData,
+        polygonsOperations,
+      };
 
-  const handleOpenPolygonMap = () => {
-    if (formData.workSheetId) {
-      setPolygonMapOpen(true);
-    } else {
-      enqueueSnackbar('Por favor, selecione uma folha de obra primeiro', {
-        variant: 'warning',
-      });
-    }
-  };
-
-  // Get already selected polygon IDs
-  const getSelectedPolygonIds = () => {
-    const ids = [];
-    // From operations
-    formData.operations.forEach((op) => {
-      if (op.polygonId) {
-        ids.push(parseInt(op.polygonId));
-      }
-    });
-    // From polygon operations
-    formData.polygonsOperations.forEach((po) => {
-      if (po.polygonId) {
-        ids.push(parseInt(po.polygonId));
-      }
-    });
-    return [...new Set(ids)]; // Remove duplicates
-  };
-
-  const handleClosePolygonMap = () => {
-    setPolygonMapOpen(false);
-  };
-
-  const handlePolygonSelect = (polygon) => {
-    // Update operation form with selected polygon ID
-    setOperationForm((prev) => ({
-      ...prev,
-      polygonId: polygon.id.toString(),
-    }));
-
-    // Also update the polygon form for quick addition
-    setPolygonForm((prev) => ({
-      ...prev,
-      polygonId: polygon.id.toString(),
-    }));
-
-    // Close the selector dialog
-    handleClosePolygonMap();
-
-    enqueueSnackbar(`Polígono ${polygon.id} selecionado`, {
-      variant: 'success',
-    });
-  };
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      await executionSheetService.create(formData);
+      await executionSheetService.create(executionSheetData);
       enqueueSnackbar('Folha de execução criada com sucesso!', {
         variant: 'success',
       });
@@ -430,270 +391,208 @@ const ExecutionSheetCreate = () => {
     </Box>
   );
 
-  const renderOperationsConfig = () => (
-    <Box>
-      <Typography variant="h6" gutterBottom>
-        Configurar Operações
-      </Typography>
+  const renderOperationsConfig = () => {
+    // Get available operation codes from selected worksheet
+    const availableOperations = selectedWorksheet?.metadata?.operations || [];
+    const operationCodes = availableOperations.length > 0 
+      ? availableOperations.map(op => ({
+          code: op.operationCode,
+          description: op.operationDescription
+        }))
+      : OPERATION_CODES;
 
-      {/* Add Operation Form */}
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="subtitle1" gutterBottom>
-            Adicionar Operação
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                label="Código da Operação"
-                value={operationForm.operationCode}
-                onChange={(e) =>
-                  handleOperationFormChange('operationCode', e.target.value)
-                }
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                label="Área (ha)"
-                type="number"
-                value={operationForm.areaHaExecuted}
-                onChange={(e) =>
-                  handleOperationFormChange('areaHaExecuted', e.target.value)
-                }
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <TextField
-                  fullWidth
-                  label="ID do Polígono"
-                  type="number"
-                  value={operationForm.polygonId}
-                  onChange={(e) =>
-                    handleOperationFormChange('polygonId', e.target.value)
-                  }
-                />
-                <Button
-                  variant="outlined"
-                  onClick={handleOpenPolygonMap}
-                  sx={{ minWidth: 'auto', px: 2 }}
-                  title="Selecionar no mapa"
-                  disabled={!formData.workSheetId}
-                >
-                  🗺️
-                </Button>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                label="Duração (h)"
-                type="number"
-                value={operationForm.estimatedDurationHours}
-                onChange={(e) =>
-                  handleOperationFormChange(
-                    'estimatedDurationHours',
-                    e.target.value
-                  )
-                }
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Data de Início"
-                type="date"
-                value={operationForm.startingDate}
-                onChange={(e) =>
-                  handleOperationFormChange('startingDate', e.target.value)
-                }
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Data de Fim"
-                type="date"
-                value={operationForm.finishingDate}
-                onChange={(e) =>
-                  handleOperationFormChange('finishingDate', e.target.value)
-                }
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={2}
-                label="Observações"
-                value={operationForm.observations}
-                onChange={(e) =>
-                  handleOperationFormChange('observations', e.target.value)
-                }
-              />
-            </Grid>
-          </Grid>
-          <Box sx={{ mt: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={addOperation}
-              disabled={
-                !operationForm.operationCode || !operationForm.areaHaExecuted
-              }
-            >
+    return (
+      <Box>
+        <Typography variant="h6" gutterBottom>
+          Configurar Operações
+        </Typography>
+
+        {/* Add Operation Form */}
+        <Card sx={{ mb: 2 }}>
+          <CardContent>
+            <Typography variant="subtitle1" gutterBottom>
               Adicionar Operação
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-
-      {/* Operations List */}
-      {formData.operations.length > 0 && (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Código</TableCell>
-                <TableCell>Área (ha)</TableCell>
-                <TableCell>Polígono</TableCell>
-                <TableCell>Duração (h)</TableCell>
-                <TableCell>Data Início</TableCell>
-                <TableCell>Data Fim</TableCell>
-                <TableCell align="center">Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {formData.operations.map((operation, index) => (
-                <TableRow key={operation.id}>
-                  <TableCell>{operation.operationCode}</TableCell>
-                  <TableCell>{operation.areaHaExecuted}</TableCell>
-                  <TableCell>{operation.polygonId || '-'}</TableCell>
-                  <TableCell>
-                    {operation.estimatedDurationHours || '-'}
-                  </TableCell>
-                  <TableCell>{operation.startingDate || '-'}</TableCell>
-                  <TableCell>{operation.finishingDate || '-'}</TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => removeOperation(index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-    </Box>
-  );
-
-  const renderPolygonsConfig = () => (
-    <Box>
-      <Typography variant="h6" gutterBottom>
-        Configurar Polígonos
-      </Typography>
-
-      {/* Add Polygon Form */}
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="subtitle1" gutterBottom>
-            Adicionar Polígono
-          </Typography>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={4}>
-              <Box sx={{ display: 'flex', gap: 1 }}>
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth required>
+                  <InputLabel>Código da Operação</InputLabel>
+                  <Select
+                    value={operationForm.operationCode}
+                    onChange={(e) =>
+                      handleOperationFormChange('operationCode', e.target.value)
+                    }
+                    label="Código da Operação"
+                  >
+                    <MenuItem value="">
+                      <em>Selecione</em>
+                    </MenuItem>
+                    {operationCodes.map((op) => (
+                      <MenuItem key={op.code} value={op.code}>
+                        {op.code} - {op.description}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={2}>
                 <TextField
                   fullWidth
-                  label="ID do Polígono"
+                  label="Área (ha)"
                   type="number"
-                  value={polygonForm.polygonId}
+                  value={operationForm.areaHaExecuted}
                   onChange={(e) =>
-                    setPolygonForm((prev) => ({
-                      ...prev,
-                      polygonId: e.target.value,
-                    }))
+                    handleOperationFormChange('areaHaExecuted', e.target.value)
+                  }
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={2}>
+                <TextField
+                  fullWidth
+                  label="Área (%)"
+                  type="number"
+                  value={operationForm.areaPerc}
+                  onChange={(e) =>
+                    handleOperationFormChange('areaPerc', e.target.value)
+                  }
+                  required
+                  inputProps={{ min: 0, max: 100 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={2}>
+                <TextField
+                  fullWidth
+                  label="Duração (h)"
+                  type="number"
+                  value={operationForm.estimatedDurationHours}
+                  onChange={(e) =>
+                    handleOperationFormChange(
+                      'estimatedDurationHours',
+                      e.target.value
+                    )
                   }
                 />
-                <Button
-                  variant="outlined"
-                  onClick={handleOpenPolygonMap}
-                  sx={{ minWidth: 'auto', px: 2 }}
-                  title="Selecionar no mapa"
-                  disabled={!formData.workSheetId}
-                >
-                  🗺️
-                </Button>
-              </Box>
+              </Grid>
+              <Grid item xs={12} md={2}>
+                <TextField
+                  fullWidth
+                  label="Data Conclusão Planeada"
+                  type="date"
+                  value={operationForm.plannedCompletionDate}
+                  onChange={(e) =>
+                    handleOperationFormChange('plannedCompletionDate', e.target.value)
+                  }
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Data de Início"
+                  type="date"
+                  value={operationForm.startingDate}
+                  onChange={(e) =>
+                    handleOperationFormChange('startingDate', e.target.value)
+                  }
+                  InputLabelProps={{ shrink: true }}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Data de Fim"
+                  type="date"
+                  value={operationForm.finishingDate}
+                  onChange={(e) =>
+                    handleOperationFormChange('finishingDate', e.target.value)
+                  }
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Observações"
+                  value={operationForm.observations}
+                  onChange={(e) =>
+                    handleOperationFormChange('observations', e.target.value)
+                  }
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={8}>
+            <Box sx={{ mt: 2 }}>
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
-                onClick={addPolygonOperation}
+                onClick={addOperation}
                 disabled={
-                  !polygonForm.polygonId || formData.operations.length === 0
+                  !operationForm.operationCode || 
+                  !operationForm.areaHaExecuted ||
+                  !operationForm.areaPerc ||
+                  !operationForm.startingDate
                 }
               >
-                Adicionar Polígono
+                Adicionar Operação
               </Button>
-              {formData.operations.length === 0 && (
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ ml: 2 }}
-                >
-                  Adicione operações primeiro
-                </Typography>
-              )}
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+            </Box>
+          </CardContent>
+        </Card>
 
-      {/* Polygons List */}
-      {formData.polygonsOperations.length > 0 && (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID do Polígono</TableCell>
-                <TableCell>Número de Operações</TableCell>
-                <TableCell align="center">Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {formData.polygonsOperations.map((polygon, index) => (
-                <TableRow key={index}>
-                  <TableCell>{polygon.polygonId}</TableCell>
-                  <TableCell>{polygon.operations.length}</TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => removePolygonOperation(index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
+        {/* Operations List */}
+        {formData.operations.length > 0 && (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Código</TableCell>
+                  <TableCell>Área (ha)</TableCell>
+                  <TableCell>Área (%)</TableCell>
+                  <TableCell>Duração (h)</TableCell>
+                  <TableCell>Data Início</TableCell>
+                  <TableCell>Data Fim</TableCell>
+                  <TableCell>Data Conclusão Planeada</TableCell>
+                  <TableCell align="center">Ações</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-    </Box>
-  );
+              </TableHead>
+              <TableBody>
+                {formData.operations.map((operation, index) => (
+                  <TableRow key={operation.id}>
+                    <TableCell>{operation.operationCode}</TableCell>
+                    <TableCell>{operation.areaHaExecuted}</TableCell>
+                    <TableCell>{operation.areaPerc}%</TableCell>
+                    <TableCell>
+                      {operation.estimatedDurationHours || '-'}
+                    </TableCell>
+                    <TableCell>{operation.startingDate || '-'}</TableCell>
+                    <TableCell>{operation.finishingDate || '-'}</TableCell>
+                    <TableCell>{operation.plannedCompletionDate || '-'}</TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => removeOperation(index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {/* Polygon Operations Info */}
+        <Alert severity="info" sx={{ mt: 3 }}>
+          Os polígonos serão automaticamente associados às operações com base nas configurações da folha de obra selecionada.
+        </Alert>
+      </Box>
+    );
+  };
 
   const renderReview = () => (
     <Box>
@@ -748,13 +647,13 @@ const ExecutionSheetCreate = () => {
                 <ListItem>
                   <ListItemText
                     primary="Operações"
-                    secondary={`${formData.operations.length} operações`}
+                    secondary={`${formData.operations.length} operações configuradas`}
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Polígonos"
-                    secondary={`${formData.polygonsOperations.length} polígonos`}
+                    secondary="Serão criados automaticamente com base na folha de obra"
                   />
                 </ListItem>
               </List>
@@ -774,8 +673,6 @@ const ExecutionSheetCreate = () => {
       case 2:
         return renderOperationsConfig();
       case 3:
-        return renderPolygonsConfig();
-      case 4:
         return renderReview();
       default:
         return 'Unknown step';
@@ -791,8 +688,6 @@ const ExecutionSheetCreate = () => {
       case 2:
         return formData.operations.length > 0;
       case 3:
-        return formData.polygonsOperations.length > 0;
-      case 4:
         return true;
       default:
         return false;
@@ -851,15 +746,6 @@ const ExecutionSheetCreate = () => {
         </Box>
       </Paper>
 
-      {/* Polygon Selection Map Modal */}
-      <PolygonSelectionMap
-        open={polygonMapOpen}
-        onClose={handleClosePolygonMap}
-        onSelect={handlePolygonSelect}
-        title="Selecionar Polígono"
-        availablePolygons={selectedWorksheet?.features || []}
-        selectedPolygonIds={getSelectedPolygonIds()}
-      />
     </Container>
   );
 };

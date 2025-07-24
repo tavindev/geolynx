@@ -422,6 +422,33 @@ const WorksheetDetail = () => {
               </Typography>
             </Grid>
 
+            <Grid item xs={12} md={4}>
+              <Typography variant="body2" color="text.secondary">
+                Data de Adjudicação
+              </Typography>
+              <Typography variant="body1">
+                {formatDate(worksheet.metadata.awardDate)}
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Typography variant="body2" color="text.secondary">
+                ID do Fornecedor
+              </Typography>
+              <Typography variant="body1">
+                {worksheet.metadata.serviceProviderId || '-'}
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Typography variant="body2" color="text.secondary">
+                ID do Utilizador Emissor
+              </Typography>
+              <Typography variant="body1">
+                {worksheet.metadata.issuingUserId || '-'}
+              </Typography>
+            </Grid>
+
             <Grid item xs={12} md={6}>
               <Typography variant="body2" color="text.secondary">
                 Código POSA
