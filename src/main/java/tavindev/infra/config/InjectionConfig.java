@@ -9,11 +9,13 @@ import tavindev.core.services.GeoHashService;
 import tavindev.core.services.HistoricalCuriosityService;
 import tavindev.core.services.NotificationService;
 import tavindev.core.services.AnimalService;
+import tavindev.core.services.CorporationService;
 import tavindev.core.services.UserService;
 import tavindev.core.services.WorkSheetService;
 import tavindev.core.utils.AuthUtils;
 import tavindev.infra.repositories.AnimalRepository;
 import tavindev.infra.repositories.DatastoreAuthTokenRepository;
+import tavindev.infra.repositories.DatastoreCorporationRepository;
 import tavindev.infra.repositories.DatastoreUserRepository;
 import tavindev.infra.repositories.ExecutionSheetRepository;
 import tavindev.infra.repositories.HistoricalCuriosityRepository;
@@ -38,5 +40,6 @@ public class InjectionConfig extends AbstractBinder {
         bind(AnimalService.class).to(AnimalService.class);
         bind(AnimalRepository.class).to(AnimalRepository.class);
         bind(GeoHashService.class).to(GeoHashService.class);
+        bind(DatastoreCorporationRepository.class).to(DatastoreCorporationRepository.class);
     }
 }
