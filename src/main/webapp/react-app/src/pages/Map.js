@@ -21,6 +21,10 @@ import {
   Button,
   Card,
   CardContent,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Alert,
 } from '@mui/material';
 import {
   Layers as LayersIcon,
@@ -29,11 +33,14 @@ import {
   ZoomOut as ZoomOutIcon,
   Description as WorksheetIcon,
   Assignment as ExecutionSheetIcon,
+  ExpandMore as ExpandMoreIcon,
+  Pets as PetsIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useAuth } from '../contexts/AuthContext';
-import { worksheetService } from '../services/api';
+import { worksheetService, regionService } from '../services/api';
 import proj4 from 'proj4';
 
 // Fix for default markers in React-Leaflet
@@ -130,8 +137,36 @@ function MapUpdater({ center, zoom }) {
   return null;
 }
 
+// Map event handler component
+function MapEventHandler({ onMapMove }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const handleMoveEnd = () => {
+      const center = map.getCenter();
+      onMapMove(center.lat, center.lng);
+    };
+
+    map.on('moveend', handleMoveEnd);
+
+    // Initial call to load data for the current position
+    handleMoveEnd();
+
+    return () => {
+      map.off('moveend', handleMoveEnd);
+    };
+  }, [map, onMapMove]);
+
+  return null;
+}
+
 // Map controls component
-function MapControls() {
+function MapControls({
+  user,
+  onCreateAnimal,
+  onCreateCuriosity,
+  onCreateExecutionSheet,
+}) {
   const map = useMap();
 
   const handleZoomIn = () => {
@@ -468,9 +503,46 @@ const Map = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [targetMapCenter, setTargetMapCenter] = useState(null);
   const mapRef = useRef(null);
+  const [regionData, setRegionData] = useState(null);
+  const [regionDataLoading, setRegionDataLoading] = useState(false);
+  const [regionDataError, setRegionDataError] = useState(null);
+  const fetchTimeoutRef = useRef(null);
 
   // Center of Portugal (roughly Mação area - converted from EPSG:3763 examples)
   const [mapCenter, setMapCenter] = useState([39.6547, -8.0123]);
+
+  // Debounced function to fetch region data
+  const fetchRegionData = useCallback(async (lat, lng) => {
+    // Clear any existing timeout
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+
+    // Set a new timeout for 500ms debounce
+    fetchTimeoutRef.current = setTimeout(async () => {
+      setRegionDataLoading(true);
+      setRegionDataError(null);
+      try {
+        const response = await regionService.getRegionData(lat, lng);
+        setRegionData(response.data);
+      } catch (error) {
+        console.error('Error fetching region data:', error);
+        setRegionDataError('Failed to load region information');
+        setRegionData(null);
+      } finally {
+        setRegionDataLoading(false);
+      }
+    }, 500);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const loadWorksheets = useCallback(async () => {
     setWorksheetsLoading(true);
@@ -710,6 +782,7 @@ const Map = () => {
 
                 <MapUpdater center={targetMapCenter} zoom={13} />
                 <MapControls />
+                <MapEventHandler onMapMove={fetchRegionData} />
 
                 {/* All Worksheet Polygons Layer */}
                 {showAllWorksheetPolygons && user && (
@@ -751,6 +824,145 @@ const Map = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Region Information Panel */}
+      {regionData && (
+        <Grid container spacing={4} sx={{ mt: 2 }}>
+          <Grid item xs={12}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                boxShadow: '0px 8px 24px -10px rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                Informações da Região
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              {regionDataLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                  <CircularProgress />
+                </Box>
+              ) : regionDataError ? (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {regionDataError}
+                </Alert>
+              ) : (
+                <Box>
+                  {/* Animals Section */}
+                  <Accordion defaultExpanded>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                      aria-controls="animals-content"
+                      id="animals-header"
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PetsIcon color="primary" />
+                        <Typography>
+                          Animais ({regionData.animals?.length || 0})
+                        </Typography>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {regionData.animals && regionData.animals.length > 0 ? (
+                        <Grid container spacing={2}>
+                          {regionData.animals.map((animal, index) => (
+                            <Grid item xs={12} sm={6} md={4} key={index}>
+                              <Card variant="outlined">
+                                <CardContent>
+                                  <Typography variant="h6" gutterBottom>
+                                    {animal.name}
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    <strong>Espécie:</strong> {animal.species}
+                                  </Typography>
+                                  {animal.description && (
+                                    <Typography variant="body2" sx={{ mt: 1 }}>
+                                      {animal.description}
+                                    </Typography>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          Nenhum animal registrado nesta região.
+                        </Typography>
+                      )}
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {/* Historical Curiosities Section */}
+                  <Accordion defaultExpanded sx={{ mt: 2 }}>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                      aria-controls="curiosities-content"
+                      id="curiosities-header"
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <HistoryIcon color="secondary" />
+                        <Typography>
+                          Curiosidades Históricas (
+                          {regionData.historicalCuriosities?.length || 0})
+                        </Typography>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {regionData.historicalCuriosities &&
+                      regionData.historicalCuriosities.length > 0 ? (
+                        <Grid container spacing={2}>
+                          {regionData.historicalCuriosities.map(
+                            (curiosity, index) => (
+                              <Grid item xs={12} key={index}>
+                                <Card variant="outlined">
+                                  <CardContent>
+                                    <Typography variant="h6" gutterBottom>
+                                      {curiosity.title}
+                                    </Typography>
+                                    <Typography
+                                      variant="body2"
+                                      color="text.secondary"
+                                    >
+                                      <strong>Período:</strong> {curiosity.period}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ mt: 1 }}>
+                                      {curiosity.description}
+                                    </Typography>
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                            )
+                          )}
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          Nenhuma curiosidade histórica registrada nesta região.
+                        </Typography>
+                      )}
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {/* Current Location Info */}
+                  <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      <strong>Coordenadas atuais:</strong> {regionData.latitude?.toFixed(6)}, {regionData.longitude?.toFixed(6)}
+                    </Typography>
+                    <br />
+                    <Typography variant="caption" color="text.secondary">
+                      <strong>Geohash:</strong> {regionData.geohash}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+            </Paper>
+          </Grid>
+        </Grid>
+      )}
 
       {/* Layers Drawer */}
       <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
