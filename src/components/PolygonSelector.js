@@ -33,7 +33,6 @@ import {
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import L from 'leaflet';
-import { worksheetService } from '../services/api';
 import proj4 from 'proj4';
 import { useSnackbar } from 'notistack';
 
@@ -128,100 +127,24 @@ const PolygonSelector = ({
   worksheetId, 
   onPolygonCreated,
   allowDrawing = true,
-  title = "Selecionar ou Desenhar Polígono" 
+  title = "Desenhar Polígono" 
 }) => {
   const { enqueueSnackbar } = useSnackbar();
-  const [polygons, setPolygons] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedPolygon, setSelectedPolygon] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mapCenter, setMapCenter] = useState([39.6547, -8.0123]);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
   const [drawnPolygon, setDrawnPolygon] = useState(null);
   const [polygonName, setPolygonName] = useState('');
   const [polygonDescription, setPolygonDescription] = useState('');
 
-  useEffect(() => {
-    if (open && worksheetId) {
-      fetchWorksheetPolygons();
-    }
-  }, [open, worksheetId]);
-
-  const fetchWorksheetPolygons = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await worksheetService.get(worksheetId);
-      const worksheet = response.data || response;
-
-      if (worksheet && worksheet.features) {
-        const processedPolygons = worksheet.features.map((feature, index) => {
-          if (feature.geometry && feature.geometry.type === 'Polygon') {
-            const convertedCoords = convertCoordinates(feature.geometry.coordinates);
-            
-            if (convertedCoords[0] && convertedCoords[0].length >= 3) {
-              return {
-                id: feature.properties?.polygon_id || index + 1,
-                name: `Polígono ${feature.properties?.polygon_id || index + 1}`,
-                coordinates: convertedCoords[0],
-                properties: feature.properties,
-                originalFeature: feature,
-              };
-            }
-          }
-          return null;
-        }).filter(Boolean);
-
-        setPolygons(processedPolygons);
-
-        // Set map center to first polygon if available
-        if (processedPolygons.length > 0 && processedPolygons[0].coordinates.length > 0) {
-          const firstCoord = processedPolygons[0].coordinates[0];
-          setMapCenter([firstCoord[0], firstCoord[1]]);
-        }
-      } else {
-        setPolygons([]);
-      }
-    } catch (error) {
-      console.error('Error fetching worksheet polygons:', error);
-      setError('Erro ao carregar polígonos da folha de obra');
-      setPolygons([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePolygonClick = (polygon) => {
-    setSelectedPolygon(polygon);
-    setActiveTab(0); // Switch to selection tab
-  };
-
-  const handleConfirmSelection = () => {
-    if (selectedPolygon) {
-      onSelect({
-        id: selectedPolygon.id,
-        name: selectedPolygon.name,
-        properties: selectedPolygon.properties,
-        feature: selectedPolygon.originalFeature,
-        type: 'existing'
-      });
-      handleClose();
-    }
-  };
 
   const handleClose = () => {
-    setSelectedPolygon(null);
     setIsDrawing(false);
     setDrawnPolygon(null);
     setPolygonName('');
     setPolygonDescription('');
-    setActiveTab(0);
     onClose();
-  };
-
-  const getPolygonColor = (polygon) => {
-    return selectedPolygon?.id === polygon.id ? '#e74c3c' : '#3498db';
   };
 
   const handleCreated = (e) => {
@@ -315,38 +238,14 @@ const PolygonSelector = ({
   const handleStartDrawing = () => {
     setIsDrawing(true);
     setDrawnPolygon(null);
-    setSelectedPolygon(null);
   };
 
-  if (loading) {
-    return (
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Carregando Polígonos</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancelar</Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
       <DialogTitle>
         {title}
-        {selectedPolygon && activeTab === 0 && (
-          <Chip
-            label={`Selecionado: ${selectedPolygon.name}`}
-            color="primary"
-            size="small"
-            sx={{ ml: 2 }}
-          />
-        )}
-        {drawnPolygon && activeTab === 1 && (
+        {drawnPolygon && (
           <Chip
             label="Polígono desenhado"
             color="success"
@@ -358,82 +257,60 @@ const PolygonSelector = ({
       <DialogContent>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        {allowDrawing && (
-          <Tabs 
-            value={activeTab} 
-            onChange={(e, newValue) => setActiveTab(newValue)}
-            sx={{ mb: 2 }}
-          >
-            <Tab label="Selecionar Existente" />
-            <Tab label="Desenhar Novo" />
-          </Tabs>
-        )}
-
-        {/* Selection Tab */}
-        {(!allowDrawing || activeTab === 0) && (
-          <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Total de polígonos: {polygons.length}
-            </Typography>
-          </Box>
-        )}
-
-        {/* Drawing Tab */}
-        {allowDrawing && activeTab === 1 && (
-          <Box sx={{ mb: 2 }}>
-            {!drawnPolygon ? (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                  {isDrawing ? 'Clique no mapa para desenhar o polígono.' : 'Clique para começar a desenhar um novo polígono.'}
-                </Typography>
-                <Button 
-                  onClick={handleStartDrawing} 
-                  variant="contained"
-                  startIcon={<EditIcon />}
-                  disabled={isDrawing}
+        {/* Drawing Section */}
+        <Box sx={{ mb: 2 }}>
+          {!drawnPolygon ? (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                {isDrawing ? 'Clique no mapa para desenhar o polígono.' : 'Clique para começar a desenhar um novo polígono.'}
+              </Typography>
+              <Button 
+                onClick={handleStartDrawing} 
+                variant="contained"
+                startIcon={<EditIcon />}
+                disabled={isDrawing}
+              >
+                {isDrawing ? 'Desenhando...' : 'Desenhar Polígono'}
+              </Button>
+            </Box>
+          ) : (
+            <Paper sx={{ p: 2, mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Informações do Polígono
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Nome do Polígono"
+                    value={polygonName}
+                    onChange={(e) => setPolygonName(e.target.value)}
+                    required
+                    placeholder="Ex: Área Norte"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Descrição (opcional)"
+                    value={polygonDescription}
+                    onChange={(e) => setPolygonDescription(e.target.value)}
+                    placeholder="Ex: Área para operação de limpeza"
+                  />
+                </Grid>
+              </Grid>
+              <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                <Button
+                  onClick={handleClearDrawing}
+                  startIcon={<ClearIcon />}
+                  color="error"
                 >
-                  {isDrawing ? 'Desenhando...' : 'Desenhar Polígono'}
+                  Limpar
                 </Button>
               </Box>
-            ) : (
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Informações do Polígono
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Nome do Polígono"
-                      value={polygonName}
-                      onChange={(e) => setPolygonName(e.target.value)}
-                      required
-                      placeholder="Ex: Área Norte"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Descrição (opcional)"
-                      value={polygonDescription}
-                      onChange={(e) => setPolygonDescription(e.target.value)}
-                      placeholder="Ex: Área para operação de limpeza"
-                    />
-                  </Grid>
-                </Grid>
-                <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                  <Button
-                    onClick={handleClearDrawing}
-                    startIcon={<ClearIcon />}
-                    color="error"
-                  >
-                    Limpar
-                  </Button>
-                </Box>
-              </Paper>
-            )}
-          </Box>
-        )}
+            </Paper>
+          )}
+        </Box>
 
         <Box sx={{ height: '500px', position: 'relative' }}>
           <MapContainer
@@ -447,52 +324,8 @@ const PolygonSelector = ({
             />
             <MapControls />
 
-            {/* Existing Polygons */}
-            {(!allowDrawing || activeTab === 0) && polygons.map((polygon) => (
-              <Polygon
-                key={polygon.id}
-                positions={polygon.coordinates}
-                pathOptions={{
-                  color: getPolygonColor(polygon),
-                  fillOpacity: selectedPolygon?.id === polygon.id ? 0.6 : 0.3,
-                  weight: selectedPolygon?.id === polygon.id ? 3 : 2,
-                }}
-                eventHandlers={{ click: () => handlePolygonClick(polygon) }}
-              >
-                <Popup>
-                  <Box sx={{ minWidth: 200 }}>
-                    <Typography variant="h6">{polygon.name}</Typography>
-                    <Typography variant="body2">
-                      <strong>AIGP:</strong> {polygon.properties?.aigp || 'N/A'}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Propriedade Rural:</strong> {polygon.properties?.rural_property_id || 'N/A'}
-                    </Typography>
-                    {polygon.properties?.UI_id && (
-                      <Typography variant="body2">
-                        <strong>UI:</strong> {polygon.properties.UI_id}
-                      </Typography>
-                    )}
-                    <Box sx={{ mt: 1 }}>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        startIcon={<CheckIcon />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePolygonClick(polygon);
-                        }}
-                      >
-                        Selecionar
-                      </Button>
-                    </Box>
-                  </Box>
-                </Popup>
-              </Polygon>
-            ))}
-
             {/* Drawing Controls */}
-            {allowDrawing && activeTab === 1 && isDrawing && (
+            {isDrawing && (
               <FeatureGroup>
                 <EditControl
                   position="topright"
@@ -525,7 +358,7 @@ const PolygonSelector = ({
             )}
 
             {/* Show drawn polygon */}
-            {drawnPolygon && activeTab === 1 && (
+            {drawnPolygon && (
               <Polygon
                 positions={drawnPolygon.coordinates}
                 pathOptions={{
@@ -555,20 +388,8 @@ const PolygonSelector = ({
       <DialogActions>
         <Button onClick={handleClose}>Cancelar</Button>
         
-        {/* Selection mode buttons */}
-        {(!allowDrawing || activeTab === 0) && (
-          <Button
-            onClick={handleConfirmSelection}
-            variant="contained"
-            disabled={!selectedPolygon}
-            startIcon={<CheckIcon />}
-          >
-            Confirmar Seleção
-          </Button>
-        )}
-
         {/* Drawing mode buttons */}
-        {allowDrawing && activeTab === 1 && drawnPolygon && (
+        {drawnPolygon && (
           <Button
             onClick={handleSaveDrawnPolygon}
             variant="contained"

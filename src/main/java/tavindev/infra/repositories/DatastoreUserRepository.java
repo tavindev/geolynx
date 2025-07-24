@@ -165,7 +165,7 @@ public class DatastoreUserRepository {
 
         Query<Entity> query = Query.newEntityQueryBuilder()
                 .setKind(USER_KIND)
-                .setFilter(StructuredQuery.CompositeFilter.or(idFilter, emailFilter, usernameFilter))
+                .setFilter((usernameFilter))
                 .build();
 
         QueryResults<Entity> results = datastore.run(query);
