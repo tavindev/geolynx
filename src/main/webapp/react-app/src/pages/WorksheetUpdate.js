@@ -258,6 +258,14 @@ const WorksheetUpdate = () => {
         return;
       }
 
+      // Ensure serviceProviderId is a valid number
+      const serviceProviderId = parseInt(formData.serviceProviderId);
+      if (isNaN(serviceProviderId)) {
+        setError('ID do fornecedor de serviços inválido');
+        setSaving(false);
+        return;
+      }
+
       if (formData.features.length === 0) {
         setError('Por favor, selecione pelo menos um polígono no mapa');
         setSaving(false);
@@ -279,7 +287,7 @@ const WorksheetUpdate = () => {
           starting_date: formatDate(formData.startingDate),
           finishing_date: formatDate(formData.finishingDate),
           issue_date: formatDate(formData.issueDate),
-          service_provider_id: parseInt(formData.serviceProviderId),
+          service_provider_id: serviceProviderId, // Use the validated serviceProviderId
           award_date: formatDate(formData.awardDate),
           aigp: formData.aigp,
           posa_code: formData.posaCode,
