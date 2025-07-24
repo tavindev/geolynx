@@ -281,7 +281,6 @@ const WorksheetUpdate = () => {
           issue_date: formatDate(formData.issueDate),
           service_provider_id: parseInt(formData.serviceProviderId),
           award_date: formatDate(formData.awardDate),
-          issuing_user_id: null, // Don't send user ID - let backend handle it
           aigp: formData.aigp,
           posa_code: formData.posaCode,
           posa_description: formData.posaDescription,
@@ -291,8 +290,9 @@ const WorksheetUpdate = () => {
         }
       };
 
-      // Backend should handle updates when an ID is present in the metadata
-      await worksheetService.update(worksheetId, worksheetData);
+      // Backend uses the same endpoint for create and update
+      // It determines whether to create or update based on the presence of an ID
+      await worksheetService.create(worksheetData);
       enqueueSnackbar('Ficha de obra atualizada com sucesso!', { variant: 'success' });
       navigate('/dashboard/worksheets');
     } catch (error) {
@@ -322,7 +322,7 @@ const WorksheetUpdate = () => {
             Voltar
           </Button>
           <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
-            Criar Nova Ficha de Obra
+            Editar Ficha de Obra #{worksheetId}
           </Typography>
         </Box>
 
@@ -652,17 +652,23 @@ const WorksheetUpdate = () => {
                 ))}
               </Grid>
 
-              {/* Submit Button */}
+              {/* Submit Buttons */}
               <Grid item xs={12}>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate('/dashboard/worksheets')}
+                  >
+                    Cancelar
+                  </Button>
                   <Button
                     type="submit"
                     variant="contained"
                     color="primary"
-                    disabled={loading}
-                    size="large"
+                    disabled={saving}
+                    startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
                   >
-                    {loading ? <CircularProgress size={24} /> : 'Criar Ficha de Obra'}
+                    {saving ? 'Salvando...' : 'Salvar Alterações'}
                   </Button>
                 </Box>
               </Grid>

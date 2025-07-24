@@ -23,6 +23,7 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Map as MapIcon,
+  Save as SaveIcon,
 } from '@mui/icons-material';
 import { worksheetService, corporationService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -236,13 +237,11 @@ const WorksheetCreate = () => {
         },
         features: formData.features,
         metadata: {
-          id: null, // Let the backend generate the ID
           starting_date: formatDate(formData.startingDate),
           finishing_date: formatDate(formData.finishingDate),
           issue_date: formatDate(formData.issueDate),
           service_provider_id: parseInt(formData.serviceProviderId),
           award_date: formatDate(formData.awardDate),
-          issuing_user_id: null, // Don't send user ID - let backend handle it
           aigp: formData.aigp,
           posa_code: formData.posaCode,
           posa_description: formData.posaDescription,
@@ -272,7 +271,7 @@ const WorksheetCreate = () => {
           Voltar
         </Button>
         <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
-          Editar Ficha de Obra #{worksheetId}
+          Criar Nova Ficha de Obra
         </Typography>
       </Box>
 
@@ -613,10 +612,10 @@ const WorksheetCreate = () => {
                   type="submit"
                   variant="contained"
                   color="primary"
-                  disabled={saving}
-                  startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
+                  disabled={loading}
+                  startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
                 >
-                  {saving ? 'Salvando...' : 'Salvar Alterações'}
+                  {loading ? 'Criando...' : 'Criar Ficha de Obra'}
                 </Button>
               </Box>
             </Grid>
