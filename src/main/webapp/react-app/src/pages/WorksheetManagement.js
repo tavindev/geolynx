@@ -447,7 +447,7 @@ const WorksheetManagement = () => {
               <Button
                 variant="outlined"
                 startIcon={<AddIcon />}
-                onClick={() => navigate('/dashboard/worksheet/create')}
+                onClick={() => navigate('/dashboard/worksheet-create')}
               >
                 Criar Folha de Obra
               </Button>
