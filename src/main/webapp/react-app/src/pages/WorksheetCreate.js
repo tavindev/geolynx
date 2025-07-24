@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -23,33 +23,29 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Map as MapIcon,
-  Save as SaveIcon,
 } from '@mui/icons-material';
 import { worksheetService, corporationService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import PolygonSelector from '../components/PolygonSelector';
-import { useSnackbar } from 'notistack';
 
-const WorksheetUpdate = () => {
+const WorksheetCreate = () => {
   const navigate = useNavigate();
-  const { worksheetId } = useParams();
   const { user } = useAuth();
-  const { enqueueSnackbar } = useSnackbar();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [serviceProviders, setServiceProviders] = useState([]);
   const [polygonSelectorOpen, setPolygonSelectorOpen] = useState(false);
   const [availablePolygons, setAvailablePolygons] = useState([]);
-  
+
+  const today = new Date().toISOString().split('T')[0];
+
   const [formData, setFormData] = useState({
     // Metadata fields
     startingDate: '',
     finishingDate: '',
-    issueDate: '',
+    issueDate: today,
     serviceProviderId: '',
     awardDate: '',
-    issuingUserId: '',
     aigp: [],
     posaCode: '',
     posaDescription: '',
@@ -68,43 +64,9 @@ const WorksheetUpdate = () => {
   });
 
   useEffect(() => {
-    fetchWorksheet();
     fetchServiceProviders();
     fetchAvailablePolygons();
-  }, [worksheetId]);
-
-  const fetchWorksheet = async () => {
-    try {
-      setLoading(true);
-      const response = await worksheetService.get(worksheetId);
-      const worksheet = response.data;
-      
-      // Parse the worksheet data
-      if (worksheet) {
-        setFormData({
-          startingDate: worksheet.metadata?.starting_date ? worksheet.metadata.starting_date.split('T')[0] : '',
-          finishingDate: worksheet.metadata?.finishing_date ? worksheet.metadata.finishing_date.split('T')[0] : '',
-          issueDate: worksheet.metadata?.issue_date ? worksheet.metadata.issue_date.split('T')[0] : '',
-          serviceProviderId: worksheet.metadata?.service_provider_id || '',
-          awardDate: worksheet.metadata?.award_date ? worksheet.metadata.award_date.split('T')[0] : '',
-          issuingUserId: worksheet.metadata?.issuing_user_id || user?.id || '',
-          aigp: worksheet.metadata?.aigp || [],
-          posaCode: worksheet.metadata?.posa_code || '',
-          posaDescription: worksheet.metadata?.posa_description || '',
-          pospCode: worksheet.metadata?.posp_code || '',
-          pospDescription: worksheet.metadata?.posp_description || '',
-          operations: worksheet.metadata?.operations || [],
-          features: worksheet.features || []
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching worksheet:', error);
-      enqueueSnackbar('Erro ao carregar ficha de obra', { variant: 'error' });
-      setError('Erro ao carregar ficha de obra');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, []);
 
   const fetchServiceProviders = async () => {
     try {
@@ -121,6 +83,7 @@ const WorksheetUpdate = () => {
       setAvailablePolygons(response.data || []);
     } catch (error) {
       console.error('Error fetching polygons:', error);
+      // Don't show error to user as polygons might not be available yet
     }
   };
 
@@ -181,7 +144,7 @@ const WorksheetUpdate = () => {
   const handlePolygonSelect = (polygon) => {
     // Check if polygon is already selected
     const isAlreadySelected = formData.features.some(
-      feature => feature.properties?.id === polygon.id || 
+      feature => feature.properties?.id === polygon.id ||
                  feature.properties?.polygonId === polygon.id
     );
 
@@ -192,7 +155,7 @@ const WorksheetUpdate = () => {
 
     // Add the selected polygon to features
     let newFeature;
-    
+
     if (polygon.type === 'custom') {
       // Custom drawn polygon
       newFeature = polygon.originalFeature || {
@@ -245,20 +208,20 @@ const WorksheetUpdate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
+    setLoading(true);
     setError('');
 
     try {
       // Validate required fields
       if (!formData.serviceProviderId) {
         setError('Por favor, selecione um fornecedor de serviços');
-        setSaving(false);
+        setLoading(false);
         return;
       }
 
       if (formData.features.length === 0) {
         setError('Por favor, selecione pelo menos um polígono no mapa');
-        setSaving(false);
+        setLoading(false);
         return;
       }
 
@@ -273,7 +236,7 @@ const WorksheetUpdate = () => {
         },
         features: formData.features,
         metadata: {
-          id: parseInt(worksheetId), // Include the ID for update
+          id: null, // Let the backend generate the ID
           starting_date: formatDate(formData.startingDate),
           finishing_date: formatDate(formData.finishingDate),
           issue_date: formatDate(formData.issueDate),
@@ -289,26 +252,15 @@ const WorksheetUpdate = () => {
         }
       };
 
-      // Use the same endpoint as create (import) - the backend should handle updates when ID is present
       await worksheetService.create(worksheetData);
-      enqueueSnackbar('Ficha de obra atualizada com sucesso!', { variant: 'success' });
       navigate('/dashboard/worksheets');
     } catch (error) {
-      console.error('Error updating worksheet:', error);
-      enqueueSnackbar('Erro ao atualizar ficha de obra', { variant: 'error' });
-      setError(error.response?.data?.error || error.response?.data?.message || 'Erro ao atualizar ficha de obra');
+      console.error('Error creating worksheet:', error);
+      setError(error.response?.data?.error || error.response?.data?.message || 'Erro ao criar ficha de obra');
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-        <CircularProgress />
-      </Container>
-    );
-  }
 
   return (
     <Container maxWidth="md">
@@ -458,7 +410,7 @@ const WorksheetUpdate = () => {
                       <Box>
                         <Typography>
                           <strong>
-                            {feature.properties?.name || 
+                            {feature.properties?.name ||
                              `Polígono ${feature.properties?.id || feature.properties?.polygonId || index + 1}`}
                           </strong>
                         </Typography>
@@ -686,4 +638,4 @@ const WorksheetUpdate = () => {
   );
 };
 
-export default WorksheetUpdate;
+export default WorksheetCreate;
