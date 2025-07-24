@@ -41,5 +41,6 @@ public class InjectionConfig extends AbstractBinder {
         bind(AnimalRepository.class).to(AnimalRepository.class);
         bind(GeoHashService.class).to(GeoHashService.class);
         bind(DatastoreCorporationRepository.class).to(DatastoreCorporationRepository.class);
+        bind(CorporationService.class).to(CorporationService.class);
     }
 }

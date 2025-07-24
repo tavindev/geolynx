@@ -63,6 +63,7 @@ export const userService = {
   getAccountsForRemoval: () => api.post('/user/accounts-for-removal'),
   getAccountStatus: (data) => api.post('/user/account-status', data),
   changeProfile: (data) => api.post('/user/change-profile', data), // Added missing endpoint
+  assignCorporation: (data) => api.post('/user/assign-corporations', data),
 };
 
 // Worksheet services
@@ -117,6 +118,12 @@ export const utilsService = {
 export const dashboardService = {
   getStatistics: () => api.get('/execution-sheet/dashboard/statistics'),
   getOperatorStatistics: () => api.get('/execution-sheet/dashboard/operator-statistics'),
+};
+
+// Corporation services
+export const corporationService = {
+  getAll: () => api.get('/corporation/all'),
+  getById: (corporationId) => api.get(`/corporation/${corporationId}`),
 };
 
 export default api;
