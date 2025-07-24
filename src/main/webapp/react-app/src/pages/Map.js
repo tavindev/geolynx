@@ -5,8 +5,6 @@ import {
   Polygon,
   Popup,
   useMap,
-  LayerGroup,
-  LayersControl,
 } from 'react-leaflet';
 import {
   Container,
@@ -20,37 +18,28 @@ import {
   ListItemText,
   ListItemIcon,
   Checkbox,
-  IconButton,
   Chip,
   Divider,
   FormControlLabel,
   Switch,
   Grid,
   CircularProgress,
-  Alert,
   Button,
   Card,
   CardContent,
-  CardActions,
 } from '@mui/material';
 import {
   Layers as LayersIcon,
   MyLocation as MyLocationIcon,
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
-  Add as AddIcon,
-  HistoryEdu as HistoryIcon,
   Description as WorksheetIcon,
-  Engineering as OperationIcon,
   Assignment as ExecutionSheetIcon,
 } from '@mui/icons-material';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useAuth } from '../contexts/AuthContext';
-import { regionService, worksheetService } from '../services/api';
-import RegionSidebar from '../components/RegionSidebar';
-import CreateCuriosityModal from '../components/CreateCuriosityModal';
-import CreateExecutionSheetModal from '../components/CreateExecutionSheetModal';
+import { worksheetService } from '../services/api';
 import proj4 from 'proj4';
 
 // Fix for default markers in React-Leaflet
@@ -134,37 +123,7 @@ const convertCoordinates = (coordinates) => {
   });
 };
 
-// Custom historical curiosity marker icon
-const historyIcon = L.divIcon({
-  className: 'custom-history-marker',
-  html: '<div style="background-color: #2196F3; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🏛️</div>',
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
-});
 
-// Map event handler component
-function MapEventHandler({ onMoveEnd }) {
-  const map = useMap();
-
-  useEffect(() => {
-    const handleMoveEnd = () => {
-      const center = map.getCenter();
-      onMoveEnd(center.lat, center.lng);
-    };
-
-    map.on('moveend', handleMoveEnd);
-
-    // Trigger initial load
-    const center = map.getCenter();
-    onMoveEnd(center.lat, center.lng);
-
-    return () => {
-      map.off('moveend', handleMoveEnd);
-    };
-  }, [map, onMoveEnd]);
-
-  return null;
-}
 
 // Map updater component for programmatic map updates
 function MapUpdater({ center, zoom }) {
@@ -180,10 +139,8 @@ function MapUpdater({ center, zoom }) {
 }
 
 // Map controls component
-function MapControls({ user, onCreateCuriosity, onCreateExecutionSheet }) {
+function MapControls() {
   const map = useMap();
-  const { hasPermission } = useAuth();
-  const canCreateExecutionSheet = hasPermission('create_execution_sheet');
 
   const handleZoomIn = () => {
     map.zoomIn();
@@ -212,19 +169,6 @@ function MapControls({ user, onCreateCuriosity, onCreateExecutionSheet }) {
           <MyLocationIcon />
         </Fab>
 
-        {user && (
-          <>
-            <Divider sx={{ my: 1, bgcolor: 'white' }} />
-            <Fab
-              size="small"
-              color="info"
-              onClick={onCreateCuriosity}
-              title="Adicionar Curiosidade Histórica"
-            >
-              <HistoryIcon />
-            </Fab>
-          </>
-        )}
       </Box>
     </Box>
   );
@@ -527,31 +471,16 @@ const Map = () => {
   const [worksheets, setWorksheets] = useState([]);
   const [worksheetsLoading, setWorksheetsLoading] = useState(true);
   const [selectedWorksheets, setSelectedWorksheets] = useState([]);
-  const [showHistoricalCuriosities, setShowHistoricalCuriosities] =
-    useState(true);
   const [showWorksheets, setShowWorksheets] = useState(true);
   const [showAllWorksheetPolygons, setShowAllWorksheetPolygons] =
     useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedArea, setSelectedArea] = useState(null);
-  const [regionData, setRegionData] = useState(null);
-  const [regionLoading, setRegionLoading] = useState(false);
-  const [regionError, setRegionError] = useState(null);
-  const [currentCoordinates, setCurrentCoordinates] = useState(null);
-  const [createCuriosityOpen, setCreateCuriosityOpen] = useState(false);
   const [targetMapCenter, setTargetMapCenter] = useState(null);
   const mapRef = useRef(null);
-  const debounceTimeoutRef = useRef(null);
 
   // Center of Portugal (roughly Mação area - converted from EPSG:3763 examples)
   const [mapCenter, setMapCenter] = useState([39.6547, -8.0123]);
 
-  // Load worksheets on component mount
-  useEffect(() => {
-    if (user) {
-      loadWorksheets();
-    }
-  }, [user]);
 
   const loadWorksheets = useCallback(async () => {
     setWorksheetsLoading(true);
@@ -588,6 +517,13 @@ const Map = () => {
     }
   }, [user]);
 
+  // Load worksheets on component mount
+  useEffect(() => {
+    if (user) {
+      loadWorksheets();
+    }
+  }, [user, loadWorksheets]);
+
   const handleToggleWorksheet = (id) => {
     setSelectedWorksheets((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -598,55 +534,9 @@ const Map = () => {
     setDrawerOpen(!drawerOpen);
   };
 
-  const handleMapMoveEnd = useCallback((lat, lng) => {
-    // Clear any existing timeout
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
 
-    // Set new coordinates immediately for UI responsiveness
-    setCurrentCoordinates({ lat, lng });
 
-    // Debounce the API call by 1 second
-    debounceTimeoutRef.current = setTimeout(async () => {
-      setRegionLoading(true);
-      setRegionError(null);
 
-      try {
-        const response = await regionService.getRegionData(lat, lng);
-
-        // The backend already returns coordinates as Double values, not microdegrees
-        setRegionData(response.data);
-      } catch (error) {
-        console.error('Error fetching region data:', error);
-        setRegionError('Erro ao carregar dados da região');
-      } finally {
-        setRegionLoading(false);
-      }
-    }, 500);
-  }, []);
-
-  // Cleanup debounce timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleCreationSuccess = () => {
-    // Refresh region data if coordinates are available
-    if (currentCoordinates) {
-      handleMapMoveEnd(currentCoordinates.lat, currentCoordinates.lng);
-    }
-    // Refresh worksheets to show any new execution sheets
-    loadWorksheets();
-  };
-
-  const handleAreaClick = (areaData) => {
-    setSelectedArea(areaData);
-  };
 
   const handlePolygonsLoad = useCallback((loadedPolygons) => {
     if (!loadedPolygons || loadedPolygons.length === 0) {
@@ -719,7 +609,7 @@ const Map = () => {
   }, []);
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="xl">
       <Box sx={{ mb: 4, mt: 2 }}>
         <Typography variant="h4" gutterBottom>
           Mapa Interativo
@@ -810,7 +700,7 @@ const Map = () => {
             )}
           </Paper>
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={9}>
           <Paper
             elevation={0}
             sx={{
@@ -832,26 +722,13 @@ const Map = () => {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
 
-                <MapEventHandler onMoveEnd={handleMapMoveEnd} />
                 <MapUpdater center={targetMapCenter} zoom={13} />
-                <MapControls
-                  user={user}
-                  onCreateCuriosity={() => setCreateCuriosityOpen(true)}
-                  onCreateExecutionSheet={() => {}}
-                />
+                <MapControls />
 
                 {/* All Worksheet Polygons Layer */}
                 {showAllWorksheetPolygons && user && (
                   <AllWorksheetPolygons
-                    onPolygonClick={(polygonWithWorksheet) => {
-                      setSelectedArea({
-                        polygon: polygonWithWorksheet.polygon,
-                        feature: polygonWithWorksheet.polygon.properties,
-                        worksheetMetadata:
-                          polygonWithWorksheet.worksheetMetadata,
-                        type: 'allWorksheets',
-                      });
-                    }}
+                    onPolygonClick={() => {}}
                     onPolygonsLoad={handlePolygonsLoad}
                   />
                 )}
@@ -870,7 +747,7 @@ const Map = () => {
                         <WorksheetPolygons
                           worksheetId={worksheet.id}
                           worksheetInfo={worksheet}
-                          onAreaClick={handleAreaClick}
+                          onAreaClick={() => {}}
                         />
                       </React.Fragment>
                     ))}
@@ -888,14 +765,6 @@ const Map = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={3}>
-          <RegionSidebar
-            regionData={regionData}
-            loading={regionLoading}
-            error={regionError}
-            coordinates={currentCoordinates}
-          />
-        </Grid>
       </Grid>
 
       {/* Layers Drawer */}
@@ -978,15 +847,6 @@ const Map = () => {
             label="Mostrar Folhas de Obra"
           />
 
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showHistoricalCuriosities}
-                onChange={(e) => setShowHistoricalCuriosities(e.target.checked)}
-              />
-            }
-            label="Mostrar Curiosidades Históricas"
-          />
 
           <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle2" gutterBottom>
@@ -1001,25 +861,11 @@ const Map = () => {
                 <ExecutionSheetIcon fontSize="small" color="warning" />
                 <Typography variant="caption">Folhas de Execução</Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <HistoryIcon fontSize="small" color="info" />
-                <Typography variant="caption">
-                  Curiosidades Históricas
-                </Typography>
-              </Box>
             </Box>
           </Box>
         </Box>
       </Drawer>
 
-      {/* Create Historical Curiosity Modal */}
-      <CreateCuriosityModal
-        open={createCuriosityOpen}
-        onClose={() => setCreateCuriosityOpen(false)}
-        coordinates={currentCoordinates}
-        user={user}
-        onSuccess={handleCreationSuccess}
-      />
     </Container>
   );
 };
