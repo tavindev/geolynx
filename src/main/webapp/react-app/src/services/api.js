@@ -113,4 +113,10 @@ export const utilsService = {
   time: () => api.get('/utils/time'),
 };
 
+// Dashboard services
+export const dashboardService = {
+  getStatistics: () => api.get('/execution-sheet/dashboard/statistics'),
+  getOperatorStatistics: () => api.get('/execution-sheet/dashboard/operator-statistics'),
+};
+
 export default api;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -9,6 +9,8 @@ import {
   CardContent,
   IconButton,
   Divider,
+  Skeleton,
+  Alert,
 } from '@mui/material';
 import {
   Map as MapIcon,
@@ -24,8 +26,9 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { dashboardService } from '../services/api';
 
-const StatCard = ({ title, value, icon, color, onClick }) => (
+const StatCard = ({ title, value, icon, color, onClick, loading = false }) => (
   <Paper
     elevation={0}
     sx={{
@@ -50,7 +53,7 @@ const StatCard = ({ title, value, icon, color, onClick }) => (
         {title}
       </Typography>
       <Typography variant="h4" component="div">
-        {value}
+        {loading ? <Skeleton width={60} /> : value}
       </Typography>
     </Box>
     <Box
@@ -125,6 +128,21 @@ const Home = () => {
   const { user, hasRole, hasAnyRole } = useAuth();
   const navigate = useNavigate();
 
+  const [dashboardStats, setDashboardStats] = useState({
+    pending: 0,
+    inProgress: 0,
+    completed: 0,
+    completionRate: '0%'
+  });
+  const [operatorStats, setOperatorStats] = useState({
+    assigned: 0,
+    inProgress: 0,
+    completed: 0,
+    total: 0
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const getGreeting = () => {
     const currentHour = new Date().getHours();
     if (currentHour < 12) {
@@ -135,6 +153,58 @@ const Home = () => {
       return 'Boa noite';
     }
   };
+
+  const fetchDashboardData = async () => {
+    if (!hasAnyRole(['PRBO', 'SDVBO'])) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await dashboardService.getStatistics();
+      setDashboardStats({
+        pending: response.data.pending,
+        inProgress: response.data.inProgress,
+        completed: response.data.completed,
+        completionRate: response.data.completionRate
+      });
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Erro ao carregar dados do dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchOperatorData = async () => {
+    if (!hasRole('PO')) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await dashboardService.getOperatorStatistics();
+      setOperatorStats({
+        assigned: response.data.assigned,
+        inProgress: response.data.inProgress,
+        completed: response.data.completed,
+        total: response.data.total
+      });
+    } catch (err) {
+      console.error('Error fetching operator data:', err);
+      setError('Erro ao carregar dados do operador');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (hasAnyRole(['PRBO', 'SDVBO'])) {
+      fetchDashboardData();
+    } else if (hasRole('PO')) {
+      fetchOperatorData();
+    }
+  }, [hasRole, hasAnyRole]);
 
   // Show operator dashboard for operators
   if (hasRole('PO')) {
@@ -149,37 +219,47 @@ const Home = () => {
           </Typography>
         </Box>
 
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Operações Atribuídas"
-              value="3"
+              value={operatorStats.assigned}
               icon={<AssignmentIcon />}
               color="info.main"
+              loading={loading}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Em Progresso"
-              value="2"
+              value={operatorStats.inProgress}
               icon={<PlayIcon />}
               color="warning.main"
+              loading={loading}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Concluídas"
-              value="5"
+              value={operatorStats.completed}
               icon={<CheckIcon />}
               color="success.main"
+              loading={loading}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Total"
-              value="10"
+              value={operatorStats.total}
               icon={<ScheduleIcon />}
               color="primary.main"
+              loading={loading}
             />
           </Grid>
         </Grid>
@@ -263,37 +343,47 @@ const Home = () => {
           </Typography>
         </Box>
 
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Folhas Pendentes"
-              value="5"
+              value={dashboardStats.pending}
               icon={<ScheduleIcon />}
               color="warning.main"
+              loading={loading}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Em Execução"
-              value="12"
+              value={dashboardStats.inProgress}
               icon={<PlayIcon />}
               color="info.main"
+              loading={loading}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Concluídas (Mês)"
-              value="8"
+              title="Concluídas"
+              value={dashboardStats.completed}
               icon={<CheckIcon />}
               color="success.main"
+              loading={loading}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
               title="Taxa Conclusão"
-              value="67%"
+              value={dashboardStats.completionRate}
               icon={<AssignmentIcon />}
               color="primary.main"
+              loading={loading}
             />
           </Grid>
         </Grid>
