@@ -50,19 +50,6 @@ const WorksheetDetail = () => {
       setLoading(true);
       const response = await worksheetService.get(id);
       setWorksheet(response.data);
-
-      // Set map center based on first polygon if available
-      if (response.data?.features && response.data.features.length > 0) {
-        const firstFeature = response.data.features[0];
-        if (firstFeature.geometry && firstFeature.geometry.type === 'Polygon') {
-          const convertedCoords = convertCoordinates(
-            firstFeature.geometry.coordinates
-          );
-          if (convertedCoords && convertedCoords.length > 0) {
-            setMapCenter([convertedCoords[0][0], convertedCoords[0][1]]);
-          }
-        }
-      }
     } catch (error) {
       console.error('Error fetching worksheet:', error);
       setError('Erro ao carregar ficha de obra');

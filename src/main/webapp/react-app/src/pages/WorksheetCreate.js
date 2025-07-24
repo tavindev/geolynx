@@ -172,8 +172,7 @@ const WorksheetCreate = () => {
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} locale={ptBR}>
-      <Container maxWidth="md">
+    <Container maxWidth="md">
         <Box sx={{ mb: 4, mt: 2 }}>
           <Button
             startIcon={<ArrowBackIcon />}
@@ -204,40 +203,57 @@ const WorksheetCreate = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <DatePicker
+                <TextField
+                  fullWidth
                   label="Data de Início"
+                  name="startingDate"
+                  type="date"
                   value={formData.startingDate}
-                  onChange={(value) => handleDateChange('startingDate', value)}
-                  renderInput={(params) => <TextField {...params} fullWidth required />}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  required
                 />
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <DatePicker
+                <TextField
+                  fullWidth
                   label="Data de Fim"
+                  name="finishingDate"
+                  type="date"
                   value={formData.finishingDate}
-                  onChange={(value) => handleDateChange('finishingDate', value)}
-                  renderInput={(params) => <TextField {...params} fullWidth required />}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  required
                 />
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <DatePicker
+                <TextField
+                  fullWidth
                   label="Data de Emissão"
+                  name="issueDate"
+                  type="date"
                   value={formData.issueDate}
-                  onChange={(value) => handleDateChange('issueDate', value)}
-                  renderInput={(params) => <TextField {...params} fullWidth required />}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  required
                 />
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <DatePicker
+                <TextField
+                  fullWidth
                   label="Data de Adjudicação"
+                  name="awardDate"
+                  type="date"
                   value={formData.awardDate}
-                  onChange={(value) => handleDateChange('awardDate', value)}
-                  renderInput={(params) => <TextField {...params} fullWidth />}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
+
+
 
               {/* Service Provider Section */}
               <Grid item xs={12}>
@@ -442,8 +458,7 @@ const WorksheetCreate = () => {
           </form>
         </Paper>
       </Container>
-    </LocalizationProvider>
-  );
+    );
 };
 
 export default WorksheetCreate;
