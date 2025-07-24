@@ -237,7 +237,8 @@ public class DatastoreUserRepository {
         String username = entity.contains(PROPERTY_USERNAME) ? entity.getString(PROPERTY_USERNAME) : null;
         String password = entity.contains(PROPERTY_PASSWORD) ? entity.getString(PROPERTY_PASSWORD) : null;
         String address = entity.contains(PROPERTY_ADDRESS) ? entity.getString(PROPERTY_ADDRESS) : null;
-        String corporationId = entity.contains(PROPERTY_CORPORATION_ID) ? entity.getString(PROPERTY_ADDRESS) : null;
+        String corporationId = entity.contains(PROPERTY_CORPORATION_ID) ? entity.getString(PROPERTY_CORPORATION_ID)
+                : null;
 
         return new User(
                 entity.getKey().getName(),
