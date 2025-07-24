@@ -279,7 +279,7 @@ const WorksheetUpdate = () => {
           issue_date: formatDate(formData.issueDate),
           service_provider_id: parseInt(formData.serviceProviderId),
           award_date: formatDate(formData.awardDate),
-          issuing_user_id: formData.issuingUserId || null,
+          issuing_user_id: null, // Don't send user ID - let backend handle it
           aigp: formData.aigp,
           posa_code: formData.posaCode,
           posa_description: formData.posaDescription,
