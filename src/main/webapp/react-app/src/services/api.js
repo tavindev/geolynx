@@ -72,6 +72,7 @@ export const worksheetService = {
   delete: (id) => api.delete(`/work-sheet/${id}`),
   getAll: () => api.get('/work-sheet/'),
   get: (id) => api.get(`/work-sheet/${id}`),
+  getPolygons: () => api.get('/work-sheet/polygons'),
 };
 
 // Execution Sheet services
@@ -88,12 +89,19 @@ export const executionSheetService = {
   export: (data) => api.post('/execution-sheet/export', data),
   getById: (id) => api.get(`/execution-sheet/${id}`),
   getMyAssignments: () => api.get('/execution-sheet/my-assignments'),
-  getByWorksheetId: (worksheetId) => api.get(`/execution-sheet/by-worksheet/${worksheetId}`),
+  getByWorksheetId: (worksheetId) =>
+    api.get(`/execution-sheet/by-worksheet/${worksheetId}`),
 };
 
 // Region services
 export const regionService = {
   getRegionData: (lat, lng) => api.get(`/region/?lat=${lat}&lng=${lng}`),
+};
+
+// Corporation services
+export const corporationService = {
+  getAll: () => api.get('/corporation/all'),
+  getById: (id) => api.get(`/corporation/${id}`),
 };
 
 // Animal services
@@ -105,7 +113,8 @@ export const animalService = {
 // Historical Curiosities services
 export const historicalCuriosityService = {
   create: (data) => api.post('/historical-curiosities/', data),
-  getNearby: (geohash) => api.get(`/historical-curiosities/nearby?geohash=${geohash}`),
+  getNearby: (geohash) =>
+    api.get(`/historical-curiosities/nearby?geohash=${geohash}`),
 };
 
 // Utils services
@@ -117,13 +126,8 @@ export const utilsService = {
 // Dashboard services
 export const dashboardService = {
   getStatistics: () => api.get('/execution-sheet/dashboard/statistics'),
-  getOperatorStatistics: () => api.get('/execution-sheet/dashboard/operator-statistics'),
-};
-
-// Corporation services
-export const corporationService = {
-  getAll: () => api.get('/corporation/all'),
-  getById: (corporationId) => api.get(`/corporation/${corporationId}`),
+  getOperatorStatistics: () =>
+    api.get('/execution-sheet/dashboard/operator-statistics'),
 };
 
 export default api;

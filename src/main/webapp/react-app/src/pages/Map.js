@@ -30,6 +30,9 @@ import {
   CircularProgress,
   Alert,
   Button,
+  Card,
+  CardContent,
+  CardActions,
 } from '@mui/material';
 import {
   Layers as LayersIcon,
@@ -67,19 +70,52 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 // Define projection for EPSG:3763 (Portuguese grid system)
-proj4.defs("EPSG:3763", "+proj=tmerc +lat_0=39.66825833333333 +lon_0=-8.133108333333334 +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+proj4.defs(
+  'EPSG:3763',
+  '+proj=tmerc +lat_0=39.66825833333333 +lon_0=-8.133108333333334 +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+);
 
-// Convert coordinates to EPSG:4326 (WGS84)
+// Convert coordinates to EPSG:4326 (WGS84) - handles both old and new formats
 const convertCoordinates = (coordinates) => {
-  // Check if coordinates are already in WGS84 (values between -180 to 180 for lng, -90 to 90 for lat)
   const isWGS84 = (coord) => {
     return Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90;
   };
 
-  return coordinates.map(ring => {
+  // Handle the new format where each coordinate is wrapped in its own array
+  // e.g., [[[lng, lat]], [[lng, lat]], ...] instead of [[lng, lat], [lng, lat], ...]
+  if (
+    coordinates.length > 0 &&
+    Array.isArray(coordinates[0]) &&
+    coordinates[0].length === 1 &&
+    Array.isArray(coordinates[0][0])
+  ) {
+    // Flatten the structure
+    const flattened = coordinates.map((pointArray) => pointArray[0]);
+
+    return flattened.map((coord) => {
+      if (!Array.isArray(coord) || coord.length < 2) return [0, 0];
+
+      if (isWGS84(coord)) {
+        return [coord[1], coord[0]]; // GeoJSON is [lng, lat], Leaflet expects [lat, lng]
+      }
+      try {
+        const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [
+          coord[0],
+          coord[1],
+        ]);
+        return [lat, lng];
+      } catch (error) {
+        console.error('Coordinate conversion error:', error);
+        return [0, 0];
+      }
+    });
+  }
+
+  // Standard polygon format
+  return coordinates.map((ring) => {
     if (!Array.isArray(ring)) return [];
 
-    return ring.map(coord => {
+    return ring.map((coord) => {
       if (!Array.isArray(coord) || coord.length < 2) return [0, 0];
 
       // If already in WGS84, just swap to [lat, lng] for Leaflet
@@ -88,7 +124,10 @@ const convertCoordinates = (coordinates) => {
       }
       // Otherwise convert from EPSG:3763
       try {
-        const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [coord[0], coord[1]]);
+        const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [
+          coord[0],
+          coord[1],
+        ]);
         return [lat, lng]; // Leaflet expects [lat, lng]
       } catch (error) {
         console.error('Coordinate conversion error:', error);
@@ -138,8 +177,26 @@ function MapEventHandler({ onMoveEnd }) {
   return null;
 }
 
+// Map updater component for programmatic map updates
+function MapUpdater({ center, zoom }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (center && center[0] !== undefined && center[1] !== undefined) {
+      map.setView(center, zoom || map.getZoom());
+    }
+  }, [map, center, zoom]);
+
+  return null;
+}
+
 // Map controls component
-function MapControls({ user, onCreateAnimal, onCreateCuriosity, onCreateExecutionSheet }) {
+function MapControls({
+  user,
+  onCreateAnimal,
+  onCreateCuriosity,
+  onCreateExecutionSheet,
+}) {
   const map = useMap();
   const { hasPermission } = useAuth();
   const canCreateExecutionSheet = hasPermission('create_execution_sheet');
@@ -190,13 +247,146 @@ function MapControls({ user, onCreateAnimal, onCreateCuriosity, onCreateExecutio
             >
               <HistoryIcon />
             </Fab>
-            )}
           </>
         )}
       </Box>
     </Box>
   );
 }
+
+// Component to render polygons from all worksheets
+const AllWorksheetPolygons = ({ onPolygonClick, onPolygonsLoad }) => {
+  const [polygons, setPolygons] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+
+  const loadPolygons = useCallback(async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const response = await worksheetService.getPolygons();
+      const polygonData = response.data || response;
+      const polygonsArray = Array.isArray(polygonData) ? polygonData : [];
+      setPolygons(polygonsArray);
+      
+      if (onPolygonsLoad) {
+        onPolygonsLoad(polygonsArray);
+      }
+    } catch (error) {
+      console.error('Error loading polygons:', error);
+      setPolygons([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, onPolygonsLoad]);
+
+  useEffect(() => {
+    if (user) {
+      loadPolygons();
+    } else {
+      setPolygons([]);
+    }
+  }, [user, loadPolygons]);
+  
+  if (loading || !polygons || polygons.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      {polygons.map((polygonWithWorksheet, index) => {
+        // Handle both old format (raw GeoFeature) and new format (PolygonWithWorksheetDTO)
+        const isOldFormat = polygonWithWorksheet.type === 'Feature';
+        const feature = isOldFormat ? polygonWithWorksheet : polygonWithWorksheet.polygon;
+        const worksheetMetadata = isOldFormat ? null : polygonWithWorksheet.worksheetMetadata;
+        
+        if (!feature?.geometry || feature.geometry.type !== 'Polygon') {
+          return null;
+        }
+
+        const convertedCoords = convertCoordinates(feature.geometry.coordinates);
+
+        // Use the same validation as WorksheetDetail.js
+        if (!convertedCoords || convertedCoords.length < 3) {
+          return null;
+        }
+
+        const color = getPolygonColor(feature.properties?.aigp || worksheetMetadata?.worksheetId?.toString() || feature.properties?.id?.toString() || 'default');
+
+        return (
+          <Polygon
+            key={`polygon-${worksheetMetadata?.worksheetId || feature.properties?.id}-${index}`}
+            positions={convertedCoords}
+            pathOptions={{
+              color: color,
+              fillColor: color,
+              fillOpacity: 0.3,
+              weight: 2,
+            }}
+            eventHandlers={{
+              click: () => onPolygonClick && onPolygonClick(isOldFormat ? { polygon: feature, worksheetMetadata: null } : polygonWithWorksheet),
+            }}
+          >
+            <Popup>
+              <Box sx={{ minWidth: 250 }}>
+                <Typography variant="h6">
+                  Polígono{' '}
+                  {feature.properties?.polygonId ||
+                    feature.properties?.id ||
+                    index + 1}
+                </Typography>
+                {worksheetMetadata && (
+                  <>
+                    <Divider sx={{ my: 1 }} />
+                    <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
+                      Folha de Obra #{worksheetMetadata.worksheetId}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Início:</strong> {worksheetMetadata.startingDate || 'N/A'}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Fim:</strong> {worksheetMetadata.finishingDate || 'N/A'}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Fornecedor:</strong> {worksheetMetadata.serviceProviderId || 'N/A'}
+                    </Typography>
+                    {worksheetMetadata.posaCode && (
+                      <Typography variant="body2">
+                        <strong>POSA:</strong> {worksheetMetadata.posaCode}
+                      </Typography>
+                    )}
+                    <Divider sx={{ my: 1 }} />
+                  </>
+                )}
+                {feature.properties?.aigp && (
+                  <Typography variant="body2">
+                    <strong>AIGP:</strong> {feature.properties.aigp}
+                  </Typography>
+                )}
+                {feature.properties?.ruralPropertyId && (
+                  <Typography variant="body2">
+                    <strong>Propriedade Rural:</strong> {feature.properties.ruralPropertyId}
+                  </Typography>
+                )}
+                {feature.properties?.uiId && (
+                  <Typography variant="body2">
+                    <strong>UI:</strong> {feature.properties.uiId}
+                  </Typography>
+                )}
+                {feature.properties?.area && (
+                  <Typography variant="body2">
+                    <strong>Área:</strong> {feature.properties.area} ha
+                  </Typography>
+                )}
+              </Box>
+            </Popup>
+          </Polygon>
+        );
+      })}
+    </>
+  );
+};
 
 // Component to render worksheet polygons
 const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
@@ -228,9 +418,12 @@ const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
   return (
     <>
       {worksheet.features.map((feature, index) => {
-        if (!feature.geometry || feature.geometry.type !== 'Polygon') return null;
+        if (!feature.geometry || feature.geometry.type !== 'Polygon')
+          return null;
 
-        const convertedCoords = convertCoordinates(feature.geometry.coordinates);
+        const convertedCoords = convertCoordinates(
+          feature.geometry.coordinates
+        );
 
         // Skip if no valid coordinates
         if (!convertedCoords[0] || convertedCoords[0].length < 3) return null;
@@ -245,23 +438,30 @@ const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
               weight: 2,
             }}
             eventHandlers={{
-              click: () => onAreaClick({
-                worksheetId: worksheetId,
-                worksheetInfo: worksheetInfo,
-                worksheet: worksheet,
-                feature: feature.properties,
-                polygon: feature,
-              }),
+              click: () =>
+                onAreaClick({
+                  worksheetId: worksheetId,
+                  worksheetInfo: worksheetInfo,
+                  worksheet: worksheet,
+                  feature: feature.properties,
+                  polygon: feature,
+                }),
             }}
           >
             <Popup>
               <Box sx={{ minWidth: 200 }}>
-                <Typography variant="h6">Polígono {feature.properties?.polygon_id || index + 1}</Typography>
-                <Typography variant="body2">
-                  <strong>AIGP:</strong> {feature.properties?.aigp || worksheetInfo.aigp?.join(', ') || 'N/A'}
+                <Typography variant="h6">
+                  Polígono {feature.properties?.polygon_id || index + 1}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Propriedade Rural:</strong> {feature.properties?.rural_property_id || 'N/A'}
+                  <strong>AIGP:</strong>{' '}
+                  {feature.properties?.aigp ||
+                    worksheetInfo.aigp?.join(', ') ||
+                    'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Propriedade Rural:</strong>{' '}
+                  {feature.properties?.rural_property_id || 'N/A'}
                 </Typography>
                 {feature.properties?.UI_id && (
                   <Typography variant="body2">
@@ -303,7 +503,14 @@ const WorksheetPolygons = ({ worksheetId, worksheetInfo, onAreaClick }) => {
 
 // Helper function for color generation
 const getPolygonColor = (aigp) => {
-  const colors = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c'];
+  const colors = [
+    '#2ecc71',
+    '#3498db',
+    '#f39c12',
+    '#e74c3c',
+    '#9b59b6',
+    '#1abc9c',
+  ];
   let hash = 0;
   const str = aigp || 'default';
   for (let i = 0; i < str.length; i++) {
@@ -318,8 +525,11 @@ const Map = () => {
   const [worksheetsLoading, setWorksheetsLoading] = useState(true);
   const [selectedWorksheets, setSelectedWorksheets] = useState([]);
   const [showAnimals, setShowAnimals] = useState(true);
-  const [showHistoricalCuriosities, setShowHistoricalCuriosities] = useState(true);
+  const [showHistoricalCuriosities, setShowHistoricalCuriosities] =
+    useState(true);
   const [showWorksheets, setShowWorksheets] = useState(true);
+  const [showAllWorksheetPolygons, setShowAllWorksheetPolygons] =
+    useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedArea, setSelectedArea] = useState(null);
   const [regionData, setRegionData] = useState(null);
@@ -328,14 +538,12 @@ const Map = () => {
   const [currentCoordinates, setCurrentCoordinates] = useState(null);
   const [createAnimalOpen, setCreateAnimalOpen] = useState(false);
   const [createCuriosityOpen, setCreateCuriosityOpen] = useState(false);
-  const [createExecutionSheetOpen, setCreateExecutionSheetOpen] = useState(false);
-  const [selectedPolygonForExecution, setSelectedPolygonForExecution] = useState(null);
-  const [selectedWorksheetForExecution, setSelectedWorksheetForExecution] = useState(null);
+  const [targetMapCenter, setTargetMapCenter] = useState(null);
   const mapRef = useRef(null);
   const debounceTimeoutRef = useRef(null);
 
   // Center of Portugal (roughly Mação area - converted from EPSG:3763 examples)
-  const mapCenter = [39.6547, -8.0123];
+  const [mapCenter, setMapCenter] = useState([39.6547, -8.0123]);
 
   // Load worksheets on component mount
   useEffect(() => {
@@ -344,7 +552,7 @@ const Map = () => {
     }
   }, [user]);
 
-  const loadWorksheets = async () => {
+  const loadWorksheets = useCallback(async () => {
     setWorksheetsLoading(true);
     try {
       // For PO operators, don't load worksheets since they should only see their execution sheets
@@ -356,8 +564,7 @@ const Map = () => {
       }
 
       const response = await worksheetService.getAll();
-      console.log('Worksheets response:', response); // Debug log
-
+      
       // Handle different response formats
       const worksheetData = response.data || response;
 
@@ -365,7 +572,7 @@ const Map = () => {
       if (Array.isArray(worksheetData)) {
         setWorksheets(worksheetData);
         // Select all worksheets by default
-        setSelectedWorksheets(worksheetData.map(ws => ws.id));
+        setSelectedWorksheets(worksheetData.map((ws) => ws.id));
       } else {
         console.error('Worksheets response is not an array:', worksheetData);
         setWorksheets([]);
@@ -378,7 +585,7 @@ const Map = () => {
     } finally {
       setWorksheetsLoading(false);
     }
-  };
+  }, [user]);
 
   const handleToggleWorksheet = (id) => {
     setSelectedWorksheets((prev) =>
@@ -437,16 +644,65 @@ const Map = () => {
   };
 
   const handleAreaClick = (areaData) => {
-    if (areaData.createExecutionSheet) {
-      // Open execution sheet modal with preselected data
-      setSelectedPolygonForExecution(areaData.polygon);
-      setSelectedWorksheetForExecution(areaData.worksheetInfo);
-      setCreateExecutionSheetOpen(true);
-    } else {
-      // Regular area selection
-      setSelectedArea(areaData);
-    }
+    setSelectedArea(areaData);
   };
+
+  const handlePolygonsLoad = useCallback((loadedPolygons) => {
+    if (!loadedPolygons || loadedPolygons.length === 0) {
+      return;
+    }
+    
+    // Center map on first polygon if available
+    const firstPolygon = loadedPolygons[0].polygon;
+    if (firstPolygon?.geometry?.coordinates) {
+      const convertedCoords = convertCoordinates(firstPolygon.geometry.coordinates);
+      if (convertedCoords && convertedCoords.length > 0) {
+        // Get center of first polygon
+        const latSum = convertedCoords.reduce((sum, coord) => sum + coord[0], 0);
+        const lngSum = convertedCoords.reduce((sum, coord) => sum + coord[1], 0);
+        const centerLat = latSum / convertedCoords.length;
+        const centerLng = lngSum / convertedCoords.length;
+        setMapCenter([centerLat, centerLng]);
+        setTargetMapCenter([centerLat, centerLng]);
+      }
+    }
+  }, []);
+
+  const handleWorksheetClick = useCallback(async (worksheetId) => {
+    try {
+      // Load the specific worksheet to get its polygon data
+      const response = await worksheetService.get(worksheetId);
+      const worksheet = response.data || response;
+      
+      if (worksheet && worksheet.features && worksheet.features.length > 0) {
+        // Calculate bounds of all polygons in this worksheet
+        let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+        
+        worksheet.features.forEach(feature => {
+          if (feature.geometry && feature.geometry.coordinates) {
+            const convertedCoords = convertCoordinates(feature.geometry.coordinates);
+            convertedCoords.forEach(coord => {
+              minLat = Math.min(minLat, coord[0]);
+              maxLat = Math.max(maxLat, coord[0]);
+              minLng = Math.min(minLng, coord[1]);
+              maxLng = Math.max(maxLng, coord[1]);
+            });
+          }
+        });
+        
+        if (minLat !== Infinity && maxLat !== -Infinity) {
+          // Calculate center
+          const centerLat = (minLat + maxLat) / 2;
+          const centerLng = (minLng + maxLng) / 2;
+          
+          // Update target center for MapUpdater component
+          setTargetMapCenter([centerLat, centerLng]);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading worksheet for navigation:', error);
+    }
+  }, []);
 
   return (
     <Container maxWidth="lg">
@@ -462,7 +718,85 @@ const Map = () => {
       </Box>
 
       <Grid container spacing={4}>
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={3}>
+          {/* Worksheet List Sidebar */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              height: '600px',
+              border: '1px solid #e0e0e0',
+              boxShadow: '0px 8px 24px -10px rgba(0, 0, 0, 0.1)',
+              overflow: 'auto',
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              Folhas de Obra
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            
+            {!user ? (
+              <Typography variant="body2" color="text.secondary">
+                Faça login para ver as folhas de obra
+              </Typography>
+            ) : worksheetsLoading ? (
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Carregando folhas de obra...
+                </Typography>
+                <CircularProgress size={20} sx={{ mt: 1 }} />
+              </Box>
+            ) : worksheets.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                Nenhuma folha de obra encontrada
+              </Typography>
+            ) : (
+              <List>
+                {worksheets.map((worksheet) => (
+                  <ListItem 
+                    key={worksheet.id}
+                    sx={{ 
+                      mb: 1, 
+                      p: 0,
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                      }
+                    }}
+                    onClick={() => handleWorksheetClick(worksheet.id)}
+                  >
+                    <Card sx={{ width: '100%' }}>
+                      <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <Typography variant="subtitle2" color="primary">
+                          Folha #{worksheet.id}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {worksheet.operations?.length || 0} operações
+                        </Typography>
+                        <br />
+                        <Typography variant="caption" color="text.secondary">
+                          {worksheet.startingDate || 'Data não definida'}
+                        </Typography>
+                        {worksheet.posaCode && (
+                          <>
+                            <br />
+                            <Chip 
+                              label={worksheet.posaCode} 
+                              size="small" 
+                              variant="outlined"
+                              sx={{ mt: 0.5 }}
+                            />
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
           <Paper
             elevation={0}
             sx={{
@@ -477,6 +811,7 @@ const Map = () => {
                 center={mapCenter}
                 zoom={11}
                 style={{ height: '100%', width: '100%' }}
+                ref={mapRef}
               >
                 <TileLayer
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -484,71 +819,104 @@ const Map = () => {
                 />
 
                 <MapEventHandler onMoveEnd={handleMapMoveEnd} />
+                <MapUpdater center={targetMapCenter} zoom={13} />
                 <MapControls
                   user={user}
                   onCreateAnimal={() => setCreateAnimalOpen(true)}
                   onCreateCuriosity={() => setCreateCuriosityOpen(true)}
-                  onCreateExecutionSheet={() => setCreateExecutionSheetOpen(true)}
+                  onCreateExecutionSheet={() => {}}
                 />
 
+                {/* All Worksheet Polygons Layer */}
+                {showAllWorksheetPolygons && user && (
+                  <AllWorksheetPolygons
+                    onPolygonClick={(polygonWithWorksheet) => {
+                      setSelectedArea({
+                        polygon: polygonWithWorksheet.polygon,
+                        feature: polygonWithWorksheet.polygon.properties,
+                        worksheetMetadata: polygonWithWorksheet.worksheetMetadata,
+                        type: 'allWorksheets',
+                      });
+                    }}
+                    onPolygonsLoad={handlePolygonsLoad}
+                  />
+                )}
+
                 {/* Worksheets Layer */}
-                {showWorksheets && !worksheetsLoading && worksheets && worksheets.length > 0 && worksheets
-                  .filter((worksheet) => selectedWorksheets.includes(worksheet.id))
-                  .map((worksheet) => (
-                    <React.Fragment key={worksheet.id}>
-                      <WorksheetPolygons
-                        worksheetId={worksheet.id}
-                        worksheetInfo={worksheet}
-                        onAreaClick={handleAreaClick}
-                      />
-                    </React.Fragment>
-                  ))}
+                {showWorksheets &&
+                  !worksheetsLoading &&
+                  worksheets &&
+                  worksheets.length > 0 &&
+                  worksheets
+                    .filter((worksheet) =>
+                      selectedWorksheets.includes(worksheet.id)
+                    )
+                    .map((worksheet) => (
+                      <React.Fragment key={worksheet.id}>
+                        <WorksheetPolygons
+                          worksheetId={worksheet.id}
+                          worksheetInfo={worksheet}
+                          onAreaClick={handleAreaClick}
+                        />
+                      </React.Fragment>
+                    ))}
 
                 {/* Animals Layer */}
-                {showAnimals && regionData?.animals?.map((animal, index) => (
-                  <Marker
-                    key={`animal-${index}`}
-                    position={[animal.latitude, animal.longitude]}
-                    icon={animalIcon}
-                  >
-                    <Popup>
-                      <Box sx={{ minWidth: 200 }}>
-                        <Typography variant="h6">{animal.name}</Typography>
-                        <Typography variant="body2">
-                          {animal.description}
-                        </Typography>
-                        {animal.image && (
-                          <img
-                            src={animal.image}
-                            alt={animal.name}
-                            style={{ width: '100%', marginTop: 8, borderRadius: 4 }}
-                          />
-                        )}
-                      </Box>
-                    </Popup>
-                  </Marker>
-                ))}
+                {showAnimals &&
+                  regionData?.animals?.map((animal, index) => (
+                    <Marker
+                      key={`animal-${index}`}
+                      position={[animal.latitude, animal.longitude]}
+                      icon={animalIcon}
+                    >
+                      <Popup>
+                        <Box sx={{ minWidth: 200 }}>
+                          <Typography variant="h6">{animal.name}</Typography>
+                          <Typography variant="body2">
+                            {animal.description}
+                          </Typography>
+                          {animal.image && (
+                            <img
+                              src={animal.image}
+                              alt={animal.name}
+                              style={{
+                                width: '100%',
+                                marginTop: 8,
+                                borderRadius: 4,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </Popup>
+                    </Marker>
+                  ))}
 
                 {/* Historical Curiosities Layer */}
-                {showHistoricalCuriosities && regionData?.historicalCuriosities?.map((curiosity, index) => (
-                  <Marker
-                    key={`history-${index}`}
-                    position={[curiosity.latitude, curiosity.longitude]}
-                    icon={historyIcon}
-                  >
-                    <Popup>
-                      <Box sx={{ minWidth: 200 }}>
-                        <Typography variant="h6">{curiosity.title || 'Curiosidade Histórica'}</Typography>
-                        <Typography variant="body2">
-                          {curiosity.description}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Adicionado em: {new Date(curiosity.createdAt).toLocaleDateString('pt-BR')}
-                        </Typography>
-                      </Box>
-                    </Popup>
-                  </Marker>
-                ))}
+                {showHistoricalCuriosities &&
+                  regionData?.historicalCuriosities?.map((curiosity, index) => (
+                    <Marker
+                      key={`history-${index}`}
+                      position={[curiosity.latitude, curiosity.longitude]}
+                      icon={historyIcon}
+                    >
+                      <Popup>
+                        <Box sx={{ minWidth: 200 }}>
+                          <Typography variant="h6">
+                            {curiosity.title || 'Curiosidade Histórica'}
+                          </Typography>
+                          <Typography variant="body2">
+                            {curiosity.description}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Adicionado em:{' '}
+                            {new Date(curiosity.createdAt).toLocaleDateString(
+                              'pt-BR'
+                            )}
+                          </Typography>
+                        </Box>
+                      </Popup>
+                    </Marker>
+                  ))}
               </MapContainer>
 
               {/* Floating Action Button for Layers */}
@@ -579,7 +947,11 @@ const Map = () => {
                       alignItems: 'center',
                     }}
                   >
-                    <Typography variant="h6">Folha de Obra</Typography>
+                    <Typography variant="h6">
+                      {selectedArea.type === 'allWorksheets'
+                        ? 'Polígono'
+                        : 'Folha de Obra'}
+                    </Typography>
                     <IconButton
                       size="small"
                       onClick={() => setSelectedArea(null)}
@@ -588,25 +960,94 @@ const Map = () => {
                     </IconButton>
                   </Box>
                   <Divider sx={{ my: 1 }} />
-                  <Typography variant="body2">
-                    <strong>ID:</strong> {selectedArea.worksheetId}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>AIGP:</strong> {selectedArea.aigp?.join(', ') || selectedArea.feature?.aigp || 'N/A'}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Período:</strong> {selectedArea.worksheet?.metadata?.startingDate || 'N/A'} até {selectedArea.worksheet?.metadata?.finishingDate || 'N/A'}
-                  </Typography>
-                  {selectedArea.worksheet?.metadata?.operations && selectedArea.worksheet.metadata.operations.length > 0 && (
+
+                  {selectedArea.type === 'allWorksheets' ? (
+                    // Display polygon information with worksheet metadata
                     <>
-                      <Typography variant="body2" sx={{ mt: 1 }}>
-                        <strong>Operações:</strong>
+                      <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
+                        Folha de Obra #{selectedArea.worksheetMetadata?.worksheetId}
                       </Typography>
-                      {selectedArea.worksheet.metadata.operations.map((op, idx) => (
-                        <Typography key={idx} variant="caption" component="div" sx={{ ml: 1 }}>
-                          • {op.operationDescription} ({op.areaHa} ha)
+                      <Typography variant="body2">
+                        <strong>Início:</strong> {selectedArea.worksheetMetadata?.startingDate || 'N/A'}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Fim:</strong> {selectedArea.worksheetMetadata?.finishingDate || 'N/A'}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Fornecedor:</strong> {selectedArea.worksheetMetadata?.serviceProviderId || 'N/A'}
+                      </Typography>
+                      {selectedArea.worksheetMetadata?.posaCode && (
+                        <Typography variant="body2">
+                          <strong>POSA:</strong> {selectedArea.worksheetMetadata.posaCode}
                         </Typography>
-                      ))}
+                      )}
+                      <Divider sx={{ my: 1 }} />
+                      <Typography variant="body2">
+                        <strong>Polígono ID:</strong>{' '}
+                        {selectedArea.feature?.id ||
+                          selectedArea.feature?.polygonId ||
+                          'N/A'}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>AIGP:</strong>{' '}
+                        {selectedArea.feature?.aigp || 'N/A'}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Propriedade Rural:</strong>{' '}
+                        {selectedArea.feature?.ruralPropertyId || 'N/A'}
+                      </Typography>
+                      {selectedArea.feature?.uiId && (
+                        <Typography variant="body2">
+                          <strong>UI:</strong> {selectedArea.feature.uiId}
+                        </Typography>
+                      )}
+                      {selectedArea.feature?.area && (
+                        <Typography variant="body2">
+                          <strong>Área:</strong> {selectedArea.feature.area} ha
+                        </Typography>
+                      )}
+                    </>
+                  ) : (
+                    // Display worksheet information
+                    <>
+                      <Typography variant="body2">
+                        <strong>ID:</strong> {selectedArea.worksheetId}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>AIGP:</strong>{' '}
+                        {selectedArea.aigp?.join(', ') ||
+                          selectedArea.feature?.aigp ||
+                          'N/A'}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Período:</strong>{' '}
+                        {selectedArea.worksheet?.metadata?.startingDate ||
+                          'N/A'}{' '}
+                        até{' '}
+                        {selectedArea.worksheet?.metadata?.finishingDate ||
+                          'N/A'}
+                      </Typography>
+                      {selectedArea.worksheet?.metadata?.operations &&
+                        selectedArea.worksheet.metadata.operations.length >
+                          0 && (
+                          <>
+                            <Typography variant="body2" sx={{ mt: 1 }}>
+                              <strong>Operações:</strong>
+                            </Typography>
+                            {selectedArea.worksheet.metadata.operations.map(
+                              (op, idx) => (
+                                <Typography
+                                  key={idx}
+                                  variant="caption"
+                                  component="div"
+                                  sx={{ ml: 1 }}
+                                >
+                                  • {op.operationDescription} ({op.areaHa} ha)
+                                </Typography>
+                              )
+                            )}
+                          </>
+                        )}
                     </>
                   )}
                 </Paper>
@@ -615,7 +1056,7 @@ const Map = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <RegionSidebar
             regionData={regionData}
             loading={regionLoading}
@@ -639,7 +1080,8 @@ const Map = () => {
           </Typography>
           {user?.role === 'PO' ? (
             <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-              Como operador, suas operações são visualizadas através das folhas de execução atribuídas.
+              Como operador, suas operações são visualizadas através das folhas
+              de execução atribuídas.
             </Typography>
           ) : worksheetsLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
@@ -661,10 +1103,14 @@ const Map = () => {
                     secondary={
                       <Box>
                         <Typography variant="caption" component="div">
-                          AIGP: {worksheet.aigp ? worksheet.aigp.join(', ') : 'N/A'}
+                          AIGP:{' '}
+                          {worksheet.aigp ? worksheet.aigp.join(', ') : 'N/A'}
                         </Typography>
                         <Typography variant="caption" component="div">
-                          {worksheet.operations ? worksheet.operations.length : 0} operações
+                          {worksheet.operations
+                            ? worksheet.operations.length
+                            : 0}{' '}
+                          operações
                         </Typography>
                       </Box>
                     }
@@ -679,6 +1125,18 @@ const Map = () => {
           )}
 
           <Divider sx={{ my: 2 }} />
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showAllWorksheetPolygons}
+                onChange={(e) =>
+                  setShowAllWorksheetPolygons(e.target.checked)
+                }
+              />
+            }
+            label="Mostrar Todos os Polígonos"
+          />
 
           <FormControlLabel
             control={
@@ -729,7 +1187,9 @@ const Map = () => {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <HistoryIcon fontSize="small" color="info" />
-                <Typography variant="caption">Curiosidades Históricas</Typography>
+                <Typography variant="caption">
+                  Curiosidades Históricas
+                </Typography>
               </Box>
             </Box>
           </Box>

@@ -50,8 +50,7 @@ import {
 import { useSnackbar } from 'notistack';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { executionSheetService, worksheetService } from '../services/api';
-import PolygonSelector from '../components/PolygonSelector';
-import 'leaflet-draw/dist/leaflet.draw.css';
+import PolygonSelectionMap from '../components/PolygonSelectionMap';
 
 const steps = [
   'Selecionar Folha de Obra',
@@ -71,7 +70,7 @@ const ExecutionSheetCreate = () => {
   const [loading, setLoading] = useState(false);
   const [worksheets, setWorksheets] = useState([]);
   const [selectedWorksheet, setSelectedWorksheet] = useState(null);
-  const [polygonSelectorOpen, setPolygonSelectorOpen] = useState(false);
+  const [polygonMapOpen, setPolygonMapOpen] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -89,9 +88,11 @@ const ExecutionSheetCreate = () => {
     operationCode: '',
     areaHaExecuted: '',
     areaPerc: '100',
+    polygonId: '',
     startingDate: new Date().toISOString().split('T')[0],
     finishingDate: '',
     observations: '',
+    estimatedDurationHours: '',
   });
 
   // Polygon operations form
@@ -208,12 +209,11 @@ const ExecutionSheetCreate = () => {
       setOperationForm({
         operationCode: '',
         areaHaExecuted: '',
-        areaPerc: '',
+        areaPerc: '100',
         polygonId: '',
-        startingDate: '',
+        startingDate: new Date().toISOString().split('T')[0],
         finishingDate: '',
         observations: '',
-        plannedCompletionDate: '',
         estimatedDurationHours: '',
       });
     }
@@ -256,9 +256,9 @@ const ExecutionSheetCreate = () => {
     }));
   };
 
-  const handleOpenPolygonSelector = () => {
+  const handleOpenPolygonMap = () => {
     if (formData.workSheetId) {
-      setPolygonSelectorOpen(true);
+      setPolygonMapOpen(true);
     } else {
       enqueueSnackbar('Por favor, selecione uma folha de obra primeiro', {
         variant: 'warning',
@@ -266,8 +266,26 @@ const ExecutionSheetCreate = () => {
     }
   };
 
-  const handleClosePolygonSelector = () => {
-    setPolygonSelectorOpen(false);
+  // Get already selected polygon IDs
+  const getSelectedPolygonIds = () => {
+    const ids = [];
+    // From operations
+    formData.operations.forEach((op) => {
+      if (op.polygonId) {
+        ids.push(parseInt(op.polygonId));
+      }
+    });
+    // From polygon operations
+    formData.polygonsOperations.forEach((po) => {
+      if (po.polygonId) {
+        ids.push(parseInt(po.polygonId));
+      }
+    });
+    return [...new Set(ids)]; // Remove duplicates
+  };
+
+  const handleClosePolygonMap = () => {
+    setPolygonMapOpen(false);
   };
 
   const handlePolygonSelect = (polygon) => {
@@ -284,24 +302,11 @@ const ExecutionSheetCreate = () => {
     }));
 
     // Close the selector dialog
-    handleClosePolygonSelector();
+    handleClosePolygonMap();
 
-    if (polygon.type === 'custom') {
-      enqueueSnackbar(`Polígono personalizado "${polygon.name}" selecionado`, {
-        variant: 'success',
-      });
-    } else {
-      enqueueSnackbar(`Polígono ${polygon.id} selecionado`, {
-        variant: 'success',
-      });
-    }
-  };
-
-  const handlePolygonCreated = async (polygonData) => {
-    // For custom polygons, we don't need to store them separately in the backend
-    // They will be included in the execution sheet data when it's created
-    console.log('Custom polygon created for execution sheet:', polygonData);
-    return polygonData; // Just return the data, don't make API call
+    enqueueSnackbar(`Polígono ${polygon.id} selecionado`, {
+      variant: 'success',
+    });
   };
 
   const handleSubmit = async () => {
@@ -449,10 +454,10 @@ const ExecutionSheetCreate = () => {
                 required
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2}>
               <TextField
                 fullWidth
-                label="Área Executada (ha)"
+                label="Área (ha)"
                 type="number"
                 value={operationForm.areaHaExecuted}
                 onChange={(e) =>
@@ -474,7 +479,7 @@ const ExecutionSheetCreate = () => {
                 />
                 <Button
                   variant="outlined"
-                  onClick={handleOpenPolygonSelector}
+                  onClick={handleOpenPolygonMap}
                   sx={{ minWidth: 'auto', px: 2 }}
                   title="Selecionar no mapa"
                   disabled={!formData.workSheetId}
@@ -483,10 +488,10 @@ const ExecutionSheetCreate = () => {
                 </Button>
               </Box>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2}>
               <TextField
                 fullWidth
-                label="Duração Estimada (h)"
+                label="Duração (h)"
                 type="number"
                 value={operationForm.estimatedDurationHours}
                 onChange={(e) =>
@@ -622,7 +627,7 @@ const ExecutionSheetCreate = () => {
                 />
                 <Button
                   variant="outlined"
-                  onClick={handleOpenPolygonSelector}
+                  onClick={handleOpenPolygonMap}
                   sx={{ minWidth: 'auto', px: 2 }}
                   title="Selecionar no mapa"
                   disabled={!formData.workSheetId}
@@ -846,15 +851,14 @@ const ExecutionSheetCreate = () => {
         </Box>
       </Paper>
 
-      {/* Polygon Selector Modal */}
-      <PolygonSelector
-        open={polygonSelectorOpen}
-        onClose={handleClosePolygonSelector}
+      {/* Polygon Selection Map Modal */}
+      <PolygonSelectionMap
+        open={polygonMapOpen}
+        onClose={handleClosePolygonMap}
         onSelect={handlePolygonSelect}
-        onPolygonCreated={handlePolygonCreated}
-        worksheetId={formData.workSheetId}
-        allowDrawing={true}
-        title="Selecionar ou Desenhar Polígono"
+        title="Selecionar Polígono"
+        availablePolygons={selectedWorksheet?.features || []}
+        selectedPolygonIds={getSelectedPolygonIds()}
       />
     </Container>
   );

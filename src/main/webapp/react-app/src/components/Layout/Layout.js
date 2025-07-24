@@ -31,6 +31,7 @@ import {
   DeleteSweep as DeleteSweepIcon,
   Description as DescriptionIcon,
   Dashboard as DashboardIcon,
+  Business as BusinessIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -100,6 +101,12 @@ const Layout = () => {
       icon: <DeleteSweepIcon />,
       path: '/dashboard/removal-requests',
       roles: ['SYSADMIN', 'SYSBO'], // Both have LIST_ACCOUNTS_FOR_REMOVAL
+    },
+    {
+      text: 'Atribuir Empresas',
+      icon: <BusinessIcon />,
+      path: '/dashboard/assign-corporation',
+      roles: ['SYSADMIN'], // Only SYSADMIN can assign corporations
     },
 
     { divider: true },
