@@ -254,6 +254,7 @@ const WorksheetCreate = () => {
           issue_date: formatDate(formData.issueDate),
           service_provider_id: serviceProviderId,
           award_date: formatDate(formData.awardDate),
+          issuing_user_id: user?.id || null, // Add the current user's ID
           aigp: formData.aigp,
           posa_code: formData.posaCode,
           posa_description: formData.posaDescription,
