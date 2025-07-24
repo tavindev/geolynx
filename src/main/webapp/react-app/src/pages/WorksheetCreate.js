@@ -73,9 +73,11 @@ const WorksheetCreate = () => {
   const fetchServiceProviders = async () => {
     try {
       const response = await corporationService.getAll();
+      console.log('Service providers loaded:', response.data); // Debug log
       setServiceProviders(response.data || []);
     } catch (error) {
       console.error('Error fetching service providers:', error);
+      setError('Erro ao carregar fornecedores de serviços');
     }
   };
 
@@ -91,6 +93,7 @@ const WorksheetCreate = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log(`Field changed: ${name} = ${value}`); // Debug log
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -221,6 +224,14 @@ const WorksheetCreate = () => {
         return;
       }
 
+      // Ensure serviceProviderId is a valid number
+      const serviceProviderId = parseInt(formData.serviceProviderId);
+      if (isNaN(serviceProviderId)) {
+        setError('ID do fornecedor de serviços inválido');
+        setLoading(false);
+        return;
+      }
+
       if (formData.features.length === 0) {
         setError('Por favor, selecione pelo menos um polígono no mapa');
         setLoading(false);
@@ -241,7 +252,7 @@ const WorksheetCreate = () => {
           starting_date: formatDate(formData.startingDate),
           finishing_date: formatDate(formData.finishingDate),
           issue_date: formatDate(formData.issueDate),
-          service_provider_id: formData.serviceProviderId ? parseInt(formData.serviceProviderId) : null,
+          service_provider_id: serviceProviderId,
           award_date: formatDate(formData.awardDate),
           aigp: formData.aigp,
           posa_code: formData.posaCode,
@@ -252,6 +263,8 @@ const WorksheetCreate = () => {
           id: null
         }
       };
+
+      console.log('Sending worksheet data:', JSON.stringify(worksheetData, null, 2)); // Debug log
 
       await worksheetService.create(worksheetData);
       navigate('/dashboard/worksheets');

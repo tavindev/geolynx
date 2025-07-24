@@ -27,9 +27,93 @@ import {
   Add as AddIcon,
   Assignment as AssignmentIcon,
   Visibility as VisibilityIcon,
+  Map as MapIcon,
 } from '@mui/icons-material';
+import { MapContainer, TileLayer, Polygon, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import proj4 from 'proj4';
 import { worksheetService, executionSheetService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+
+// Fix for default markers in React-Leaflet
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Define projection for EPSG:3763 (Portuguese grid system)
+proj4.defs(
+  'EPSG:3763',
+  '+proj=tmerc +lat_0=39.66825833333333 +lon_0=-8.133108333333334 +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+);
+
+// Convert coordinates to EPSG:4326 (WGS84)
+const convertCoordinates = (coordinates) => {
+  const isWGS84 = (coord) => {
+    return Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90;
+  };
+
+  // Handle the case where each coordinate is wrapped in its own array
+  // e.g., [[[lng, lat]], [[lng, lat]], ...] instead of [[lng, lat], [lng, lat], ...]
+  if (
+    coordinates.length > 0 &&
+    Array.isArray(coordinates[0]) &&
+    coordinates[0].length === 1 &&
+    Array.isArray(coordinates[0][0])
+  ) {
+    // Flatten the structure
+    const flattened = coordinates.map((pointArray) => pointArray[0]);
+
+    return flattened.map((coord) => {
+      if (!Array.isArray(coord) || coord.length < 2) return [0, 0];
+
+      if (isWGS84(coord)) {
+        return [coord[1], coord[0]]; // GeoJSON is [lng, lat], Leaflet expects [lat, lng]
+      }
+      try {
+        const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [
+          coord[0],
+          coord[1],
+        ]);
+        return [lat, lng];
+      } catch (error) {
+        console.error('Coordinate conversion error:', error);
+        return [0, 0];
+      }
+    });
+  }
+
+  // Standard polygon format
+  return coordinates.map((ring) => {
+    if (!Array.isArray(ring)) return [];
+
+    return ring.map((coord) => {
+      if (!Array.isArray(coord) || coord.length < 2) return [0, 0];
+
+      if (isWGS84(coord)) {
+        return [coord[1], coord[0]]; // GeoJSON is [lng, lat], Leaflet expects [lat, lng]
+      }
+      try {
+        const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [
+          coord[0],
+          coord[1],
+        ]);
+        return [lat, lng];
+      } catch (error) {
+        console.error('Coordinate conversion error:', error);
+        return [0, 0];
+      }
+    });
+  });
+};
 
 const WorksheetDetail = () => {
   const { id } = useParams();
@@ -39,6 +123,7 @@ const WorksheetDetail = () => {
   const [executionSheets, setExecutionSheets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [mapCenter, setMapCenter] = useState([39.6547, -8.0123]); // Default center for Portugal
 
   useEffect(() => {
     fetchWorksheet();
@@ -50,6 +135,19 @@ const WorksheetDetail = () => {
       setLoading(true);
       const response = await worksheetService.get(id);
       setWorksheet(response.data);
+
+      // Set map center based on first polygon if available
+      if (response.data?.features && response.data.features.length > 0) {
+        const firstFeature = response.data.features[0];
+        if (firstFeature.geometry && firstFeature.geometry.type === 'Polygon') {
+          const convertedCoords = convertCoordinates(
+            firstFeature.geometry.coordinates
+          );
+          if (convertedCoords && convertedCoords.length > 0) {
+            setMapCenter([convertedCoords[0][0], convertedCoords[0][1]]);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error fetching worksheet:', error);
       setError('Erro ao carregar ficha de obra');
@@ -166,7 +264,94 @@ const WorksheetDetail = () => {
         </Typography>
       </Box>
 
+      {/* Map Section */}
+      {worksheet?.features && worksheet.features.length > 0 && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            mt: 3,
+            border: '1px solid #e0e0e0',
+            boxShadow: '0px 8px 24px -10px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <MapIcon sx={{ mr: 1 }} />
+            <Typography variant="h5">Mapa de Polígonos</Typography>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
 
+          <Box sx={{ height: '500px', position: 'relative' }}>
+            <MapContainer
+              center={mapCenter}
+              zoom={13}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              />
+
+              {worksheet.features.map((feature, index) => {
+                if (feature.geometry && feature.geometry.type === 'Polygon') {
+                  const convertedCoords = convertCoordinates(
+                    feature.geometry.coordinates
+                  );
+
+                  if (convertedCoords && convertedCoords.length >= 3) {
+                    return (
+                      <Polygon
+                        key={index}
+                        positions={convertedCoords}
+                        pathOptions={{
+                          color: '#3498db',
+                          fillColor: '#3498db',
+                          fillOpacity: 0.3,
+                          weight: 2,
+                        }}
+                      >
+                        <Popup>
+                          <Box sx={{ minWidth: 200 }}>
+                            <Typography variant="h6">
+                              Polígono{' '}
+                              {feature.properties?.polygonId ||
+                                feature.properties?.id ||
+                                index + 1}
+                            </Typography>
+                            {feature.properties?.aigp && (
+                              <Typography variant="body2">
+                                <strong>AIGP:</strong> {feature.properties.aigp}
+                              </Typography>
+                            )}
+                            {feature.properties?.ruralPropertyId && (
+                              <Typography variant="body2">
+                                <strong>Propriedade Rural:</strong>{' '}
+                                {feature.properties.ruralPropertyId}
+                              </Typography>
+                            )}
+                            {feature.properties?.uiId && (
+                              <Typography variant="body2">
+                                <strong>UI:</strong> {feature.properties.uiId}
+                              </Typography>
+                            )}
+                            {feature.properties?.area && (
+                              <Typography variant="body2">
+                                <strong>Área:</strong> {feature.properties.area}{' '}
+                                ha
+                              </Typography>
+                            )}
+                          </Box>
+                        </Popup>
+                      </Polygon>
+                    );
+                  }
+                }
+                return null;
+              })}
+            </MapContainer>
+          </Box>
+        </Paper>
+      )}
 
       <Paper
         elevation={0}
