@@ -11,7 +11,7 @@ import java.util.List;
 
 public class DatastoreCorporationRepository {
 
-    private static final String CORPORATION_KIND = "Corporationn";
+    private static final String CORPORATION_KIND = "Corporation";
     // Property name constants
     private static final String PROPERTY_ID = "id";
     private static final String PROPERTY_NAME = "name";
