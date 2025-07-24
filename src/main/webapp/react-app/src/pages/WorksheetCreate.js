@@ -259,8 +259,8 @@ const WorksheetCreate = () => {
           posa_description: formData.posaDescription,
           posp_code: formData.pospCode,
           posp_description: formData.pospDescription,
-          operations: formData.operations,
-          id: null
+          operations: formData.operations
+          // Note: Do not include 'id' field for creation
         }
       };
 
