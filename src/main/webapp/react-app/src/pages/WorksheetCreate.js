@@ -240,7 +240,7 @@ const WorksheetCreate = () => {
           starting_date: formatDate(formData.startingDate),
           finishing_date: formatDate(formData.finishingDate),
           issue_date: formatDate(formData.issueDate),
-          service_provider_id: parseInt(formData.serviceProviderId),
+          service_provider_id: formData.serviceProviderId ? parseInt(formData.serviceProviderId) : null,
           award_date: formatDate(formData.awardDate),
           aigp: formData.aigp,
           posa_code: formData.posaCode,

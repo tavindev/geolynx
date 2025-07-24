@@ -55,6 +55,7 @@ import PolygonSelectionMap from '../components/PolygonSelectionMap';
 const steps = [
   'Selecionar Folha de Obra',
   'Informações Básicas',
+  'Selecionar Polígonos',
   'Configurar Operações',
   'Revisar e Criar',
 ];
@@ -79,6 +80,7 @@ const ExecutionSheetCreate = () => {
   const [loading, setLoading] = useState(false);
   const [worksheets, setWorksheets] = useState([]);
   const [selectedWorksheet, setSelectedWorksheet] = useState(null);
+  const [availablePolygons, setAvailablePolygons] = useState([]);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -90,6 +92,9 @@ const ExecutionSheetCreate = () => {
     operations: [],
     polygonsOperations: [],
   });
+
+  // Selected polygons
+  const [selectedPolygons, setSelectedPolygons] = useState([]);
 
   // Operations form
   const [operationForm, setOperationForm] = useState({
@@ -105,6 +110,7 @@ const ExecutionSheetCreate = () => {
 
   useEffect(() => {
     fetchWorksheets();
+    fetchAvailablePolygons();
   }, []);
 
   useEffect(() => {
@@ -125,6 +131,15 @@ const ExecutionSheetCreate = () => {
       setWorksheets(response.data || []);
     } catch (error) {
       enqueueSnackbar('Erro ao carregar folhas de obra', { variant: 'error' });
+    }
+  };
+
+  const fetchAvailablePolygons = async () => {
+    try {
+      const response = await worksheetService.getPolygons();
+      setAvailablePolygons(response.data || []);
+    } catch (error) {
+      console.error('Error fetching polygons:', error);
     }
   };
 
@@ -231,30 +246,8 @@ const ExecutionSheetCreate = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // Get unique polygon IDs from the worksheet operations
-      const polygonIds = [];
-      if (selectedWorksheet && selectedWorksheet.metadata && selectedWorksheet.metadata.operations) {
-        selectedWorksheet.metadata.operations.forEach(op => {
-          if (op.polygonId && !polygonIds.includes(op.polygonId)) {
-            polygonIds.push(op.polygonId);
-          }
-        });
-      }
-
-      // If no polygon IDs found in operations, get from features
-      if (polygonIds.length === 0 && selectedWorksheet && selectedWorksheet.features) {
-        selectedWorksheet.features.forEach(feature => {
-          if (feature.properties && feature.properties.polygonId) {
-            const id = parseInt(feature.properties.polygonId);
-            if (!polygonIds.includes(id)) {
-              polygonIds.push(id);
-            }
-          }
-        });
-      }
-
-      // Create polygon operations for each polygon
-      const polygonsOperations = polygonIds.map(polygonId => ({
+      // Create polygon operations for each selected polygon
+      const polygonsOperations = selectedPolygons.map(polygonId => ({
         polygonId: parseInt(polygonId),
         operations: formData.operations.map((op, index) => ({
           operationId: index + 1,
@@ -390,6 +383,94 @@ const ExecutionSheetCreate = () => {
       </Grid>
     </Box>
   );
+
+  const renderPolygonSelection = () => {
+    if (availablePolygons.length === 0) {
+      return (
+        <Alert severity="warning">
+          Não há polígonos disponíveis para seleção.
+        </Alert>
+      );
+    }
+
+    return (
+      <Box>
+        <Typography variant="h6" gutterBottom>
+          Selecione os Polígonos
+        </Typography>
+        <Typography variant="body2" color="textSecondary" gutterBottom>
+          Selecione os polígonos onde as operações serão executadas
+        </Typography>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={selectedPolygons.length === availablePolygons.length}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelectedPolygons(availablePolygons.map(p => p.id));
+                } else {
+                  setSelectedPolygons([]);
+                }
+              }}
+            />
+          }
+          label="Selecionar todos"
+          sx={{ mb: 2 }}
+        />
+
+        <Grid container spacing={2}>
+          {availablePolygons.map((polygon) => {
+            const isSelected = selectedPolygons.includes(polygon.id);
+
+            return (
+              <Grid item xs={12} md={6} lg={4} key={polygon.id}>
+                <Card
+                  sx={{
+                    cursor: 'pointer',
+                    border: isSelected ? 2 : 1,
+                    borderColor: isSelected ? 'primary.main' : 'divider',
+                    bgcolor: isSelected ? 'action.selected' : 'background.paper',
+                  }}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedPolygons(prev => prev.filter(id => id !== polygon.id));
+                    } else {
+                      setSelectedPolygons(prev => [...prev, polygon.id]);
+                    }
+                  }}
+                >
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="h6">
+                        {polygon.name || `Polígono ${polygon.id}`}
+                      </Typography>
+                      {isSelected && <CheckIcon color="primary" />}
+                    </Box>
+                    {polygon.worksheetId && (
+                      <Typography variant="body2" color="textSecondary">
+                        Folha de Obra: #{polygon.worksheetId}
+                      </Typography>
+                    )}
+                    {polygon.aigp && (
+                      <Typography variant="body2" color="textSecondary">
+                        AIGP: {polygon.aigp}
+                      </Typography>
+                    )}
+                    {polygon.area && (
+                      <Typography variant="body2" color="textSecondary">
+                        Área: {polygon.area} ha
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Box>
+    );
+  };
 
   const renderOperationsConfig = () => {
     // Get available operation codes from selected worksheet
@@ -653,7 +734,7 @@ const ExecutionSheetCreate = () => {
                 <ListItem>
                   <ListItemText
                     primary="Polígonos"
-                    secondary="Serão criados automaticamente com base na folha de obra"
+                    secondary={`${selectedPolygons.length} polígonos selecionados`}
                   />
                 </ListItem>
               </List>
@@ -671,8 +752,10 @@ const ExecutionSheetCreate = () => {
       case 1:
         return renderBasicInfo();
       case 2:
-        return renderOperationsConfig();
+        return renderPolygonSelection();
       case 3:
+        return renderOperationsConfig();
+      case 4:
         return renderReview();
       default:
         return 'Unknown step';
@@ -686,8 +769,10 @@ const ExecutionSheetCreate = () => {
       case 1:
         return formData.startingDate;
       case 2:
-        return formData.operations.length > 0;
+        return selectedPolygons.length > 0;
       case 3:
+        return formData.operations.length > 0;
+      case 4:
         return true;
       default:
         return false;
