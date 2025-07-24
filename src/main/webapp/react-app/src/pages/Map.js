@@ -190,15 +190,6 @@ function MapControls({ user, onCreateAnimal, onCreateCuriosity, onCreateExecutio
             >
               <HistoryIcon />
             </Fab>
-            {canCreateExecutionSheet && (
-              <Fab
-                size="small"
-                color="warning"
-                onClick={onCreateExecutionSheet}
-                title="Criar Folha de Execução"
-              >
-                <ExecutionSheetIcon />
-              </Fab>
             )}
           </>
         )}
