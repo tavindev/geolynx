@@ -6,6 +6,7 @@ import com.google.api.gax.rpc.AlreadyExistsException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 import tavindev.core.entities.User;
+import tavindev.core.entities.UserRole;
 import tavindev.core.entities.WorkSheet;
 import tavindev.core.entities.Permission;
 import tavindev.core.authorization.PermissionAuthorizationHandler;
@@ -41,7 +42,8 @@ public class WorkSheetService {
 
         double[] firstPoint = transformedWorkSheet.getFirstPoint();
 
-        // transformedCoordinates are already in WGS84, so firstPoint[0] = lat, firstPoint[1] = lon
+        // transformedCoordinates are already in WGS84, so firstPoint[0] = lat,
+        // firstPoint[1] = lon
         transformedWorkSheet.setGeohash(geoHashService.calculateGeohash(firstPoint[0], firstPoint[1]));
         if (corporationRepository.exists(transformedWorkSheet.getMetadata().getServiceProviderId()))
             throw new CorporationNotFoundException("WorkSheet already exists");
@@ -64,8 +66,7 @@ public class WorkSheetService {
                 workSheet.getType(),
                 workSheet.getCrs(),
                 transformedFeatures,
-                workSheet.getMetadata()
-        );
+                workSheet.getMetadata());
     }
 
     private WorkSheet.GeoFeature transformGeoFeature(WorkSheet.GeoFeature feature) {
@@ -79,14 +80,12 @@ public class WorkSheetService {
 
         WorkSheet.GeoFeature.Geometry transformedGeometry = new WorkSheet.GeoFeature.Geometry(
                 feature.getGeometry().getType(),
-                transformedCoordinates
-        );
+                transformedCoordinates);
 
         return new WorkSheet.GeoFeature(
                 feature.getType(),
                 feature.getProperties(),
-                transformedGeometry
-        );
+                transformedGeometry);
     }
 
     private List<List<Double>> transformRing(List<List<Double>> ring) {
@@ -132,7 +131,12 @@ public class WorkSheetService {
 
     public List<WorkSheetListResponseDTO> getAllWorkSheets(String tokenId, WorksheetQueryFilters filter) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
+
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_GEN_FO);
+
+        if (currentUser.getRole() == UserRole.PRBO) {
+            filter.setServiceProviderId(currentUser.getCorporationId());
+        }
 
         return workSheetRepository.getAll(filter);
     }

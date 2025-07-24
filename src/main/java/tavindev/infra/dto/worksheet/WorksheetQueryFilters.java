@@ -7,7 +7,7 @@ public class WorksheetQueryFilters {
   private String aigp;
 
   @QueryParam("serviceProviderId")
-  private Long serviceProviderId;
+  private String serviceProviderId;
 
   @QueryParam("startingDate")
   private String startingDate;
@@ -32,7 +32,7 @@ public class WorksheetQueryFilters {
     return aigp;
   }
 
-  public Long getServiceProviderId() {
+  public String getServiceProviderId() {
     return serviceProviderId;
   }
 
@@ -59,4 +59,10 @@ public class WorksheetQueryFilters {
   public String getIssueDate() {
     return issueDate;
   }
+
+  // settes
+  public void setServiceProviderId(String serviceProviderId) {
+    this.serviceProviderId = serviceProviderId;
+  }
+
 }
