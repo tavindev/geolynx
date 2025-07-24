@@ -284,6 +284,26 @@ public class ExecutionSheetRepository {
 		return executionSheets;
 	}
 
+	public List<ExecutionSheet> findAll() {
+		// Query for all execution sheets
+		Query<Entity> query = Query.newEntityQueryBuilder()
+				.setKind(EXECUTION_SHEET_KIND)
+				.build();
+
+		QueryResults<Entity> results = datastore.run(query);
+		List<ExecutionSheet> executionSheets = new ArrayList<>();
+
+		while (results.hasNext()) {
+			Entity entity = results.next();
+			ExecutionSheet executionSheet = get(entity.getKey().getId());
+			if (executionSheet != null) {
+				executionSheets.add(executionSheet);
+			}
+		}
+
+		return executionSheets;
+	}
+
 	private boolean hasOperatorAssigned(ExecutionSheet executionSheet, String operatorId) {
 		if (executionSheet.getPolygonsOperations() == null) {
 			return false;

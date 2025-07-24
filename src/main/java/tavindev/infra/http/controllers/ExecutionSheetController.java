@@ -23,6 +23,9 @@ import tavindev.infra.dto.executionsheet.EditOperationResponseDTO;
 import tavindev.infra.dto.executionsheet.ExportExecutionSheetDTO;
 import tavindev.infra.dto.executionsheet.ExportExecutionSheetResponseDTO;
 import tavindev.infra.dto.executionsheet.GetExecutionSheetsForOperatorResponseDTO;
+import tavindev.infra.repositories.ExecutionSheetRepository;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 @Path("/execution-sheet")
@@ -30,6 +33,9 @@ import tavindev.infra.dto.executionsheet.GetExecutionSheetsForOperatorResponseDT
 public class ExecutionSheetController {
 	@Inject
 	private ExecutionSheetService executionSheetService;
+	
+	@Inject
+	private ExecutionSheetRepository executionSheetRepository;
 
 	@POST
 	@Path("/")
@@ -168,5 +174,81 @@ public class ExecutionSheetController {
 		return new GetExecutionSheetsForOperatorResponseDTO(
 				"Folhas de execução obtidas com sucesso.",
 				executionSheets);
+	}
+
+	@GET
+	@Path("/dashboard/statistics")
+	public Map<String, Object> getDashboardStatistics(@CookieParam("session") String token) {
+		// Get all execution sheets for management dashboard statistics
+		// This endpoint is intended for PRBO/SDVBO users who need overview of all operations
+		List<ExecutionSheet> allExecutionSheets = executionSheetRepository.findAll();
+		
+		int pending = 0;
+		int inProgress = 0;
+		int completed = 0;
+		
+		for (ExecutionSheet sheet : allExecutionSheets) {
+			if (sheet.getPolygonsOperations() != null) {
+				for (ExecutionSheet.PolygonOperation polygonOp : sheet.getPolygonsOperations()) {
+					if (polygonOp.getOperations() != null) {
+						for (ExecutionSheet.PolygonOperationDetail operation : polygonOp.getOperations()) {
+							String status = operation.getStatus();
+							switch (status) {
+								case "assigned" -> pending++;
+								case "ongoing" -> inProgress++;
+								case "completed" -> completed++;
+								default -> {} // Handle other statuses if needed
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		int total = pending + inProgress + completed;
+		int completionRate = total > 0 ? Math.round((float) completed / total * 100) : 0;
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("message", "Dashboard statistics retrieved successfully");
+		response.put("pending", pending);
+		response.put("inProgress", inProgress);
+		response.put("completed", completed);
+		response.put("completionRate", completionRate + "%");
+		
+		return response;
+	}
+
+	@GET
+	@Path("/dashboard/operator-statistics")
+	public Map<String, Object> getOperatorStatistics(@CookieParam("session") String token) {
+		List<ExecutionSheet> executionSheets = executionSheetService.getExecutionSheetsForOperator(token);
+		
+		int assigned = 0;
+		int inProgress = 0;
+		int completed = 0;
+		
+		for (ExecutionSheet sheet : executionSheets) {
+			for (ExecutionSheet.PolygonOperation polygonOp : sheet.getPolygonsOperations()) {
+				for (ExecutionSheet.PolygonOperationDetail operation : polygonOp.getOperations()) {
+					String status = operation.getStatus();
+					switch (status) {
+						case "assigned" -> assigned++;
+						case "ongoing" -> inProgress++;
+						case "completed" -> completed++;
+					}
+				}
+			}
+		}
+		
+		int total = assigned + inProgress + completed;
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("message", "Operator statistics retrieved successfully");
+		response.put("assigned", assigned);
+		response.put("inProgress", inProgress);
+		response.put("completed", completed);
+		response.put("total", total);
+		
+		return response;
 	}
 }
