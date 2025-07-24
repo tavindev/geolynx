@@ -53,6 +53,7 @@ const WorksheetCreate = () => {
     pospCode: '',
     pospDescription: '',
     operations: [],
+    id: null,
     // Feature fields
     features: []
   });
@@ -247,7 +248,8 @@ const WorksheetCreate = () => {
           posa_description: formData.posaDescription,
           posp_code: formData.pospCode,
           posp_description: formData.pospDescription,
-          operations: formData.operations
+          operations: formData.operations,
+          id: null
         }
       };
 
