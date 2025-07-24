@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  MapContainer,
-  TileLayer,
-  Polygon,
-  Popup,
-  useMap,
-} from 'react-leaflet';
+import { MapContainer, TileLayer, Polygon, Popup, useMap } from 'react-leaflet';
 import {
   Container,
   Paper,
@@ -123,8 +117,6 @@ const convertCoordinates = (coordinates) => {
   });
 };
 
-
-
 // Map updater component for programmatic map updates
 function MapUpdater({ center, zoom }) {
   const map = useMap();
@@ -168,7 +160,6 @@ function MapControls() {
         <Fab size="small" color="secondary" onClick={handleLocate}>
           <MyLocationIcon />
         </Fab>
-
       </Box>
     </Box>
   );
@@ -481,7 +472,6 @@ const Map = () => {
   // Center of Portugal (roughly Mação area - converted from EPSG:3763 examples)
   const [mapCenter, setMapCenter] = useState([39.6547, -8.0123]);
 
-
   const loadWorksheets = useCallback(async () => {
     setWorksheetsLoading(true);
     try {
@@ -533,10 +523,6 @@ const Map = () => {
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
-
-
-
-
 
   const handlePolygonsLoad = useCallback((loadedPolygons) => {
     if (!loadedPolygons || loadedPolygons.length === 0) {
@@ -764,7 +750,6 @@ const Map = () => {
             </Box>
           </Paper>
         </Grid>
-
       </Grid>
 
       {/* Layers Drawer */}
@@ -847,7 +832,6 @@ const Map = () => {
             label="Mostrar Folhas de Obra"
           />
 
-
           <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle2" gutterBottom>
               Legenda
@@ -865,7 +849,6 @@ const Map = () => {
           </Box>
         </Box>
       </Drawer>
-
     </Container>
   );
 };
