@@ -225,14 +225,7 @@ function App() {
                       </PrivateRoute>
                     }
                   />
-                  <Route
-                    path="manage-worksheets"
-                    element={
-                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
-                        <WorkSheets />
-                      </PrivateRoute>
-                    }
-                  />
+
                   <Route
                       path="worksheet-create"
                       element={

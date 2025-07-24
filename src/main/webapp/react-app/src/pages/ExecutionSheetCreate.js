@@ -57,7 +57,6 @@ const steps = [
   'Selecionar Folha de Obra',
   'Informações Básicas',
   'Configurar Operações',
-  'Configurar Polígonos',
   'Revisar e Criar',
 ];
 
@@ -89,13 +88,10 @@ const ExecutionSheetCreate = () => {
   const [operationForm, setOperationForm] = useState({
     operationCode: '',
     areaHaExecuted: '',
-    areaPerc: '',
-    polygonId: '',
-    startingDate: '',
+    areaPerc: '100',
+    startingDate: new Date().toISOString().split('T')[0],
     finishingDate: '',
     observations: '',
-    plannedCompletionDate: '',
-    estimatedDurationHours: '',
   });
 
   // Polygon operations form

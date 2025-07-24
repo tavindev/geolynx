@@ -104,24 +104,17 @@ const Layout = () => {
 
     { divider: true },
 
-    // Worksheet Management Section
+    // Worksheet Management Section - Unified for all worksheet operations
     {
-      text: 'Gestão de Folhas',
+      text: 'Folhas de Obra',
       header: true,
-      roles: ['SYSADMIN', 'SMBO'], // Only SMBO has IMP_FO and REM_FO
-    },
-
-    // Worksheet Viewing Section
-    {
-      text: 'Visualização de Folhas',
-      header: true,
-      roles: ['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO'], // All have some viewing permissions
+      roles: ['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO'], // All who can view or manage worksheets
     },
     {
       text: 'Folhas de Obra',
       icon: <AssignmentIcon />,
       path: '/dashboard/worksheets',
-      roles: ['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO'], // SMBO has VIEW_GEN_FO and VIEW_DET_FO, SGVBO has VIEW_GEN_FO, SDVBO has VIEW_DET_FO
+      roles: ['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO'], // SMBO can manage, SGVBO/SDVBO can view
     },
 
     { divider: true },

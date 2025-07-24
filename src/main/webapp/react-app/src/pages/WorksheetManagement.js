@@ -22,9 +22,6 @@ import {
   Grid,
   Card,
   CardContent,
-  Tabs,
-  Tab,
-  Badge,
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -52,7 +49,7 @@ const WorksheetManagement = () => {
   const [selectedWorksheet, setSelectedWorksheet] = useState(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(false);
-  const [currentTab, setCurrentTab] = useState(0);
+
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -210,10 +207,6 @@ const WorksheetManagement = () => {
 
     if (isNaN(date.getTime())) return '-';
     return date.toLocaleDateString('pt-PT');
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setCurrentTab(newValue);
   };
 
   const renderStatsCards = () => (
@@ -410,77 +403,6 @@ const WorksheetManagement = () => {
     </TableContainer>
   );
 
-  const renderCardView = () => (
-    <Grid container spacing={3}>
-      {worksheets.map((worksheet) => (
-        <Grid item xs={12} md={6} lg={4} key={worksheet.id}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">
-                  Folha #{worksheet.id}
-                </Typography>
-                <Chip
-                  label={new Date(worksheet.finishingDate) >= new Date() ? 'Ativa' : 'Concluída'}
-                  color={new Date(worksheet.finishingDate) >= new Date() ? 'success' : 'default'}
-                  size="small"
-                />
-              </Box>
-              
-              <Typography variant="body2" color="textSecondary" gutterBottom>
-                <strong>Período:</strong> {formatDate(worksheet.startingDate)} - {formatDate(worksheet.finishingDate)}
-              </Typography>
-              
-              <Typography variant="body2" color="textSecondary" gutterBottom>
-                <strong>POSA:</strong> {worksheet.posaCode || 'N/A'} - {worksheet.posaDescription || 'N/A'}
-              </Typography>
-              
-              {worksheet.aigp && worksheet.aigp.length > 0 && (
-                <Box mt={1} mb={2}>
-                  {worksheet.aigp.map((aigp, index) => (
-                    <Chip 
-                      key={index} 
-                      label={aigp} 
-                      size="small" 
-                      sx={{ mr: 0.5, mb: 0.5 }}
-                    />
-                  ))}
-                </Box>
-              )}
-              
-              <Typography variant="body2" color="textSecondary">
-                <strong>Features:</strong> {worksheet.features?.length || 0} | 
-                <strong> Área:</strong> {calculateTotalArea(worksheet)} ha
-              </Typography>
-              
-              <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
-                <IconButton size="small" onClick={() => handleView(worksheet)} color="primary">
-                  <VisibilityIcon />
-                </IconButton>
-                {worksheet.features && worksheet.features.length > 0 && (
-                  <IconButton 
-                    size="small" 
-                    onClick={() => navigate('/dashboard/map', { state: { worksheetId: worksheet.id } })}
-                    color="secondary"
-                  >
-                    <MapIcon />
-                  </IconButton>
-                )}
-                <IconButton 
-                  size="small" 
-                  onClick={() => navigate('/dashboard/execution-sheets', { state: { worksheetId: worksheet.id } })}
-                  color="info"
-                >
-                  <AssignmentIcon />
-                </IconButton>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      ))}
-    </Grid>
-  );
-
   return (
     <Box>
       <Box
@@ -510,26 +432,28 @@ const WorksheetManagement = () => {
             </Button>
           )}
           {hasImportPermission && (
-            <Button
-              variant="contained"
-              startIcon={<UploadIcon />}
-              onClick={() => setUploadDialogOpen(true)}
-              sx={{ borderRadius: 2 }}
-            >
-              Importar GeoJSON
-            </Button>
+            <>
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={() => navigate('/dashboard/worksheet/create')}
+              >
+                Criar Folha de Obra
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<UploadIcon />}
+                onClick={() => setUploadDialogOpen(true)}
+                sx={{ borderRadius: 2 }}
+              >
+                Importar GeoJSON
+              </Button>
+            </>
           )}
         </Box>
       </Box>
 
       {renderStatsCards()}
-
-      <Paper sx={{ mb: 2 }}>
-        <Tabs value={currentTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tab label="Vista de Tabela" />
-          <Tab label="Vista de Cartões" />
-        </Tabs>
-      </Paper>
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -538,9 +462,7 @@ const WorksheetManagement = () => {
       ) : worksheets.length === 0 ? (
         <Alert severity="info">Nenhuma folha de obra encontrada.</Alert>
       ) : (
-        <>
-          {currentTab === 0 ? renderTableView() : renderCardView()}
-        </>
+        renderTableView()
       )}
 
       <Dialog
