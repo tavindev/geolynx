@@ -209,7 +209,7 @@ public class WorkSheet {
         private final String issueDate;
         private final Long serviceProviderId;
         private final String awardDate;
-        private final Long issuingUserId;
+        private final String issuingUserId;
         private final List<String> aigp;
         private final String posaCode;
         private final String posaDescription;
@@ -224,7 +224,7 @@ public class WorkSheet {
                 @JsonProperty("issue_date") String issueDate,
                 @JsonProperty("service_provider_id") Long serviceProviderId,
                 @JsonProperty("award_date") String awardDate,
-                @JsonProperty("issuing_user_id") Long issuingUserId,
+                @JsonProperty("issuing_user_id") String issuingUserId,
                 @JsonProperty("aigp") List<String> aigp,
                 @JsonProperty("posa_code") String posaCode,
                 @JsonProperty("posa_description") String posaDescription,
@@ -271,7 +271,7 @@ public class WorkSheet {
             return awardDate;
         }
 
-        public Long getIssuingUserId() {
+        public String getIssuingUserId() {
             return issuingUserId;
         }
 
