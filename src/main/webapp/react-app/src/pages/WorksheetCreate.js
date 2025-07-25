@@ -286,7 +286,7 @@ const WorksheetCreate = () => {
         },
         features: validFeatures,
         metadata: {
-          id: null, // Include id field as null for creation
+          id: Math.floor(Math.random() * 999999) + 1, // Simple random ID from 1 to 999999
           starting_date: formatDate(formData.startingDate),
           finishing_date: formatDate(formData.finishingDate),
           issue_date: formatDate(formData.issueDate),
