@@ -28,10 +28,12 @@ import {
 import { worksheetService, corporationService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import PolygonSelector from '../components/PolygonSelector';
+import { useSnackbar } from 'notistack';
 
 const WorksheetCreate = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [serviceProviders, setServiceProviders] = useState([]);
@@ -238,6 +240,41 @@ const WorksheetCreate = () => {
         return;
       }
 
+      // Validate dates
+      if (formData.startingDate && formData.finishingDate) {
+        const startDate = new Date(formData.startingDate);
+        const endDate = new Date(formData.finishingDate);
+        if (startDate > endDate) {
+          setError('A data de início não pode ser posterior à data de fim');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Validate operations have positive area
+      for (const op of formData.operations) {
+        if (op.area_ha <= 0) {
+          setError('A área das operações deve ser maior que zero');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Validate features have valid coordinates
+      const validFeatures = formData.features.filter(feature => {
+        if (!feature.geometry || !feature.geometry.coordinates) return false;
+        const coords = feature.geometry.coordinates;
+        if (!Array.isArray(coords) || coords.length === 0) return false;
+        if (!Array.isArray(coords[0]) || coords[0].length < 3) return false;
+        return true;
+      });
+
+      if (validFeatures.length === 0) {
+        setError('Por favor, selecione pelo menos um polígono válido no mapa');
+        setLoading(false);
+        return;
+      }
+
       // Create the GeoJSON structure expected by the backend
       const worksheetData = {
         type: "FeatureCollection",
@@ -247,31 +284,48 @@ const WorksheetCreate = () => {
             name: "EPSG:3763" // Portuguese grid system
           }
         },
-        features: formData.features,
+        features: validFeatures,
         metadata: {
+          id: null, // Include id field as null for creation
           starting_date: formatDate(formData.startingDate),
           finishing_date: formatDate(formData.finishingDate),
           issue_date: formatDate(formData.issueDate),
           service_provider_id: serviceProviderId,
           award_date: formatDate(formData.awardDate),
-          issuing_user_id: user?.id || null, // Add the current user's ID
+          issuing_user_id: user?.username || null, // Use username as the user identifier
           aigp: formData.aigp,
           posa_code: formData.posaCode,
           posa_description: formData.posaDescription,
           posp_code: formData.pospCode,
           posp_description: formData.pospDescription,
           operations: formData.operations
-          // Note: Do not include 'id' field for creation
         }
       };
 
+      console.log('Current user:', user); // Debug log
       console.log('Sending worksheet data:', JSON.stringify(worksheetData, null, 2)); // Debug log
 
-      await worksheetService.create(worksheetData);
+      const response = await worksheetService.create(worksheetData);
+      console.log('Worksheet created successfully:', response.data); // Debug log
+      
+      enqueueSnackbar('Ficha de obra criada com sucesso!', { variant: 'success' });
       navigate('/dashboard/worksheets');
     } catch (error) {
       console.error('Error creating worksheet:', error);
-      setError(error.response?.data?.error || error.response?.data?.message || 'Erro ao criar ficha de obra');
+      console.error('Error response:', error.response); // More detailed error log
+      
+      let errorMessage = 'Erro ao criar ficha de obra';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Erro interno do servidor. Por favor, tente novamente.';
+      }
+      
+      setError(errorMessage);
+      enqueueSnackbar(errorMessage, { variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -579,6 +633,7 @@ const WorksheetCreate = () => {
                   onChange={(e) => setNewOperation({ ...newOperation, areaHa: e.target.value })}
                   size="small"
                   sx={{ width: 100 }}
+                  inputProps={{ min: 0.01, step: 0.01 }}
                 />
                 <Button
                   variant="outlined"
