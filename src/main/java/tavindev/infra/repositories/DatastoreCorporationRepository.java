@@ -87,12 +87,12 @@ public class DatastoreCorporationRepository {
     private Corporation convertToCorporation(Entity entity) {
         // Use safe getters for fields that might not exist in existing data
         String name = entity.contains(PROPERTY_NAME) ? entity.getString(PROPERTY_NAME) : null;
-        String description = entity.contains(PROPERTY_NAME) ? entity.getString(PROPERTY_NAME) : null;
-        String address = entity.contains(PROPERTY_NAME) ? entity.getString(PROPERTY_NAME) : null;
-        String nif = entity.contains(PROPERTY_NAME) ? entity.getString(PROPERTY_NAME) : null;
-        String email = entity.contains(PROPERTY_NAME) ? entity.getString(PROPERTY_NAME) : null;
-        String phone = entity.contains(PROPERTY_NAME) ? entity.getString(PROPERTY_NAME) : null;
-        String publicURL = entity.contains(PROPERTY_NAME) ? entity.getString(PROPERTY_NAME) : null;
+        String description = entity.contains(PROPERTY_DESCRIPTION) ? entity.getString(PROPERTY_DESCRIPTION) : null;
+        String address = entity.contains(PROPERTY_ADDRESS) ? entity.getString(PROPERTY_ADDRESS) : null;
+        String nif = entity.contains(PROPERTY_NIF) ? entity.getString(PROPERTY_NIF) : null;
+        String email = entity.contains(PROPERTY_EMAIL) ? entity.getString(PROPERTY_EMAIL) : null;
+        String phone = entity.contains(PROPERTY_PHONE) ? entity.getString(PROPERTY_PHONE) : null;
+        String publicURL = entity.contains(PROPERTY_PUBLICURL) ? entity.getString(PROPERTY_PUBLICURL) : null;
 
         return new Corporation(
                 entity.getKey().getName(),
