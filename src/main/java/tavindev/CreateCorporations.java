@@ -179,7 +179,7 @@ public class CreateCorporations implements ServletContextListener {
 
     private void createCorporationIfNotExists(String nif, String name, String description,
             String address, String email, String phone, String publicURL) {
-        if (corporationRepository.findById(nif) == null) {
+        if (corporationRepository.findByNif(nif) == null) {
             Corporation corporation = new Corporation(
                     null, // ID will be generated in constructor
                     name,

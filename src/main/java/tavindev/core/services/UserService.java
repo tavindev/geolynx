@@ -165,6 +165,9 @@ public class UserService {
     public void changePassword(String tokenId, String currentPassword, String newPassword) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
 
+        if (currentUser.getRole() == UserRole.SYSADMIN || currentUser.getRole() == UserRole.SYSADMIN)
+            return;
+
         // Check if user has permission to change attributes (password is an attribute)
         PermissionAuthorizationHandler.checkPermission(currentUser, Permission.CHANGE_OWN_ATTRIBUTES);
 

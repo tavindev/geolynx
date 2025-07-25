@@ -94,7 +94,15 @@ public class WorkSheetRepository {
             String issueDate = metadataEntity.getString("issueDate");
             Long serviceProviderId = metadataEntity.getLong("serviceProviderId");
             String awardDate = metadataEntity.getString("awardDate");
-            Long issuingUserId = metadataEntity.getLong("issuingUserId");
+
+            String issuingUserId;
+
+            try {
+                issuingUserId = metadataEntity.getString("issuingUserId");
+            } catch (Exception e) {
+                Long _id = metadataEntity.getLong("issuingUserId");
+                issuingUserId = _id.toString();
+            }
 
             // Extract AIGP list
             List<String> aigp = null;
