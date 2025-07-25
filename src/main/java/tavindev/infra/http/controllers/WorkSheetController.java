@@ -10,6 +10,7 @@ import tavindev.core.services.WorkSheetService;
 import tavindev.infra.dto.worksheet.CreateOrUpdateWorkSheetResponseDTO;
 import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
 import tavindev.infra.dto.worksheet.WorksheetQueryFilters;
+import tavindev.infra.dto.worksheet.PolygonWithWorksheetDTO;
 import java.util.List;
 
 @Service
@@ -56,6 +57,13 @@ public class WorkSheetController {
             @CookieParam("session") String token,
             @PathParam("id") Long id) {
         return workSheetService.getWorkSheet(token, id);
+    }
+
+    @GET
+    @Path("/polygons")
+    public List<PolygonWithWorksheetDTO> getPolygons(
+            @CookieParam("session") String token) {
+        return workSheetService.getPolygons(token);
     }
 
 }

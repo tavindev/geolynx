@@ -45,7 +45,7 @@ import MyWorksheets from './pages/MyWorksheets';
 import MyProfile from './pages/MyProfile';
 import WorksheetDetail from './pages/WorksheetDetail';
 import WorkSheets from './pages/WorkSheets';
-
+import AssignCorporation from './pages/AssignCorporation';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -212,7 +212,9 @@ function App() {
                   <Route
                     path="worksheets"
                     element={
-                      <PrivateRoute roles={['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO']}>
+                      <PrivateRoute
+                        roles={['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO']}
+                      >
                         <WorksheetManagement />
                       </PrivateRoute>
                     }
@@ -225,14 +227,22 @@ function App() {
                       </PrivateRoute>
                     }
                   />
+                  <Route
+                    path="assign-corporation"
+                    element={
+                      <PrivateRoute roles={['SYSADMIN']}>
+                        <AssignCorporation />
+                      </PrivateRoute>
+                    }
+                  />
 
                   <Route
-                      path="worksheet-create"
-                      element={
-                          <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
-                              <WorksheetCreate />
-                          </PrivateRoute>
-                      }
+                    path="worksheet-create"
+                    element={
+                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
+                        <WorksheetCreate />
+                      </PrivateRoute>
+                    }
                   />
                   <Route
                     path="change-attributes/:userId"
@@ -270,7 +280,14 @@ function App() {
                     path="my-worksheets"
                     element={
                       <PrivateRoute
-                        roles={['SYSADMIN', 'SMBO', 'SGVBO', 'SDVBO', 'PRBO', 'PO']}
+                        roles={[
+                          'SYSADMIN',
+                          'SMBO',
+                          'SGVBO',
+                          'SDVBO',
+                          'PRBO',
+                          'PO',
+                        ]}
                       >
                         <MyWorksheets />
                       </PrivateRoute>
@@ -295,7 +312,19 @@ function App() {
                   <Route
                     path="request-removal"
                     element={
-                      <PrivateRoute roles={['SYSADMIN', 'SYSBO', 'RU', 'SMBO', 'SGVBO', 'SDVBO', 'PRBO', 'PO', 'ADLU']}>
+                      <PrivateRoute
+                        roles={[
+                          'SYSADMIN',
+                          'SYSBO',
+                          'RU',
+                          'SMBO',
+                          'SGVBO',
+                          'SDVBO',
+                          'PRBO',
+                          'PO',
+                          'ADLU',
+                        ]}
+                      >
                         <RequestAccountRemoval />
                       </PrivateRoute>
                     }
@@ -313,9 +342,7 @@ function App() {
                   <Route
                     path="worksheet-update/:worksheetId"
                     element={
-                      <PrivateRoute
-                        roles={['SYSADMIN', 'SMBO']}
-                      >
+                      <PrivateRoute roles={['SYSADMIN', 'SMBO']}>
                         <WorksheetUpdate />
                       </PrivateRoute>
                     }

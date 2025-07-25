@@ -341,6 +341,10 @@ const ListUsers = () => {
           <Typography variant="subtitle1" color="text.secondary">
             Procure, visualize e gira as contas dos utilizadores.
           </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            Para atribuir um PRBO/PO a uma empresa, aceda à página de gestão de
+            contas do utilizador desejado e clique em "Atribuir Empresa".
+          </Typography>
         </Box>
         <Button
           variant="contained"

@@ -14,6 +14,8 @@ import tavindev.core.exceptions.CorporationNotFoundException;
 import tavindev.core.utils.AuthUtils;
 import tavindev.infra.dto.worksheet.WorkSheetListResponseDTO;
 import tavindev.infra.dto.worksheet.WorksheetQueryFilters;
+import tavindev.infra.dto.worksheet.PolygonWithWorksheetDTO;
+import java.util.ArrayList;
 import tavindev.infra.repositories.DatastoreCorporationRepository;
 import tavindev.infra.repositories.WorkSheetRepository;
 
@@ -139,5 +141,50 @@ public class WorkSheetService {
         }
 
         return workSheetRepository.getAll(filter);
+    }
+
+    public List<PolygonWithWorksheetDTO> getPolygons(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.VIEW_GEN_FO);
+
+        // Get all worksheets for the user
+        WorksheetQueryFilters filter = new WorksheetQueryFilters();
+        if (currentUser.getRole() == UserRole.PRBO) {
+            filter.setServiceProviderId(currentUser.getCorporationId());
+        }
+
+        List<WorkSheetListResponseDTO> worksheets = workSheetRepository.getAll(filter);
+        
+        // If no worksheets, return empty list
+        if (worksheets.isEmpty()) {
+            return List.of();
+        }
+
+        List<PolygonWithWorksheetDTO> allPolygons = new ArrayList<>();
+        
+        // Iterate through all worksheets and collect their polygons
+        for (WorkSheetListResponseDTO worksheetInfo : worksheets) {
+            WorkSheet worksheetDetails = workSheetRepository.get(worksheetInfo.id());
+            
+            if (worksheetDetails != null && worksheetDetails.getFeatures() != null) {
+                // Create worksheet metadata
+                PolygonWithWorksheetDTO.WorksheetMetadataDTO metadata = 
+                    new PolygonWithWorksheetDTO.WorksheetMetadataDTO(
+                        worksheetInfo.id(),
+                        worksheetInfo.startingDate(),
+                        worksheetInfo.finishingDate(),
+                        worksheetInfo.serviceProviderId(),
+                        worksheetInfo.posaCode(),
+                        worksheetInfo.posaDescription()
+                    );
+                
+                // Add each polygon with worksheet metadata
+                for (WorkSheet.GeoFeature feature : worksheetDetails.getFeatures()) {
+                    allPolygons.add(new PolygonWithWorksheetDTO(feature, metadata));
+                }
+            }
+        }
+        
+        return allPolygons;
     }
 }

@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Polygon, Popup, useMap, FeatureGroup } from 'react-leaflet';
+import {
+  MapContainer,
+  TileLayer,
+  Polygon,
+  Popup,
+  useMap,
+  FeatureGroup,
+} from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 import {
   Dialog,
@@ -33,7 +40,6 @@ import {
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import L from 'leaflet';
-import { worksheetService } from '../services/api';
 import proj4 from 'proj4';
 import { useSnackbar } from 'notistack';
 
@@ -51,7 +57,10 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 // Define projection for EPSG:3763 (Portuguese grid system)
-proj4.defs("EPSG:3763", "+proj=tmerc +lat_0=39.66825833333333 +lon_0=-8.133108333333334 +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+proj4.defs(
+  'EPSG:3763',
+  '+proj=tmerc +lat_0=39.66825833333333 +lon_0=-8.133108333333334 +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+);
 
 // Convert coordinates to EPSG:4326 (WGS84)
 const convertCoordinates = (coordinates) => {
@@ -59,17 +68,20 @@ const convertCoordinates = (coordinates) => {
     return Math.abs(coord[0]) <= 180 && Math.abs(coord[1]) <= 90;
   };
 
-  return coordinates.map(ring => {
+  return coordinates.map((ring) => {
     if (!Array.isArray(ring)) return [];
 
-    return ring.map(coord => {
+    return ring.map((coord) => {
       if (!Array.isArray(coord) || coord.length < 2) return [0, 0];
 
       if (isWGS84(coord)) {
         return [coord[1], coord[0]]; // GeoJSON is [lng, lat], Leaflet expects [lat, lng]
       }
       try {
-        const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [coord[0], coord[1]]);
+        const [lng, lat] = proj4('EPSG:3763', 'EPSG:4326', [
+          coord[0],
+          coord[1],
+        ]);
         return [lat, lng];
       } catch (error) {
         console.error('Coordinate conversion error:', error);
@@ -81,7 +93,7 @@ const convertCoordinates = (coordinates) => {
 
 // Convert coordinates from WGS84 to EPSG:3763
 const convertToEPSG3763 = (coordinates) => {
-  return coordinates.map(coord => {
+  return coordinates.map((coord) => {
     try {
       const [x, y] = proj4('EPSG:4326', 'EPSG:3763', [coord[1], coord[0]]);
       return [x, y];
@@ -121,94 +133,246 @@ function MapControls() {
   );
 }
 
-const PolygonSelector = ({ 
-  open, 
-  onClose, 
-  onSelect, 
-  worksheetId, 
+// Map component to automatically fit bounds to show all polygons
+function MapFitBounds({ polygons, showAvailablePolygons, open }) {
+  const map = useMap();
+
+  useEffect(() => {
+    // Only fit bounds when modal opens and we're showing available polygons
+    if (open && showAvailablePolygons && polygons && polygons.length > 0) {
+      // Add multiple attempts with increasing delays to ensure map is ready
+      const attempts = [100, 300, 500, 1000];
+      let timers = [];
+
+      attempts.forEach((delay, index) => {
+        const timer = setTimeout(() => {
+          try {
+            // Check if map is ready
+            if (!map || !map.getSize().x || !map.getSize().y) {
+              console.log(`Map not ready yet, attempt ${index + 1}`);
+              return;
+            }
+
+            const bounds = L.latLngBounds();
+            let hasValidBounds = false;
+
+            polygons.forEach((polygon) => {
+              if (polygon.geometry && polygon.geometry.type === 'Polygon') {
+                const convertedCoords = convertCoordinates(
+                  polygon.geometry.coordinates
+                );
+                if (convertedCoords && convertedCoords.length > 0) {
+                  convertedCoords[0].forEach((coord) => {
+                    if (Array.isArray(coord) && coord.length >= 2) {
+                      const [lat, lng] = coord;
+                      if (
+                        !isNaN(lat) &&
+                        !isNaN(lng) &&
+                        Math.abs(lat) <= 90 &&
+                        Math.abs(lng) <= 180 &&
+                        lat !== 0 &&
+                        lng !== 0
+                      ) {
+                        bounds.extend([lat, lng]);
+                        hasValidBounds = true;
+                      }
+                    }
+                  });
+                }
+              }
+            });
+
+            if (hasValidBounds && bounds.isValid()) {
+              // Force map to invalidate size first
+              map.invalidateSize();
+
+              // Then fit bounds with animation disabled for immediate effect
+              map.fitBounds(bounds, {
+                padding: [50, 50],
+                maxZoom: 15,
+                animate: false,
+                duration: 0,
+              });
+
+              // Clear remaining timers if successful
+              timers.forEach((t, i) => {
+                if (i > index) clearTimeout(t);
+              });
+
+              console.log('Map bounds fitted successfully');
+            }
+          } catch (error) {
+            console.error('Error fitting map bounds:', error);
+          }
+        }, delay);
+
+        timers.push(timer);
+      });
+
+      return () => {
+        // Clear all timers on cleanup
+        timers.forEach((timer) => clearTimeout(timer));
+      };
+    }
+  }, [map, polygons, showAvailablePolygons, open]);
+
+  // Also listen for map ready events
+  useEffect(() => {
+    if (open && showAvailablePolygons && polygons && polygons.length > 0) {
+      const handleMapReady = () => {
+        // Give it a moment then fit bounds
+        setTimeout(() => {
+          try {
+            const bounds = L.latLngBounds();
+            let hasValidBounds = false;
+
+            polygons.forEach((polygon) => {
+              if (polygon.geometry && polygon.geometry.type === 'Polygon') {
+                const convertedCoords = convertCoordinates(
+                  polygon.geometry.coordinates
+                );
+                if (convertedCoords && convertedCoords.length > 0) {
+                  convertedCoords[0].forEach((coord) => {
+                    if (Array.isArray(coord) && coord.length >= 2) {
+                      const [lat, lng] = coord;
+                      if (
+                        !isNaN(lat) &&
+                        !isNaN(lng) &&
+                        Math.abs(lat) <= 90 &&
+                        Math.abs(lng) <= 180 &&
+                        lat !== 0 &&
+                        lng !== 0
+                      ) {
+                        bounds.extend([lat, lng]);
+                        hasValidBounds = true;
+                      }
+                    }
+                  });
+                }
+              }
+            });
+
+            if (hasValidBounds && bounds.isValid()) {
+              map.invalidateSize();
+              map.fitBounds(bounds, {
+                padding: [50, 50],
+                maxZoom: 15,
+                animate: false,
+              });
+            }
+          } catch (error) {
+            console.error('Error in map ready handler:', error);
+          }
+        }, 200);
+      };
+
+      // Listen for various map ready events
+      map.on('load', handleMapReady);
+      map.whenReady(handleMapReady);
+
+      return () => {
+        map.off('load', handleMapReady);
+      };
+    }
+  }, [map, polygons, showAvailablePolygons, open]);
+
+  return null;
+}
+
+const PolygonSelector = ({
+  open,
+  onClose,
+  onSelect,
+  worksheetId,
   onPolygonCreated,
   allowDrawing = true,
-  title = "Selecionar ou Desenhar Polígono" 
+  title = 'Selecionar Polígono',
+  availablePolygons = [],
+  selectedPolygonIds = [],
 }) => {
   const { enqueueSnackbar } = useSnackbar();
-  const [polygons, setPolygons] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedPolygon, setSelectedPolygon] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mapCenter, setMapCenter] = useState([39.6547, -8.0123]);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
   const [drawnPolygon, setDrawnPolygon] = useState(null);
   const [polygonName, setPolygonName] = useState('');
   const [polygonDescription, setPolygonDescription] = useState('');
+  const [selectedPolygon, setSelectedPolygon] = useState(null);
+  const [showAvailablePolygons, setShowAvailablePolygons] = useState(true);
 
   useEffect(() => {
-    if (open && worksheetId) {
-      fetchWorksheetPolygons();
-    }
-  }, [open, worksheetId]);
+    // Set map center based on available polygons
+    if (open && availablePolygons.length > 0) {
+      try {
+        // Calculate bounds of all polygons
+        let minLat = Infinity,
+          maxLat = -Infinity;
+        let minLng = Infinity,
+          maxLng = -Infinity;
+        let validPolygonsFound = false;
 
-  const fetchWorksheetPolygons = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await worksheetService.get(worksheetId);
-      const worksheet = response.data || response;
-
-      if (worksheet && worksheet.features) {
-        const processedPolygons = worksheet.features.map((feature, index) => {
-          if (feature.geometry && feature.geometry.type === 'Polygon') {
-            const convertedCoords = convertCoordinates(feature.geometry.coordinates);
-            
-            if (convertedCoords[0] && convertedCoords[0].length >= 3) {
-              return {
-                id: feature.properties?.polygon_id || index + 1,
-                name: `Polígono ${feature.properties?.polygon_id || index + 1}`,
-                coordinates: convertedCoords[0],
-                properties: feature.properties,
-                originalFeature: feature,
-              };
+        availablePolygons.forEach((polygon) => {
+          if (polygon.geometry && polygon.geometry.type === 'Polygon') {
+            const convertedCoords = convertCoordinates(
+              polygon.geometry.coordinates
+            );
+            if (convertedCoords && convertedCoords.length > 0) {
+              convertedCoords[0].forEach((coord) => {
+                if (Array.isArray(coord) && coord.length >= 2) {
+                  const [lat, lng] = coord;
+                  if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                    minLat = Math.min(minLat, lat);
+                    maxLat = Math.max(maxLat, lat);
+                    minLng = Math.min(minLng, lng);
+                    maxLng = Math.max(maxLng, lng);
+                    validPolygonsFound = true;
+                  }
+                }
+              });
             }
           }
-          return null;
-        }).filter(Boolean);
+        });
 
-        setPolygons(processedPolygons);
-
-        // Set map center to first polygon if available
-        if (processedPolygons.length > 0 && processedPolygons[0].coordinates.length > 0) {
-          const firstCoord = processedPolygons[0].coordinates[0];
-          setMapCenter([firstCoord[0], firstCoord[1]]);
+        if (
+          validPolygonsFound &&
+          minLat !== Infinity &&
+          maxLat !== -Infinity &&
+          minLng !== Infinity &&
+          maxLng !== -Infinity
+        ) {
+          // Calculate center of all polygons
+          const centerLat = (minLat + maxLat) / 2;
+          const centerLng = (minLng + maxLng) / 2;
+          setMapCenter([centerLat, centerLng]);
+        } else {
+          // Fallback to first polygon if bounds calculation fails
+          const firstPolygon = availablePolygons[0];
+          if (
+            firstPolygon.geometry &&
+            firstPolygon.geometry.type === 'Polygon'
+          ) {
+            const convertedCoords = convertCoordinates(
+              firstPolygon.geometry.coordinates
+            );
+            if (
+              convertedCoords &&
+              convertedCoords.length > 0 &&
+              convertedCoords[0].length > 0
+            ) {
+              setMapCenter([
+                convertedCoords[0][0][0],
+                convertedCoords[0][0][1],
+              ]);
+            }
+          }
         }
-      } else {
-        setPolygons([]);
+      } catch (error) {
+        console.error('Error calculating polygon bounds:', error);
+        // Keep default center if calculation fails
       }
-    } catch (error) {
-      console.error('Error fetching worksheet polygons:', error);
-      setError('Erro ao carregar polígonos da folha de obra');
-      setPolygons([]);
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const handlePolygonClick = (polygon) => {
-    setSelectedPolygon(polygon);
-    setActiveTab(0); // Switch to selection tab
-  };
-
-  const handleConfirmSelection = () => {
-    if (selectedPolygon) {
-      onSelect({
-        id: selectedPolygon.id,
-        name: selectedPolygon.name,
-        properties: selectedPolygon.properties,
-        feature: selectedPolygon.originalFeature,
-        type: 'existing'
-      });
-      handleClose();
-    }
-  };
+  }, [open, availablePolygons]);
 
   const handleClose = () => {
     setSelectedPolygon(null);
@@ -216,41 +380,41 @@ const PolygonSelector = ({
     setDrawnPolygon(null);
     setPolygonName('');
     setPolygonDescription('');
-    setActiveTab(0);
     onClose();
-  };
-
-  const getPolygonColor = (polygon) => {
-    return selectedPolygon?.id === polygon.id ? '#e74c3c' : '#3498db';
   };
 
   const handleCreated = (e) => {
     const { layerType, layer } = e;
     if (layerType === 'polygon') {
       const latlngs = layer.getLatLngs()[0];
-      const coordinates = latlngs.map(latlng => [latlng.lat, latlng.lng]);
-      
+      const coordinates = latlngs.map((latlng) => [latlng.lat, latlng.lng]);
+
       setDrawnPolygon({
         coordinates: coordinates,
-        leafletLayer: layer
+        leafletLayer: layer,
       });
       setIsDrawing(false);
-      enqueueSnackbar('Polígono desenhado! Preencha as informações e confirme.', { 
-        variant: 'success' 
-      });
+      enqueueSnackbar(
+        'Polígono desenhado! Preencha as informações e confirme.',
+        {
+          variant: 'success',
+        }
+      );
     }
   };
 
   const handleSaveDrawnPolygon = async () => {
     if (!drawnPolygon || !polygonName.trim()) {
-      enqueueSnackbar('Por favor, preencha o nome do polígono', { variant: 'warning' });
+      enqueueSnackbar('Por favor, preencha o nome do polígono', {
+        variant: 'warning',
+      });
       return;
     }
 
     try {
       // Convert coordinates to EPSG:3763 for storage
       const convertedCoords = convertToEPSG3763(drawnPolygon.coordinates);
-      
+
       // Close the last coordinate to make a proper polygon
       const closedCoords = [...convertedCoords];
       if (closedCoords.length > 0) {
@@ -266,7 +430,7 @@ const PolygonSelector = ({
           description: polygonDescription.trim(),
           created_by_user: true,
           created_at: new Date().toISOString(),
-        }
+        },
       };
 
       // Call the callback if provided (but don't expect API call)
@@ -284,24 +448,25 @@ const PolygonSelector = ({
           type: 'Feature',
           geometry: {
             type: 'Polygon',
-            coordinates: [closedCoords]
+            coordinates: [closedCoords],
           },
-          properties: polygonData.properties
-        }
+          properties: polygonData.properties,
+        },
       };
 
       // Pass the new polygon to the parent
       onSelect({
         ...newPolygon,
-        type: 'custom'
+        type: 'custom',
       });
 
       enqueueSnackbar('Polígono personalizado criado!', { variant: 'success' });
       handleClose();
-
     } catch (error) {
       console.error('Error creating custom polygon:', error);
-      enqueueSnackbar('Erro ao criar polígono personalizado', { variant: 'error' });
+      enqueueSnackbar('Erro ao criar polígono personalizado', {
+        variant: 'error',
+      });
     }
   };
 
@@ -316,37 +481,74 @@ const PolygonSelector = ({
     setIsDrawing(true);
     setDrawnPolygon(null);
     setSelectedPolygon(null);
+    setShowAvailablePolygons(false);
   };
 
-  if (loading) {
-    return (
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Carregando Polígonos</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancelar</Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
+  const handlePolygonClick = (polygon) => {
+    setSelectedPolygon(polygon);
+    setIsDrawing(false);
+    setDrawnPolygon(null);
+  };
+
+  const handleConfirmSelection = () => {
+    if (selectedPolygon) {
+      onSelect({
+        id:
+          selectedPolygon.properties?.id ||
+          selectedPolygon.properties?.polygonId,
+        name: `Polígono ${
+          selectedPolygon.properties?.id ||
+          selectedPolygon.properties?.polygonId
+        }`,
+        properties: selectedPolygon.properties,
+        feature: selectedPolygon,
+        type: 'existing',
+      });
+      handleClose();
+    }
+  };
+
+  const getPolygonColor = (polygon) => {
+    const polygonId = polygon.properties?.id || polygon.properties?.polygonId;
+
+    // Check if polygon is already selected in the execution sheet
+    if (selectedPolygonIds.includes(polygonId)) {
+      return '#e74c3c'; // Red for already selected
+    }
+
+    // Check if this is the currently selected polygon
+    if (
+      selectedPolygon &&
+      (selectedPolygon.properties?.id === polygonId ||
+        selectedPolygon.properties?.polygonId === polygonId)
+    ) {
+      return '#27ae60'; // Green for current selection
+    }
+
+    return '#3498db'; // Blue for available
+  };
+
+  const isPolygonSelectable = (polygon) => {
+    const polygonId = polygon.properties?.id || polygon.properties?.polygonId;
+    return !selectedPolygonIds.includes(polygonId);
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
       <DialogTitle>
         {title}
-        {selectedPolygon && activeTab === 0 && (
+        {selectedPolygon && (
           <Chip
-            label={`Selecionado: ${selectedPolygon.name}`}
-            color="primary"
+            label={`Selecionado: Polígono ${
+              selectedPolygon.properties?.id ||
+              selectedPolygon.properties?.polygonId
+            }`}
+            color="success"
             size="small"
             sx={{ ml: 2 }}
           />
         )}
-        {drawnPolygon && activeTab === 1 && (
+        {drawnPolygon && (
           <Chip
             label="Polígono desenhado"
             color="success"
@@ -356,12 +558,22 @@ const PolygonSelector = ({
         )}
       </DialogTitle>
       <DialogContent>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
+        {/* Tabs for selection mode */}
         {allowDrawing && (
-          <Tabs 
-            value={activeTab} 
-            onChange={(e, newValue) => setActiveTab(newValue)}
+          <Tabs
+            value={showAvailablePolygons ? 0 : 1}
+            onChange={(e, newValue) => {
+              setShowAvailablePolygons(newValue === 0);
+              setIsDrawing(false);
+              setSelectedPolygon(null);
+              setDrawnPolygon(null);
+            }}
             sx={{ mb: 2 }}
           >
             <Tab label="Selecionar Existente" />
@@ -369,25 +581,44 @@ const PolygonSelector = ({
           </Tabs>
         )}
 
-        {/* Selection Tab */}
-        {(!allowDrawing || activeTab === 0) && (
-          <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Total de polígonos: {polygons.length}
+        {/* Available Polygons Info */}
+        {showAvailablePolygons && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {availablePolygons.length > 0
+                ? `${
+                    availablePolygons.filter((p) => isPolygonSelectable(p))
+                      .length
+                  } polígono(s) disponível(is) para seleção`
+                : 'Nenhum polígono disponível'}
             </Typography>
+            {selectedPolygonIds.length > 0 && (
+              <Typography variant="caption" color="error">
+                {selectedPolygonIds.length} polígono(s) já atribuído(s) (em
+                vermelho)
+              </Typography>
+            )}
           </Box>
         )}
 
-        {/* Drawing Tab */}
-        {allowDrawing && activeTab === 1 && (
+        {/* Drawing Section */}
+        {!showAvailablePolygons && (
           <Box sx={{ mb: 2 }}>
             {!drawnPolygon ? (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
                 <Typography variant="body2" color="text.secondary">
-                  {isDrawing ? 'Clique no mapa para desenhar o polígono.' : 'Clique para começar a desenhar um novo polígono.'}
+                  {isDrawing
+                    ? 'Clique no mapa para desenhar o polígono.'
+                    : 'Clique para começar a desenhar um novo polígono.'}
                 </Typography>
-                <Button 
-                  onClick={handleStartDrawing} 
+                <Button
+                  onClick={handleStartDrawing}
                   variant="contained"
                   startIcon={<EditIcon />}
                   disabled={isDrawing}
@@ -445,54 +676,105 @@ const PolygonSelector = ({
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
+            <MapFitBounds
+              polygons={availablePolygons}
+              showAvailablePolygons={showAvailablePolygons}
+              open={open}
+            />
             <MapControls />
 
-            {/* Existing Polygons */}
-            {(!allowDrawing || activeTab === 0) && polygons.map((polygon) => (
-              <Polygon
-                key={polygon.id}
-                positions={polygon.coordinates}
-                pathOptions={{
-                  color: getPolygonColor(polygon),
-                  fillOpacity: selectedPolygon?.id === polygon.id ? 0.6 : 0.3,
-                  weight: selectedPolygon?.id === polygon.id ? 3 : 2,
-                }}
-                eventHandlers={{ click: () => handlePolygonClick(polygon) }}
-              >
-                <Popup>
-                  <Box sx={{ minWidth: 200 }}>
-                    <Typography variant="h6">{polygon.name}</Typography>
-                    <Typography variant="body2">
-                      <strong>AIGP:</strong> {polygon.properties?.aigp || 'N/A'}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Propriedade Rural:</strong> {polygon.properties?.rural_property_id || 'N/A'}
-                    </Typography>
-                    {polygon.properties?.UI_id && (
-                      <Typography variant="body2">
-                        <strong>UI:</strong> {polygon.properties.UI_id}
-                      </Typography>
-                    )}
-                    <Box sx={{ mt: 1 }}>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        startIcon={<CheckIcon />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePolygonClick(polygon);
+            {/* Available Polygons */}
+            {showAvailablePolygons &&
+              availablePolygons.map((polygon, index) => {
+                if (polygon.geometry && polygon.geometry.type === 'Polygon') {
+                  const convertedCoords = convertCoordinates(
+                    polygon.geometry.coordinates
+                  );
+                  const polygonId =
+                    polygon.properties?.id || polygon.properties?.polygonId;
+                  const isSelectable = isPolygonSelectable(polygon);
+
+                  if (convertedCoords && convertedCoords.length >= 3) {
+                    return (
+                      <Polygon
+                        key={polygonId || index}
+                        positions={convertedCoords}
+                        pathOptions={{
+                          color: getPolygonColor(polygon),
+                          fillColor: getPolygonColor(polygon),
+                          fillOpacity:
+                            selectedPolygon &&
+                            (selectedPolygon.properties?.id === polygonId ||
+                              selectedPolygon.properties?.polygonId ===
+                                polygonId)
+                              ? 0.6
+                              : 0.3,
+                          weight:
+                            selectedPolygon &&
+                            (selectedPolygon.properties?.id === polygonId ||
+                              selectedPolygon.properties?.polygonId ===
+                                polygonId)
+                              ? 3
+                              : 2,
+                          dashArray: isSelectable ? null : '5, 5',
+                        }}
+                        eventHandlers={{
+                          click: () =>
+                            isSelectable ? handlePolygonClick(polygon) : null,
                         }}
                       >
-                        Selecionar
-                      </Button>
-                    </Box>
-                  </Box>
-                </Popup>
-              </Polygon>
-            ))}
+                        <Popup>
+                          <Box sx={{ minWidth: 200 }}>
+                            <Typography variant="h6">
+                              Polígono {polygonId}
+                            </Typography>
+                            {polygon.properties?.aigp && (
+                              <Typography variant="body2">
+                                <strong>AIGP:</strong> {polygon.properties.aigp}
+                              </Typography>
+                            )}
+                            {polygon.properties?.ruralPropertyId && (
+                              <Typography variant="body2">
+                                <strong>Propriedade Rural:</strong>{' '}
+                                {polygon.properties.ruralPropertyId}
+                              </Typography>
+                            )}
+                            {polygon.properties?.uiId && (
+                              <Typography variant="body2">
+                                <strong>UI:</strong> {polygon.properties.uiId}
+                              </Typography>
+                            )}
+                            {!isSelectable && (
+                              <Alert severity="warning" sx={{ mt: 1 }}>
+                                Polígono já atribuído
+                              </Alert>
+                            )}
+                            {isSelectable && (
+                              <Box sx={{ mt: 1 }}>
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  startIcon={<CheckIcon />}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePolygonClick(polygon);
+                                  }}
+                                >
+                                  Selecionar
+                                </Button>
+                              </Box>
+                            )}
+                          </Box>
+                        </Popup>
+                      </Polygon>
+                    );
+                  }
+                }
+                return null;
+              })}
 
             {/* Drawing Controls */}
-            {allowDrawing && activeTab === 1 && isDrawing && (
+            {!showAvailablePolygons && isDrawing && (
               <FeatureGroup>
                 <EditControl
                   position="topright"
@@ -507,25 +789,26 @@ const PolygonSelector = ({
                       allowIntersection: false,
                       drawError: {
                         color: '#e1e100',
-                        message: '<strong>Erro:</strong> As linhas não podem se cruzar!'
+                        message:
+                          '<strong>Erro:</strong> As linhas não podem se cruzar!',
                       },
                       shapeOptions: {
                         color: '#2ecc71',
                         weight: 3,
-                        fillOpacity: 0.4
-                      }
+                        fillOpacity: 0.4,
+                      },
                     },
                   }}
                   edit={{
                     edit: false,
-                    remove: false
+                    remove: false,
                   }}
                 />
               </FeatureGroup>
             )}
 
             {/* Show drawn polygon */}
-            {drawnPolygon && activeTab === 1 && (
+            {drawnPolygon && (
               <Polygon
                 positions={drawnPolygon.coordinates}
                 pathOptions={{
@@ -554,13 +837,12 @@ const PolygonSelector = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancelar</Button>
-        
-        {/* Selection mode buttons */}
-        {(!allowDrawing || activeTab === 0) && (
+
+        {/* Selection mode button */}
+        {showAvailablePolygons && selectedPolygon && (
           <Button
             onClick={handleConfirmSelection}
             variant="contained"
-            disabled={!selectedPolygon}
             startIcon={<CheckIcon />}
           >
             Confirmar Seleção
@@ -568,7 +850,7 @@ const PolygonSelector = ({
         )}
 
         {/* Drawing mode buttons */}
-        {allowDrawing && activeTab === 1 && drawnPolygon && (
+        {!showAvailablePolygons && drawnPolygon && (
           <Button
             onClick={handleSaveDrawnPolygon}
             variant="contained"

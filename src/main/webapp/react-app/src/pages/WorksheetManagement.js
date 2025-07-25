@@ -271,10 +271,10 @@ const WorksheetManagement = () => {
             <Box display="flex" alignItems="center" justifyContent="space-between">
               <Box>
                 <Typography color="textSecondary" gutterBottom variant="body2">
-                  AIGPs Únicos
+                  Códigos POSA Únicos
                 </Typography>
                 <Typography variant="h4">
-                  {[...new Set(worksheets.flatMap(w => w.aigp || []))].length}
+                  {[...new Set(worksheets.map(w => w.posaCode).filter(Boolean))].length}
                 </Typography>
               </Box>
               <BusinessIcon color="secondary" sx={{ fontSize: 40 }} />
@@ -294,7 +294,9 @@ const WorksheetManagement = () => {
             <TableCell>Data de Emissão</TableCell>
             <TableCell>Data de Início</TableCell>
             <TableCell>Data de Fim</TableCell>
+            <TableCell>Data de Adjudicação</TableCell>
             <TableCell>Código POSA</TableCell>
+            <TableCell>Código POSP</TableCell>
             <TableCell>AIGPs</TableCell>
             <TableCell>Nº de Features</TableCell>
             <TableCell>Área Total (ha)</TableCell>
@@ -308,11 +310,20 @@ const WorksheetManagement = () => {
               <TableCell>{formatDate(worksheet.issueDate)}</TableCell>
               <TableCell>{formatDate(worksheet.startingDate)}</TableCell>
               <TableCell>{formatDate(worksheet.finishingDate)}</TableCell>
+              <TableCell>{formatDate(worksheet.awardDate)}</TableCell>
               <TableCell>
                 <Chip
                   label={worksheet.posaCode || 'N/A'}
                   size="small"
                   variant="outlined"
+                />
+              </TableCell>
+              <TableCell>
+                <Chip
+                  label={worksheet.pospCode || 'N/A'}
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
                 />
               </TableCell>
               <TableCell>
@@ -436,7 +447,7 @@ const WorksheetManagement = () => {
               <Button
                 variant="outlined"
                 startIcon={<AddIcon />}
-                onClick={() => navigate('/dashboard/worksheet/create')}
+                onClick={() => navigate('/dashboard/worksheet-create')}
               >
                 Criar Folha de Obra
               </Button>

@@ -251,15 +251,23 @@ const ExecutionSheetDetail = () => {
               <strong>Folha de Obra ID:</strong> {executionSheet.workSheetId}
             </Typography>
             <Typography variant="body1">
-              <strong>Data Início:</strong> {executionSheet.startingDate}
+              <strong>Data Início:</strong> {executionSheet.startingDate ? new Date(executionSheet.startingDate).toLocaleDateString('pt-PT') : '-'}
             </Typography>
             <Typography variant="body1">
-              <strong>Data Fim:</strong> {executionSheet.finishingDate || 'Em andamento'}
+              <strong>Data Fim:</strong> {executionSheet.finishingDate ? new Date(executionSheet.finishingDate).toLocaleDateString('pt-PT') : 'Em andamento'}
             </Typography>
           </Grid>
           <Grid item xs={12} md={6}>
             <Typography variant="body1">
-              <strong>Última Atividade:</strong> {executionSheet.lastActivityDate}
+              <strong>Estado Global:</strong> <Chip
+                label={getStatusLabel(executionSheet.globalStatus || 'pending')}
+                color={getStatusColor(executionSheet.globalStatus || 'pending')}
+                size="small"
+                sx={{ ml: 1 }}
+              />
+            </Typography>
+            <Typography variant="body1">
+              <strong>Última Atividade:</strong> {executionSheet.lastActivityDate ? new Date(executionSheet.lastActivityDate).toLocaleDateString('pt-PT') : '-'}
             </Typography>
             <Typography variant="body1">
               <strong>Observações:</strong> {executionSheet.observations || 'Nenhuma'}
