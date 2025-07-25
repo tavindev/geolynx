@@ -231,7 +231,7 @@ const WorksheetForm = () => {
           issueDate: formData.issueDate,
           serviceProviderId: formData.serviceProviderId ? parseInt(formData.serviceProviderId) : null,
           awardDate: formData.awardDate,
-          issuingUserId: formData.issuingUserId || user?.id || '',
+          issuingUserId: formData.issuingUserId ? parseInt(formData.issuingUserId) : null,
           aigp: formData.aigp,
           posaCode: formData.posaCode,
           posaDescription: formData.posaDescription,
@@ -355,6 +355,7 @@ const WorksheetForm = () => {
             <TextField
               fullWidth
               label="ID do Utilizador Emissor"
+              type="number"
               value={formData.issuingUserId}
               onChange={(e) => handleFormChange('issuingUserId', e.target.value)}
             />

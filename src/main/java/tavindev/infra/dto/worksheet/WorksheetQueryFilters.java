@@ -22,7 +22,7 @@ public class WorksheetQueryFilters {
   private String pospCode;
 
   @QueryParam("issuingUserId")
-  private String issuingUserId;
+  private Long issuingUserId;
 
   @QueryParam("issueDate")
   private String issueDate;
@@ -52,7 +52,7 @@ public class WorksheetQueryFilters {
     return pospCode;
   }
 
-  public String getIssuingUserId() {
+  public Long getIssuingUserId() {
     return issuingUserId;
   }
 

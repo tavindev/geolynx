@@ -94,17 +94,7 @@ public class WorkSheetRepository {
             String issueDate = metadataEntity.getString("issueDate");
             Long serviceProviderId = metadataEntity.getLong("serviceProviderId");
             String awardDate = metadataEntity.getString("awardDate");
-            // Handle both Long and String types for issuingUserId
-            String issuingUserId = null;
-            if (metadataEntity.contains("issuingUserId")) {
-                Value<?> userIdValue = metadataEntity.getValue("issuingUserId");
-                if (userIdValue instanceof StringValue) {
-                    issuingUserId = metadataEntity.getString("issuingUserId");
-                } else if (userIdValue instanceof LongValue) {
-                    // Convert Long to String for backward compatibility
-                    issuingUserId = String.valueOf(metadataEntity.getLong("issuingUserId"));
-                }
-            }
+            Long issuingUserId = metadataEntity.getLong("issuingUserId");
 
             // Extract AIGP list
             List<String> aigp = null;

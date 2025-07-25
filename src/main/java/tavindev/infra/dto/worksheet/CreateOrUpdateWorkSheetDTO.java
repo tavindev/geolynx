@@ -189,7 +189,7 @@ public class CreateOrUpdateWorkSheetDTO {
         private String awardDate;
 
         @JsonProperty("issuing_user_id")
-        private String issuingUserId;
+        private Long issuingUserId;
 
         private List<String> aigp;
 
@@ -255,11 +255,11 @@ public class CreateOrUpdateWorkSheetDTO {
             this.awardDate = awardDate;
         }
 
-        public String getIssuingUserId() {
+        public Long getIssuingUserId() {
             return issuingUserId;
         }
 
-        public void setIssuingUserId(String issuingUserId) {
+        public void setIssuingUserId(Long issuingUserId) {
             this.issuingUserId = issuingUserId;
         }
 
