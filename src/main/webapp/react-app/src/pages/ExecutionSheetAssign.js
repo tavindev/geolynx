@@ -30,7 +30,7 @@ import {
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { executionSheetService, userService } from '../services/api';
+import { executionSheetService, userService, worksheetService } from '../services/api';
 
 const ExecutionSheetAssign = () => {
   const { id } = useParams();
@@ -38,7 +38,9 @@ const ExecutionSheetAssign = () => {
   const { user, hasPermission } = useAuth();
 
   const [executionSheet, setExecutionSheet] = useState(null);
+  const [worksheet, setWorksheet] = useState(null);
   const [operators, setOperators] = useState([]);
+  const [filteredOperators, setFilteredOperators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -52,19 +54,35 @@ const ExecutionSheetAssign = () => {
     try {
       setLoading(true);
       
-      // Fetch execution sheet and operators in parallel
-      const [executionSheetResponse, operatorsResponse] = await Promise.all([
-        executionSheetService.getById(id),
+      // First fetch execution sheet
+      const executionSheetResponse = await executionSheetService.getById(id);
+      setExecutionSheet(executionSheetResponse.data);
+      
+      // Then fetch the worksheet and operators in parallel
+      const [worksheetResponse, operatorsResponse] = await Promise.all([
+        worksheetService.get(executionSheetResponse.data.workSheetId),
         userService.listUsers()
       ]);
 
-      setExecutionSheet(executionSheetResponse.data);
+      setWorksheet(worksheetResponse.data);
       
       // Filter users to only show PO (Partner Operator) roles
       const partnerOperators = operatorsResponse.data.filter(user => 
         user.role === 'PO'
       );
       setOperators(partnerOperators);
+      
+      // Filter operators to show only those from the same corporation as the service provider
+      const serviceProviderId = worksheetResponse.data.metadata?.serviceProviderId;
+      if (serviceProviderId) {
+        const compatibleOperators = partnerOperators.filter(operator => 
+          operator.corporationId === serviceProviderId.toString()
+        );
+        setFilteredOperators(compatibleOperators);
+      } else {
+        // If no serviceProviderId, show all operators
+        setFilteredOperators(partnerOperators);
+      }
 
     } catch (err) {
       setError('Erro ao carregar dados da folha de execução');
@@ -83,7 +101,7 @@ const ExecutionSheetAssign = () => {
         executionSheetId: parseInt(id),
         polygonId: polygonId,
         operationId: operationId,
-        operatorId: operatorId,
+        operatorId: operatorId.toString(), // Ensure operatorId is sent as string
       });
 
       setSuccess('Operação atribuída com sucesso!');
@@ -208,16 +226,28 @@ const ExecutionSheetAssign = () => {
             <Typography variant="body1">
               <strong>Data Início:</strong> {executionSheet.startingDate}
             </Typography>
+            {worksheet?.metadata?.serviceProviderId && (
+              <Typography variant="body1">
+                <strong>Prestador de Serviço ID:</strong> {worksheet.metadata.serviceProviderId}
+              </Typography>
+            )}
           </Grid>
           <Grid item xs={12} md={6}>
             <Typography variant="body1">
-              <strong>Total de Operadores Disponíveis:</strong> {operators.length}
+              <strong>Total de Operadores Disponíveis:</strong> {filteredOperators.length}
             </Typography>
             <Typography variant="body1">
               <strong>Operações Pendentes:</strong> {pendingOperations.length}
             </Typography>
           </Grid>
         </Grid>
+        
+        {filteredOperators.length === 0 && operators.length > 0 && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Nenhum operador da empresa prestadora de serviços (ID: {worksheet?.metadata?.serviceProviderId}) foi encontrado. 
+            Total de operadores PO no sistema: {operators.length}
+          </Alert>
+        )}
       </Box>
 
       {error && (
@@ -276,17 +306,23 @@ const ExecutionSheetAssign = () => {
                           );
                         }
                       }}
-                      disabled={assignmentInProgress}
+                      disabled={assignmentInProgress || filteredOperators.length === 0}
                       value=""
                     >
-                      {operators.map((operator) => (
-                        <MenuItem key={operator.id} value={operator.id}>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <PersonIcon sx={{ mr: 1, fontSize: 'small' }} />
-                            {operator.personalInfo?.fullName || operator.username}
-                          </Box>
+                      {filteredOperators.length === 0 ? (
+                        <MenuItem disabled>
+                          Nenhum operador da empresa disponível
                         </MenuItem>
-                      ))}
+                      ) : (
+                        filteredOperators.map((operator) => (
+                          <MenuItem key={operator.id} value={operator.id}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <PersonIcon sx={{ mr: 1, fontSize: 'small' }} />
+                              {operator.personalInfo?.fullName || operator.username}
+                            </Box>
+                          </MenuItem>
+                        ))
+                      )}
                     </Select>
                   </FormControl>
                 </CardActions>
@@ -344,16 +380,23 @@ const ExecutionSheetAssign = () => {
       {/* Operators Summary */}
       <Box sx={{ mt: 4 }}>
         <Typography variant="h6" gutterBottom>
-          Operadores Disponíveis ({operators.length})
+          Operadores Disponíveis ({filteredOperators.length})
         </Typography>
         <Paper sx={{ p: 2 }}>
-          {operators.length === 0 ? (
+          {filteredOperators.length === 0 ? (
             <Typography variant="body2" color="textSecondary">
-              Nenhum operador (PO) encontrado no sistema.
+              Nenhum operador (PO) da empresa prestadora de serviços encontrado.
+              {operators.length > 0 && (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="textSecondary">
+                    Total de operadores PO no sistema: {operators.length}
+                  </Typography>
+                </Box>
+              )}
             </Typography>
           ) : (
             <Grid container spacing={2}>
-              {operators.map((operator) => (
+              {filteredOperators.map((operator) => (
                 <Grid item xs={12} sm={6} md={4} key={operator.id}>
                   <Box sx={{ p: 1, border: 1, borderColor: 'divider', borderRadius: 1 }}>
                     <Typography variant="body2">
@@ -361,6 +404,7 @@ const ExecutionSheetAssign = () => {
                     </Typography>
                     <Typography variant="caption" color="textSecondary">
                       ID: {operator.id} | Role: {operator.role}
+                      {operator.corporationId && ` | Corp: ${operator.corporationId}`}
                     </Typography>
                   </Box>
                 </Grid>
