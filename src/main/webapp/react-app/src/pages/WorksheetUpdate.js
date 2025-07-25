@@ -294,7 +294,8 @@ const WorksheetUpdate = () => {
           posa_description: formData.posaDescription,
           posp_code: formData.pospCode,
           posp_description: formData.pospDescription,
-          operations: formData.operations
+          operations: formData.operations,
+          issuing_user_id: user?.id?.toString() || "1"
         }
       };
 
