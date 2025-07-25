@@ -325,4 +325,18 @@ public class DatastoreUserRepository {
         }
         return users;
     }
+
+    public List<User> findUsersByCorporationId(String corporationId) {
+        Query<Entity> query = Query.newEntityQueryBuilder()
+                .setKind(USER_KIND)
+                .setFilter(StructuredQuery.PropertyFilter.eq(PROPERTY_CORPORATION_ID, corporationId))
+                .build();
+
+        List<User> users = new ArrayList<>();
+        QueryResults<Entity> results = datastore.run(query);
+        while (results.hasNext()) {
+            users.add(convertToUser(results.next()));
+        }
+        return users;
+    }
 }

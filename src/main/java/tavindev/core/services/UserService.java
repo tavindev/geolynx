@@ -38,6 +38,15 @@ public class UserService {
         return allUsers;
     }
 
+    public List<User> listUsersOfCorporations(String tokenId) {
+        User currentUser = authUtils.validateAndGetUser(tokenId);
+        // Check if user has permission to view user details
+        PermissionAuthorizationHandler.checkPermission(currentUser, Permission.LIST_ALL_CORPORATION_USERS);
+        List<User> allUsers = userRepository.findUsersByCorporationId(currentUser.getCorporationId());
+
+        return allUsers;
+    }
+
     public User getUserById(String tokenId, String userId) {
         User currentUser = authUtils.validateAndGetUser(tokenId);
 

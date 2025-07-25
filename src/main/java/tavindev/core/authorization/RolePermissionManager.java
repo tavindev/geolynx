@@ -89,6 +89,7 @@ public class RolePermissionManager {
 
         // Representative (PRBO) permissions
         ROLE_PERMISSIONS.put(UserRole.PRBO, EnumSet.of(
+                Permission.VIEW_GEN_FO,
                 Permission.CREATE_FE,
                 Permission.ASSIGN_OP_FE,
                 Permission.VIEW_ACT_OP_FE,
@@ -100,7 +101,8 @@ public class RolePermissionManager {
                 Permission.CHANGE_OWN_ATTRIBUTES,
                 Permission.REQUEST_OWN_REMOVAL,
                 Permission.VIEW_ACCOUNT_STATUS,
-                Permission.VIEW_ACCOUNT_PROFILE));
+                Permission.VIEW_ACCOUNT_PROFILE,
+                Permission.LIST_ALL_CORPORATION_USERS));
 
         // Operator (PO) permissions
         ROLE_PERMISSIONS.put(UserRole.PO, EnumSet.of(

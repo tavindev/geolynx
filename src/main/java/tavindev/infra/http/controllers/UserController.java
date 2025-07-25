@@ -6,10 +6,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jvnet.hk2.annotations.Service;
-import tavindev.core.entities.User;
-import tavindev.core.entities.AccountStatus;
-import tavindev.core.entities.UserRole;
-import tavindev.core.entities.UserProfile;
+import tavindev.core.entities.*;
 import tavindev.core.services.UserService;
 import tavindev.infra.dto.*;
 import tavindev.infra.dto.accountProfile.AccountProfileDTO;
@@ -105,6 +102,14 @@ public class UserController {
     @Path("/all")
     public Response listUsers(@CookieParam("session") String sessionToken) {
         List<User> users = userService.listUsers(sessionToken);
+
+        return Response.ok(users).build();
+    }
+
+    @GET
+    @Path("/all-corporation")
+    public Response listUsersOfCorporations(@CookieParam("session") String sessionToken) {
+        List<User> users = userService.listUsersOfCorporations(sessionToken);
 
         return Response.ok(users).build();
     }

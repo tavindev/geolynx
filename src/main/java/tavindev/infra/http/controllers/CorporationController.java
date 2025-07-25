@@ -36,4 +36,5 @@ public class CorporationController {
 
         return Response.ok(corporations).build();
     }
+
 }

@@ -32,6 +32,7 @@ public enum Permission {
     DEFINE_EXECUTION_PLAN("Define execution plan by areas, machines or operations"),
     ADD_SPEED_TIME("Add speed and estimated execution time"),
     GET_OPERATION_NOTIFICATIONS("Get notified when operations are completed"),
+    LIST_ALL_CORPORATION_USERS("List all corporation users"),
 
     // Operator (PO) permissions
     START_ACT_OP_FE("Start activity"),
